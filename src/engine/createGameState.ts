@@ -1,8 +1,10 @@
 import { GAME_DATA } from './data.ts'
 import { startTurn } from './phases.ts'
 import { createRng, normaliseSeed } from './rng.ts'
+import { withLog } from './state.ts'
 import { ACTION_POINTS_PER_TURN } from './types.ts'
 import type { Country, CountryId, FactionId, GameSettings, GameState } from './types.ts'
+import { varyNeighbours } from './variety.ts'
 
 /** The player's country. See DESIGN.md, "Concept". */
 const DEFAULT_PLAYER_ID = 'kessara'
@@ -13,7 +15,7 @@ export interface NewGameOptions {
   playerId?: CountryId
   /** Defaults to the countries in src/data/countries.json. */
   countries?: readonly Country[]
-  /** Switch off the computer rivals or the event deck. Both are on by default. */
+  /** Switch off the computer rivals, the event deck or the variety between games. All are on by default. */
   settings?: Partial<GameSettings>
 }
 
@@ -43,6 +45,10 @@ export function createGameState({
   }
 
   const rng = createRng(seed)
+  const allSettings: GameSettings = { rivals: true, events: true, variety: true, ...settings }
+  // Copy so the game never shares objects with the caller's data.
+  const copied = Object.fromEntries(countries.map((country) => [country.id, structuredClone(country)]))
+  const varied = allSettings.variety ? varyNeighbours(copied, playerId, rng) : { countries: copied, texts: [] }
   const state: GameState = {
     seed: normaliseSeed(seed),
     rngState: normaliseSeed(seed),
@@ -52,7 +58,7 @@ export function createGameState({
     playerId,
     actionPoints: ACTION_POINTS_PER_TURN,
     deficitTurns: 0,
-    settings: { rivals: true, events: true, ...settings },
+    settings: allSettings,
     crisis: null,
     chains: [],
     lastDrawn: {},
@@ -65,10 +71,9 @@ export function createGameState({
     brokerTurns: 0,
     factions: startingFactions(),
     straitAccess: openStraits(),
-    // Copy so the game never shares objects with the caller's data.
-    countries: Object.fromEntries(countries.map((country) => [country.id, structuredClone(country)])),
+    countries: varied.countries,
     log: [],
   }
-  const opened = startTurn(state, rng)
+  const opened = startTurn(withLog(state, 'briefing', varied.texts), rng)
   return { ...opened, rngState: rng.state }
 }

@@ -4,7 +4,7 @@
 // legitimacy falls. Run it with `npm run simulate`, optionally giving the
 // number of games: `npm run simulate -- 20`.
 
-import { advanceTurn, createGameState, createRng, getAction, MAX_TURNS } from '../src/engine/index.ts'
+import { advanceTurn, createGameState, createRng, GAME_DATA, getAction, MAX_TURNS } from '../src/engine/index.ts'
 import type { GameState, PlayerTurn, Rng } from '../src/engine/index.ts'
 
 const NEIGHBOURS = ['valmora', 'ostrel', 'sabu', 'daranth']
@@ -29,6 +29,8 @@ function passiveTurn(state: GameState, rng: Rng): PlayerTurn {
 interface GameResult {
   seed: number
   alignments: Record<string, number>
+  /** Neighbours whose personality the seed changed for this game. */
+  swapped: string[]
   /** Lowest legitimacy at the start of any turn up to LEGITIMACY_TURN. */
   lowestEarlyLegitimacy: number
   legitimacyAtTurn: number
@@ -41,6 +43,8 @@ interface GameResult {
 
 function playGame(seed: number): GameResult {
   let state = createGameState({ seed })
+  const usual = (id: string) => GAME_DATA.countries.find((country) => country.id === id)?.personality
+  const swapped = NEIGHBOURS.filter((id) => state.countries[id].personality !== usual(id))
   const player = createRng(seed + 1_000_003)
   let lowestEarlyLegitimacy = state.countries[state.playerId].stats.legitimacy
   let legitimacyAtTurn = lowestEarlyLegitimacy
@@ -58,6 +62,7 @@ function playGame(seed: number): GameResult {
   return {
     seed,
     alignments: Object.fromEntries(NEIGHBOURS.map((id) => [id, state.countries[id].stats.alignment])),
+    swapped,
     lowestEarlyLegitimacy,
     legitimacyAtTurn,
     firstBelowFloor,
@@ -96,24 +101,37 @@ const seconds = ((performance.now() - started) / 1000).toFixed(1)
 
 console.log(`${games} games with a passive player, ${MAX_TURNS} turns each (${seconds}s)\n`)
 
-console.log('Region split at the end: neighbours leaning toward each power')
-const ends = results.flatMap((result) => Object.values(result.alignments))
-const halvard = ends.filter((value) => value > 0).length
-const tsengai = ends.filter((value) => value < 0).length
-console.log(`  All neighbours: Halvard ${percent(halvard, ends.length)}, Tsengai ${percent(tsengai, ends.length)}, even ${percent(ends.length - halvard - tsengai, ends.length)}`)
+/** "Halvard 83%  Tsengai 14%  even 3%" for a list of end alignments. */
+function sides(values: number[]): string {
+  const halvard = values.filter((value) => value > 0).length
+  const tsengai = values.filter((value) => value < 0).length
+  const even = values.length - halvard - tsengai
+  return `Halvard ${percent(halvard, values.length).padStart(4)}  Tsengai ${percent(tsengai, values.length).padStart(4)}  even ${percent(even, values.length).padStart(3)}`
+}
+
+console.log('Which side each neighbour ends on')
 for (const id of NEIGHBOURS) {
   const values = results.map((result) => result.alignments[id])
-  const leanHalvard = values.filter((value) => value > 0).length
   const mean = Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)
-  console.log(`  ${id.padEnd(8)} Halvard ${percent(leanHalvard, values.length).padStart(4)}, mean alignment ${mean}`)
+  const swaps = results.filter((result) => result.swapped.includes(id)).length
+  console.log(`  ${id.padEnd(9)}${sides(values)}  mean ${String(mean).padStart(4)}  (other personality in ${swaps} games)`)
 }
+console.log(`  ${'All four'.padEnd(9)}${sides(results.flatMap((result) => Object.values(result.alignments)))}`)
+
+console.log('\nGames by how many neighbours end leaning toward Halvard and toward Tsengai')
+const splits = new Map<string, number>()
 const majority = { halvard: 0, tsengai: 0, even: 0 }
 for (const result of results) {
   const values = Object.values(result.alignments)
-  const lean = values.filter((value) => value > 0).length - values.filter((value) => value < 0).length
-  majority[lean > 0 ? 'halvard' : lean < 0 ? 'tsengai' : 'even'] += 1
+  const halvard = values.filter((value) => value > 0).length
+  const tsengai = values.filter((value) => value < 0).length
+  const key = `${halvard}–${tsengai}`
+  splits.set(key, (splits.get(key) ?? 0) + 1)
+  majority[halvard > tsengai ? 'halvard' : halvard < tsengai ? 'tsengai' : 'even'] += 1
 }
-console.log(`  Games won by: Halvard ${majority.halvard}, Tsengai ${majority.tsengai}, split evenly ${majority.even}`)
+const ordered = [...splits.entries()].sort((a, b) => b[0].localeCompare(a[0]))
+console.log(`  ${ordered.map(([split, count]) => `${split}: ${count}`).join('   ')}`)
+console.log(`  Halvard ahead in ${majority.halvard} games, Tsengai ahead in ${majority.tsengai}, level in ${majority.even}`)
 
 console.log(`\nPassive player's legitimacy (starts at 50)`)
 const early = results.map((result) => result.lowestEarlyLegitimacy)
@@ -122,7 +140,8 @@ console.log(`  At turn ${LEGITIMACY_TURN}: median ${median(results.map((result) 
 const fellEarly = results.filter((result) => result.lowestEarlyLegitimacy < LEGITIMACY_FLOOR)
 const byLuckAlone = fellEarly.filter((result) => lowestWithoutCovertOperations(result.seed) < LEGITIMACY_FLOOR)
 const byRivals = fellEarly.filter((result) => !byLuckAlone.includes(result))
-const seedList = (list: GameResult[]) => (list.length ? ` (seeds ${list.map((result) => result.seed).join(', ')})` : '')
+const seedList = (list: GameResult[]) =>
+  list.length === 0 ? '' : ` (${list.length === 1 ? 'seed' : 'seeds'} ${list.map((result) => result.seed).join(', ')})`
 console.log(`  Below ${LEGITIMACY_FLOOR} before turn ${LEGITIMACY_TURN} because of the rivals: ${byRivals.length}${seedList(byRivals)}`)
 console.log(`  Below ${LEGITIMACY_FLOOR} before turn ${LEGITIMACY_TURN} from crisis answers alone, even with no covert operations: ${byLuckAlone.length}${seedList(byLuckAlone)}`)
 const final = results.map((result) => result.finalLegitimacy)

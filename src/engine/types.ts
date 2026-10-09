@@ -302,6 +302,24 @@ export interface EventCard {
   responses: EventResponse[]
 }
 
+/**
+ * How far the seed varies each neighbour at the start of a game. See
+ * DESIGN.md, "Variety between games". Each value is the most it can move
+ * either way.
+ */
+export interface VarietyRules {
+  alignment: number
+  relations: number
+  /** Legitimacy, military loyalty and defence. */
+  stats: number
+  /** Treasury, as a share of its starting value. */
+  treasuryShare: number
+  /** Growth, in steps of 0.25%. */
+  growth: number
+  /** Chance a neighbour gets one of the other personalities instead of its usual one. */
+  personalitySwapChance: number
+}
+
 export interface DeckRules {
   /** Turns before a card drawn at random can be drawn again. */
   cooldownTurns: number
@@ -366,6 +384,7 @@ export interface GameData {
   events: EventCard[]
   deck: DeckRules
   rivals: RivalRules
+  variety: VarietyRules
 }
 
 // ---- Turns and game state ----
@@ -443,6 +462,8 @@ export interface PendingChain {
 export interface GameSettings {
   rivals: boolean
   events: boolean
+  /** The seed varies the neighbours at the start of the game. */
+  variety: boolean
 }
 
 export type Phase = 'briefing' | 'crisis' | 'actions' | 'rivals' | 'resolution'

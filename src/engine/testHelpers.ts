@@ -4,11 +4,12 @@ import { createGameState } from './createGameState.ts'
 import type { CountryId, Economy, GameState, PlayerAction, PlayerTurn, Stats } from './types.ts'
 
 /**
- * A new game with the rivals and the event deck switched off, so a test sees
- * only the effects of the player's own choices and the rule it is checking.
+ * A new game with the rivals, the event deck and the variety between games
+ * switched off, so a test sees only the data's starting values and the
+ * effects of the player's own choices and the rule it is checking.
  */
 export function quietGame(seed = 1): GameState {
-  return createGameState({ seed, settings: { rivals: false, events: false } })
+  return createGameState({ seed, settings: { rivals: false, events: false, variety: false } })
 }
 
 /** A turn with no crisis response and the given actions. */

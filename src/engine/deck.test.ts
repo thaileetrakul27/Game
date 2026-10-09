@@ -4,8 +4,8 @@ import { advanceTurn, cardWeight, createGameState, createRng, describeCrisis, dr
 import type { CountryId, GameState, Stats } from './index.ts'
 import { patchPlayer } from './testHelpers.ts'
 
-// The deck is on and the rivals are off, so only the cards change the state.
-const start = createGameState({ seed: 1, settings: { rivals: false } })
+// The deck is on and the rivals and the variety between games are off, so only the cards change the state.
+const start = createGameState({ seed: 1, settings: { rivals: false, variety: false } })
 const seeds = Array.from({ length: 40 }, (_, index) => index + 1)
 const weightOf = (state: GameState, cardId: string) => cardWeight(state, getEvent(cardId))
 

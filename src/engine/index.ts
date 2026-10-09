@@ -36,5 +36,6 @@ export type { Alert, AlertLevel, FactionStatus, HedgingStatus, NewsStory } from 
 export { projectTurnsLeft, quarterLabel } from './state.ts'
 export { accessOf, accessPhrase, closureRisk, straitIncome, straitOwnedBy, straitTolls } from './straits.ts'
 export { activeDeal, tradeDealsOf, turnsLeftPhrase } from './trade.ts'
+export { varyNeighbours } from './variety.ts'
 export type { TradeDealView } from './trade.ts'
 export * from './types.ts'

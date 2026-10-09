@@ -12,6 +12,7 @@ import projectsJson from '../data/projects.json' with { type: 'json' }
 import rivalsJson from '../data/rivals.json' with { type: 'json' }
 import straitControlJson from '../data/straitControl.json' with { type: 'json' }
 import straitsJson from '../data/straits.json' with { type: 'json' }
+import varietyJson from '../data/variety.json' with { type: 'json' }
 import type {
   ActionDef,
   ActionTarget,
@@ -304,6 +305,11 @@ export function validateGameData(data: GameData): GameData {
     check(data.rivals.personalities[personality] !== undefined, 'rivals.json', `missing weights for "${personality}"`)
   }
   check(data.rivals.tensionCurve >= 0, 'rivals.json', 'tensionCurve cannot be negative')
+
+  const { personalitySwapChance, ...ranges } = data.variety
+  for (const [name, range] of Object.entries(ranges)) check(range >= 0, 'variety.json', `${name} cannot be negative`)
+  check(personalitySwapChance >= 0 && personalitySwapChance <= 1, 'variety.json', 'personalitySwapChance must be 0 to 1')
+  check(Number.isInteger(data.variety.growth / 0.25), 'variety.json', 'growth must be a whole number of 0.25% steps')
   for (const scale of ['treasuryScale', 'relationsScale', 'statScale'] as const) {
     check(data.rivals[scale] > 0, 'rivals.json', `${scale} must be above 0`)
   }
@@ -328,6 +334,7 @@ export const GAME_DATA: GameData = validateGameData({
   events: (eventsJson as unknown as { cards: EventCard[] }).cards,
   deck: { cooldownTurns: eventsJson.cooldownTurns },
   rivals: rivalsJson as unknown as RivalRules,
+  variety: varietyJson,
 })
 
 function find<T extends { id: string }>(items: readonly T[], id: string, kind: string): T {

@@ -11,7 +11,7 @@
   "statScale": 60,
   "playerBloc": 2,
   "greatPowerBloc": 1,
-  "tensionCurve": 3,
+  "tensionCurve": 3.5,
   "projectDiscount": 0.6,
   "reactionPerAlignment": 0.6,
   "personalities": {

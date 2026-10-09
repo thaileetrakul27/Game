@@ -20,8 +20,9 @@ import { rivalsPhase } from './phases.ts'
 import { changeRelations } from './state.ts'
 import { patchPlayer, quietGame, turnWith } from './testHelpers.ts'
 
-// The rivals are on and the event deck is off, so only actions change the state.
-const start = createGameState({ seed: 1, settings: { events: false } })
+// The rivals are on and the event deck and the variety between games are off, so the
+// countries start as the data has them and only actions change the state.
+const start = createGameState({ seed: 1, settings: { events: false, variety: false } })
 /** The same world in the game's last years, when hostile rivals are at their boldest. */
 const lateGame: GameState = { ...start, turn: 36 }
 const rivals = Object.values(start.countries).filter((country) => country.id !== start.playerId)
@@ -148,7 +149,9 @@ describe('a rival turn', () => {
 describe('rising tension', () => {
   it('makes hostile rivals bolder as the game goes on, slowly at first', () => {
     expect(tension({ ...start, turn: 1 })).toBe(0)
-    expect(tension({ ...start, turn: 14 })).toBeCloseTo(1 / 27)
+    // Halfway through, under a tenth of the full weight.
+    expect(tension({ ...start, turn: 20.5 })).toBeCloseTo(0.5 ** GAME_DATA.rivals.tensionCurve)
+    expect(tension({ ...start, turn: 20.5 })).toBeLessThan(0.1)
     expect(tension({ ...start, turn: 40 })).toBe(1)
 
     // The same feud: Ostrel holds back early in the game and plots late.
