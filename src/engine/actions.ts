@@ -38,14 +38,32 @@ function resolveTarget(
   if (!Object.hasOwn(state.countries, targetId)) throw new Error(`Unknown target country: ${targetId}`)
 
   const target = state.countries[targetId]
-  if (target.id === actor.id) throw new Error(`${def.name} cannot target your own country`)
-  if (def.target === 'greatPower' && target.kind !== 'greatPower') {
-    throw new Error(`${def.name} must target a great power`)
-  }
-  if (def.target === 'minor' && target.kind !== 'minor') {
-    throw new Error(`${def.name} must target a smaller state`)
-  }
+  const problem = targetProblem(def, actor, target)
+  if (problem) throw new Error(problem)
   return target
+}
+
+/** Why the action's target rule rules out this target, or null if it allows it. */
+function targetProblem(def: ActionDef, actor: Country, target: Country): string | null {
+  if (target.id === actor.id) return `${def.name} cannot target your own country`
+  if (def.target === 'greatPower' && target.kind !== 'greatPower') return `${def.name} must target a great power`
+  if (def.target === 'minor' && target.kind !== 'minor') return `${def.name} must target a smaller state`
+  return null
+}
+
+/** The countries an action's target rule allows. Empty for actions with no target. */
+export function targetsFor(state: GameState, actorId: CountryId, actionId: string): CountryId[] {
+  const def = getAction(actionId)
+  if (def.target === 'none') return []
+  const actor = state.countries[actorId]
+  return Object.values(state.countries)
+    .filter((country) => targetProblem(def, actor, country) === null)
+    .map((country) => country.id)
+}
+
+/** Total action points a list of actions costs. */
+export function actionsCost(actions: readonly PlayerAction[]): number {
+  return actions.reduce((total, action) => total + getAction(action.actionId).cost, 0)
 }
 
 function resolveOption(def: ActionDef, optionId: string | undefined): ActionOption | null {

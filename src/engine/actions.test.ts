@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { advanceTurn, createGameState, debtInterest, getProject } from './index.ts'
+import {
+  actionsCost,
+  advanceTurn,
+  checkActions,
+  createGameState,
+  debtInterest,
+  getProject,
+  projectTurnsLeft,
+  quarterLabel,
+  targetsFor,
+} from './index.ts'
 import type { GameState } from './index.ts'
 import { patchPlayer, turnWith } from './testHelpers.ts'
 
@@ -116,6 +126,7 @@ describe('actions', () => {
     let built = advanceTurn(start, turnWith({ actionId: 'buildInfrastructure', option: 'powerGrid' }))
     let skipped = advanceTurn(start, turnWith())
     expect(skipped.countries.kessara.stats.treasury - built.countries.kessara.stats.treasury).toBe(grid.cost)
+    expect(projectTurnsLeft(built, built.countries.kessara.projects[0])).toBe(grid.turns - 1)
 
     // The turn it starts counts as the first turn of building.
     for (let turn = 2; turn <= grid.turns; turn++) {
@@ -125,8 +136,33 @@ describe('actions', () => {
     }
     expect(built.log).toContainEqual({ turn: grid.turns, phase: 'resolution', text: 'Kessara completes Power grid.' })
     expect(built.countries.kessara.stats.growth).toBeGreaterThan(skipped.countries.kessara.stats.growth)
+    expect(projectTurnsLeft(built, built.countries.kessara.projects[0])).toBe(0)
 
     const again = turnWith({ actionId: 'buildInfrastructure', option: 'powerGrid' })
     expect(() => advanceTurn(built, again)).toThrow(/already/)
+  })
+})
+
+describe('helpers for the interface', () => {
+  it('list the targets each action allows', () => {
+    expect(targetsFor(start, 'kessara', 'acceptLoan')).toEqual(['halvard', 'tsengai'])
+    expect(targetsFor(start, 'kessara', 'covertOperation')).toEqual(['valmora', 'ostrel', 'sabu', 'daranth'])
+    expect(targetsFor(start, 'kessara', 'signTradeDeal')).not.toContain('kessara')
+    expect(targetsFor(start, 'kessara', 'militarySpending')).toEqual([])
+  })
+
+  it('check a plan with the same rules as the turn itself', () => {
+    expect(checkActions(start, [{ actionId: 'militarySpending' }])).toBeNull()
+    expect(checkActions(start, [{ actionId: 'acceptLoan', targetId: 'valmora' }])).toMatch(/great power/)
+
+    const tooMuch = [{ actionId: 'domesticReform' }, { actionId: 'domesticReform' }, { actionId: 'militarySpending' }]
+    expect(actionsCost(tooMuch)).toBe(5)
+    expect(checkActions(start, tooMuch)).toMatch(/action points/)
+  })
+
+  it('label each turn with its year and quarter', () => {
+    expect(quarterLabel(1)).toBe('Year 1, Q1')
+    expect(quarterLabel(5)).toBe('Year 2, Q1')
+    expect(quarterLabel(40)).toBe('Year 10, Q4')
   })
 })
