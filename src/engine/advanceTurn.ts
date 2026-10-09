@@ -1,6 +1,6 @@
 import { actionsPhase, crisisPhase, resolutionPhase, rivalsPhase, startTurn } from './phases.ts'
 import { createRng } from './rng.ts'
-import type { GameState, PlayerTurn } from './types.ts'
+import type { GameState, PlayerAction, PlayerTurn } from './types.ts'
 
 /**
  * End the player's turn and return the new state.
@@ -21,4 +21,18 @@ export function advanceTurn(state: GameState, playerTurn: PlayerTurn): GameState
   next = resolutionPhase(next, rng)
   if (next.status === 'playing') next = startTurn(next, rng)
   return { ...next, rngState: rng.state }
+}
+
+/**
+ * Why the player can't take these actions this turn, or null if they can.
+ * Runs the engine's own actions phase and throws the result away, so the
+ * interface can check choices without repeating any rules.
+ */
+export function checkActions(state: GameState, actions: readonly PlayerAction[]): string | null {
+  try {
+    actionsPhase(state, actions, createRng(state.rngState))
+    return null
+  } catch (error) {
+    return error instanceof Error ? error.message : String(error)
+  }
 }

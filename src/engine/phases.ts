@@ -2,13 +2,13 @@
 // takes a state and returns a new one without mutating its input. Stub logic
 // is marked with the milestone that replaces it.
 
-import { takeAction } from './actions.ts'
+import { actionsCost, takeAction } from './actions.ts'
 import { drawCrisis } from './crisis.ts'
-import { getAction, getProject } from './data.ts'
+import { getProject } from './data.ts'
 import { incomeBreakdown } from './economy.ts'
 import { applyEffects } from './effects.ts'
 import type { Rng } from './rng.ts'
-import { changeRelations, changeStat, signed, withLog } from './state.ts'
+import { changeRelations, changeStat, quarterLabel, signed, withLog } from './state.ts'
 import { ACTION_POINTS_PER_TURN, DEFAULT_AFTER_DEFICIT_TURNS, MAX_TURNS } from './types.ts'
 import type { GameState, PlayerAction } from './types.ts'
 
@@ -20,11 +20,9 @@ export function briefingPhase(state: GameState): GameState {
   }
 
   // Stub: the news ticker arrives with the rivals in milestone 6.
-  const year = Math.ceil(state.turn / 4)
-  const quarter = ((state.turn - 1) % 4) + 1
   const { output, tolls, interest, upkeep, net } = incomeBreakdown(state.countries[state.playerId])
   return withLog(next, 'briefing', [
-    `Year ${year}, Q${quarter} briefing.`,
+    `${quarterLabel(state.turn)} briefing.`,
     `Income ${signed(net)}: output ${output}, strait tolls ${tolls}, debt interest -${interest}, upkeep -${upkeep}.`,
   ])
 }
@@ -50,9 +48,9 @@ export function crisisPhase(state: GameState, crisisResponse: string | null): Ga
 
 /** 3. Actions: the player spends action points on actions from src/data/actions.json. */
 export function actionsPhase(state: GameState, playerActions: readonly PlayerAction[], rng: Rng): GameState {
-  const cost = playerActions.reduce((total, action) => total + getAction(action.actionId).cost, 0)
+  const cost = actionsCost(playerActions)
   if (cost > state.actionPoints) {
-    throw new Error(`Actions cost ${cost} points but only ${state.actionPoints} are available`)
+    throw new Error(`Not enough action points: the plan needs ${cost} and ${state.actionPoints} are available`)
   }
 
   let next: GameState = { ...state, actionPoints: state.actionPoints - cost }

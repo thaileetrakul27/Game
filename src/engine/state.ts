@@ -1,7 +1,16 @@
 // Helpers for building a new GameState from an old one without mutating it.
 
 import { GAME_DATA } from './data.ts'
-import type { Country, CountryId, EconomyField, GameState, LogEntry, Phase, StatKey } from './types.ts'
+import type {
+  Country,
+  CountryId,
+  EconomyField,
+  GameState,
+  LogEntry,
+  Phase,
+  ProjectProgress,
+  StatKey,
+} from './types.ts'
 
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
@@ -9,6 +18,16 @@ export function clamp(value: number, min: number, max: number): number {
 
 export function signed(value: number): string {
   return value > 0 ? `+${value}` : `${value}`
+}
+
+/** The in-game date of a turn. Each turn is a quarter, so turn 5 is "Year 2, Q1". */
+export function quarterLabel(turn: number): string {
+  return `Year ${Math.ceil(turn / 4)}, Q${((turn - 1) % 4) + 1}`
+}
+
+/** Turns of building left on a project, counting the current turn. 0 once it is built. */
+export function projectTurnsLeft(state: GameState, progress: ProjectProgress): number {
+  return Math.max(0, progress.completesOnTurn - state.turn + 1)
 }
 
 export function withLog(state: GameState, phase: Phase, texts: string[]): GameState {
