@@ -1,4 +1,4 @@
-import { STAT_NAMES } from '../../engine/index.ts'
+import { GAME_DATA, STAT_NAMES } from '../../engine/index.ts'
 import type { StatKey } from '../../engine/index.ts'
 import { useGameStore } from '../../store/gameStore.ts'
 import { money, percent, signed } from '../format.ts'
@@ -23,8 +23,11 @@ export function CountryDetails() {
   const others = Object.values(game.countries).filter((other) => other.id !== countryId)
   const kind =
     countryId === game.playerId ? 'Your country' : country.kind === 'greatPower' ? 'Great power' : 'Neighbour'
+  const named = (personality: string) => `${personality.charAt(0).toUpperCase()}${personality.slice(1)}`
+  // The seed sometimes gives a neighbour a different personality from its usual one.
+  const usual = GAME_DATA.countries.find((data) => data.id === countryId)?.personality
   const personality = country.personality
-    ? ` Personality: ${country.personality.charAt(0).toUpperCase()}${country.personality.slice(1)}.`
+    ? ` Personality: ${named(country.personality)}${usual && usual !== country.personality ? `, this game (usually ${named(usual)})` : ''}.`
     : ''
 
   return (
