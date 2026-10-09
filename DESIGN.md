@@ -126,7 +126,34 @@ The numbers in these systems are starting values. They live in the data files so
 
 **5. Crises and events.** A deck of 60 or more event cards, weighted by game state. A coup card only enters the deck if loyalty is low. A debt-trap card only appears if debt is high. Some cards chain across turns, so a naval standoff can escalate into a blockade if handled badly.
 
+- **Drawing.** Each turn draws one card, in this order:
+  1. a chained card that has come due;
+  2. a faction's crisis card, if a faction is in unrest;
+  3. a card picked by weight from the cards whose conditions hold.
+- **Weights and conditions.** A card's weight can be boosted while a condition holds, such as a naval standoff becoming more likely while the strait is closed. A card with weight 0 is never picked at random, only by a chain or a faction.
+- **Repeats.** A card can't be drawn again within 6 turns of its last draw.
+- **Targets.** A card can be about a named country, or about whichever power is your patron, the other power, or your largest creditor at the time.
+- **Hidden effects.** Each response shows its visible effects before you choose. Some also have hidden effects, revealed in the log afterwards.
+- **Chains.** A response can have a chance to bring a follow-up card a set number of turns later.
+- The starter deck has 20 cards, including the three faction crisis cards. Milestone 7 and later can add more to reach the 60 planned above.
+
 **Computer rivals.** Each rival scores every legal action with a simple utility function (gain in its own stats, weighted by personality, plus a bit of randomness), then picks the top ones. No machine learning needed, and it stays readable when you debug it.
+
+- **Choosing.** Each rival has 4 action points, like you. It keeps picking its highest-scoring action until its points run out or nothing scores above a small minimum, and never takes the same action twice in a turn.
+- **The utility** of an action adds up its change to the rival's own treasury (worth less to a rich country), income over the next 8 turns, legitimacy, military loyalty, defence, relations (great powers count double), and its bloc, plus the damage done to countries it is hostile to.
+- **Bloc** means something different for each kind of rival:
+  - A great power wants smaller states, Kessara above all, moving toward its end of the scale.
+  - A Hardliner wants to move further toward the side it already leans to.
+  - An Opportunist wants to move toward the winning side, the end of the scale that the smaller states lean toward overall.
+  - A Merchant wants to stay balanced.
+- **Personalities.** Each personality weights these differently:
+  - Merchants care most about income.
+  - Hardliners care about defence, military loyalty and hurting their enemies.
+  - Opportunists sit in between.
+- **Chance effects** are scored at their expected value, so a rival can't see the outcome in advance.
+- **Consent.** A rival can't sign a trade deal with you on your behalf. Deals with you only happen when you choose them.
+- **Reactions.** When your alignment moves during a turn, the great power you moved away from resents it before the rivals act, losing 0.6 relations with you per point moved. A trade deal with Halvard improves your Halvard relations and costs about 3 with Tsengai.
+- **News.** What the rivals did last turn appears as the news at the start of your turn.
 
 **Not yet in effect.** The Diplomatic summit's leverage gain has no effect until leverage is defined. A coup attempt cannot succeed and end the game until milestone 7 adds the win and loss checks.
 
