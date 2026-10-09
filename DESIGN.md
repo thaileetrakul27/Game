@@ -117,7 +117,7 @@ The interface only sends player actions to the store and draws whatever state co
 - **Map.** A single SVG file with one shape per country, styled by state. No game engine or canvas library needed.
 - **Randomness.** A seeded generator (for example, mulberry32), so any game can be replayed exactly from its seed.
 - **Testing.** Vitest for unit tests and the simulation script.
-- **Hosting.** Free on GitHub Pages or Netlify, so friends can play from a link.
+- **Hosting.** Free on GitHub Pages at thaileetrakul27.github.io/Game/, so friends can play from a link. GitHub Actions builds and deploys the game on every push to main.
 
 Suggested folders are src/engine, src/data, src/ui, src/store and scripts/simulate.ts.
 
