@@ -20,13 +20,13 @@ The original hook is the hedging meter. Every deal you take from one power shift
 
 Each turn runs through five fixed phases, and you get 4 action points to spend in the middle one.
 
-1. **Briefing.** Income arrives, trade flows through the strait, and a news ticker reports what rivals did last turn.
-2. **Crisis.** One event card is resolved (a coup next door, a naval standoff, a debt offer, a typhoon). The card was drawn at the end of the previous turn and shown to you before you act, so you always see it before committing to anything. You pick one of two or three responses, each with visible and hidden effects. The first turn's card is drawn when the game starts.
+1. **Briefing.** Income arrives, trade flows through the strait, and a news ticker reports what rivals did last turn. The briefing runs at the end of the previous turn, straight after resolution, so you see the money and the news before choosing anything. The first turn's briefing runs when the game starts.
+2. **Crisis.** One event card is resolved (a coup next door, a naval standoff, a debt offer, a typhoon). The card is drawn right after the briefing and shown to you before you act, so you always see it before committing to anything. You pick one of two or three responses, each with visible and hidden effects.
 3. **Actions.** Spend 4 action points across the action menu below. Some actions take several turns to finish.
 4. **Rival moves.** Both great powers and all four neighbours act, using the same rules you do.
-5. **Resolution.** Stats update, thresholds are checked, demands are issued, the game checks for a win or loss, and next turn's crisis card is drawn.
+5. **Resolution.** Stats update, thresholds are checked, demands are issued, and the game checks for a win or loss. If the game goes on, the next turn's briefing runs and its crisis card is drawn.
 
-You make all of a turn's choices at once: your crisis response together with how you spend your action points. The engine then plays the five phases in order.
+You make all of a turn's choices at once, after seeing the briefing and the crisis card: your crisis response together with how you spend your action points. Ending the turn plays the crisis, actions, rival moves and resolution phases, then opens the next turn with its briefing and crisis card.
 
 | Action | Cost | What it does |
 | --- | --- | --- |
