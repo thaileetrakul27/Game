@@ -1,0 +1,5 @@
+{
+  "interestRatePerTurn": 0.02,
+  "growthMin": -5,
+  "growthMax": 8
+}

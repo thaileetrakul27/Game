@@ -1,34 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { advanceTurn, createGameState } from './index.ts'
-import type { Country, GameState, Personality } from './index.ts'
-
-// Minimal test countries. The real country data arrives in src/data in milestone 2.
-function country(id: string, name: string, personality: Personality | null): Country {
-  return {
-    id,
-    name,
-    personality,
-    stats: {
-      treasury: 100,
-      debt: 0,
-      growth: 2,
-      legitimacy: 60,
-      militaryLoyalty: 60,
-      defence: 40,
-      alignment: 0,
-    },
-    relations: {},
-  }
-}
-
-const countries = [
-  country('kessara', 'Kessara', null),
-  country('halvard', 'Halvard Compact', 'merchant'),
-  country('tsengai', 'Tsengai Republic', 'hardliner'),
-]
+import type { GameState } from './index.ts'
 
 function playFullGame(seed: number): GameState {
-  let state = createGameState({ seed, playerId: 'kessara', countries })
+  let state = createGameState({ seed })
   while (state.status === 'playing') {
     state = advanceTurn(state, {
       crisisResponse: null,
@@ -50,8 +25,9 @@ describe('advanceTurn', () => {
   })
 
   it("runs each turn's briefing before the player chooses", () => {
-    const start = createGameState({ seed: 1, playerId: 'kessara', countries })
-    expect(start.log).toEqual([expect.objectContaining({ turn: 1, phase: 'briefing' })])
+    const start = createGameState({ seed: 1 })
+    expect(start.log.length).toBeGreaterThan(0)
+    expect(start.log.every((entry) => entry.turn === 1 && entry.phase === 'briefing')).toBe(true)
 
     const next = advanceTurn(start, { crisisResponse: null, actions: [] })
     expect(next.log.at(-1)).toMatchObject({ turn: 2, phase: 'briefing' })
@@ -61,7 +37,7 @@ describe('advanceTurn', () => {
   })
 
   describe('crisis responses', () => {
-    const noCrisis = createGameState({ seed: 1, playerId: 'kessara', countries })
+    const noCrisis = createGameState({ seed: 1 })
     // The event deck arrives in milestone 6, so place a card by hand.
     const withCrisis: GameState = {
       ...noCrisis,

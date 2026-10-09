@@ -32,6 +32,7 @@ You make all of a turn's choices at once, after seeing the briefing and the cris
 | --- | --- | --- |
 | Sign trade deal | 1 | More income, shifts alignment toward that partner |
 | Accept loan or investment | 1 | Big cash now, debt and alignment shift later |
+| Repay debt | 1 | Pay off part of the debt to one great power from the treasury, shifts alignment slightly away from that power since you depend on them less |
 | Build infrastructure | 2 | Multi-turn project (port, canal, rail, power grid) |
 | Diplomatic summit | 1 | Raise relations with one country, small leverage gain |
 | Domestic reform | 2 | Raise legitimacy or stability, angers one faction |
@@ -74,8 +75,14 @@ Five systems drive the game, and the hedging system is the one that makes it fee
 
 **1. Economy.** Income each turn equals base output times growth, plus strait tolls, minus debt interest and upkeep. Trade deals raise growth. Infrastructure takes 3 to 8 turns to build, then pays out for the rest of the game. Loans from the great powers are generous but come with strings (see demands).
 
+- **Growth does not compound.** It is a percentage applied to base output each turn: 100 base output at 3% growth gives 103 output, every turn that growth stays at 3%.
+- **Debt is tracked by creditor.** A loan from a great power is owed to that power. The rest of a country's debt is owed to lenders outside the region.
+- **Interest never reduces debt.** It is charged each turn on the whole debt. The only way to pay debt down is the Repay debt action, which pays off part of what you owe one great power.
+
 **2. Hedging and demands.**
 
+- The great powers anchor the alignment scale. The Halvard Compact sits at plus 100 and the Tsengai Republic at minus 100, and neither ever moves.
+- When a deal shifts alignment, the smaller party moves toward the other party's alignment, never past it. Between two smaller states, the one acting moves toward the other. Repaying debt moves you away from that power instead.
 - Alignment drifts back toward zero by 2 points a turn if you do nothing.
 - Past plus or minus 40, the opposite power cuts trade and starts courting your neighbours against you.
 - Past plus or minus 70 for 4 turns in a row, your patron issues a **demand** (host a naval base, recognise a disputed island, expel a rival's companies). Refusing costs a big relations hit and can trigger loan recall. Accepting pushes alignment further.
@@ -88,6 +95,8 @@ Five systems drive the game, and the hedging system is the one that makes it fee
 **5. Crises and events.** A deck of 60 or more event cards, weighted by game state. A coup card only enters the deck if loyalty is low. A debt-trap card only appears if debt is high. Some cards chain across turns, so a naval standoff can escalate into a blockade if handled badly.
 
 **Computer rivals.** Each rival scores every legal action with a simple utility function (gain in its own stats, weighted by personality, plus a bit of randomness), then picks the top ones. No machine learning needed, and it stays readable when you debug it.
+
+**Not yet in effect.** Some action effects depend on systems built in later milestones. Until milestone 5 adds factions and strait control, Domestic reform angers no faction, and Grant or deny strait access changes relations only, with no access settings or tolls. The Diplomatic summit's leverage gain has no effect until leverage is defined.
 
 ## Win and lose conditions
 

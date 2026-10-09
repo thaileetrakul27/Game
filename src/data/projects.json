@@ -1,0 +1,48 @@
+[
+  {
+    "id": "port",
+    "name": "Port expansion",
+    "description": "Deepens the harbour to handle more strait traffic.",
+    "cost": 120,
+    "turns": 4,
+    "effects": [
+      { "kind": "economy", "who": "self", "field": "straitTolls", "amount": 15 },
+      { "kind": "economy", "who": "self", "field": "upkeep", "amount": 5 }
+    ]
+  },
+  {
+    "id": "canal",
+    "name": "Canal",
+    "description": "Draws more of the region's trade past your coast.",
+    "cost": 250,
+    "turns": 8,
+    "effects": [
+      { "kind": "economy", "who": "self", "field": "straitTolls", "amount": 35 },
+      { "kind": "economy", "who": "self", "field": "upkeep", "amount": 10 }
+    ]
+  },
+  {
+    "id": "rail",
+    "name": "Rail network",
+    "description": "Links the port to the interior and lifts output.",
+    "cost": 160,
+    "turns": 6,
+    "effects": [
+      { "kind": "economy", "who": "self", "field": "baseOutput", "amount": 15 },
+      { "kind": "stat", "who": "self", "stat": "growth", "amount": 0.5 },
+      { "kind": "economy", "who": "self", "field": "upkeep", "amount": 8 }
+    ]
+  },
+  {
+    "id": "powerGrid",
+    "name": "Power grid",
+    "description": "Reliable power for industry and households.",
+    "cost": 90,
+    "turns": 3,
+    "effects": [
+      { "kind": "stat", "who": "self", "stat": "growth", "amount": 0.5 },
+      { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": 4 },
+      { "kind": "economy", "who": "self", "field": "upkeep", "amount": 4 }
+    ]
+  }
+]

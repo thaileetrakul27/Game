@@ -1,0 +1,128 @@
+[
+  {
+    "id": "signTradeDeal",
+    "name": "Sign trade deal",
+    "cost": 1,
+    "description": "More income, shifts alignment toward that partner.",
+    "target": "any",
+    "effects": [
+      { "kind": "stat", "who": "self", "stat": "growth", "amount": 0.5 },
+      { "kind": "stat", "who": "target", "stat": "growth", "amount": 0.25 },
+      { "kind": "relations", "with": "target", "amount": 5 },
+      { "kind": "alignment", "amount": 5 }
+    ]
+  },
+  {
+    "id": "acceptLoan",
+    "name": "Accept loan or investment",
+    "cost": 1,
+    "description": "Big cash now, debt and alignment shift later.",
+    "target": "greatPower",
+    "effects": [
+      { "kind": "borrow", "amount": 150 },
+      { "kind": "alignment", "amount": 10 }
+    ]
+  },
+  {
+    "id": "repayDebt",
+    "name": "Repay debt",
+    "cost": 1,
+    "description": "Pay off part of the debt to one great power. You depend on them less, so alignment shifts slightly away from them.",
+    "target": "greatPower",
+    "effects": [
+      { "kind": "repayDebt", "amount": 100 },
+      { "kind": "alignment", "amount": -3 }
+    ]
+  },
+  {
+    "id": "buildInfrastructure",
+    "name": "Build infrastructure",
+    "cost": 2,
+    "description": "Multi-turn project that pays out for the rest of the game.",
+    "target": "none",
+    "effects": [],
+    "options": [
+      { "id": "port", "name": "Port expansion", "effects": [{ "kind": "startProject", "projectId": "port" }] },
+      { "id": "canal", "name": "Canal", "effects": [{ "kind": "startProject", "projectId": "canal" }] },
+      { "id": "rail", "name": "Rail network", "effects": [{ "kind": "startProject", "projectId": "rail" }] },
+      { "id": "powerGrid", "name": "Power grid", "effects": [{ "kind": "startProject", "projectId": "powerGrid" }] }
+    ]
+  },
+  {
+    "id": "diplomaticSummit",
+    "name": "Diplomatic summit",
+    "cost": 1,
+    "description": "Raise relations with one country.",
+    "target": "any",
+    "effects": [{ "kind": "relations", "with": "target", "amount": 10 }]
+  },
+  {
+    "id": "domesticReform",
+    "name": "Domestic reform",
+    "cost": 2,
+    "description": "Raise legitimacy at a cost to the treasury.",
+    "target": "none",
+    "effects": [
+      { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": 8 },
+      { "kind": "stat", "who": "self", "stat": "treasury", "amount": -40 }
+    ]
+  },
+  {
+    "id": "militarySpending",
+    "name": "Military spending",
+    "cost": 1,
+    "description": "Raise defence, keeps generals loyal, costs treasury.",
+    "target": "none",
+    "effects": [
+      { "kind": "stat", "who": "self", "stat": "defence", "amount": 6 },
+      { "kind": "stat", "who": "self", "stat": "militaryLoyalty", "amount": 4 },
+      { "kind": "stat", "who": "self", "stat": "treasury", "amount": -30 }
+    ]
+  },
+  {
+    "id": "straitAccess",
+    "name": "Grant or deny strait access",
+    "cost": 1,
+    "description": "Your main lever. Huge relations swing both ways.",
+    "target": "greatPower",
+    "effects": [],
+    "options": [
+      {
+        "id": "grant",
+        "name": "Grant access",
+        "effects": [
+          { "kind": "relations", "with": "target", "amount": 20 },
+          { "kind": "relations", "with": "otherGreatPower", "amount": -15 }
+        ]
+      },
+      {
+        "id": "deny",
+        "name": "Deny access",
+        "effects": [
+          { "kind": "relations", "with": "target", "amount": -25 },
+          { "kind": "relations", "with": "otherGreatPower", "amount": 15 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "covertOperation",
+    "name": "Covert operation",
+    "cost": 2,
+    "description": "Destabilise a neighbour's government, with a risk of exposure.",
+    "target": "minor",
+    "effects": [
+      { "kind": "stat", "who": "self", "stat": "treasury", "amount": -20 },
+      { "kind": "stat", "who": "target", "stat": "legitimacy", "amount": -8 },
+      {
+        "kind": "chance",
+        "probability": 0.3,
+        "text": "The operation is exposed.",
+        "effects": [
+          { "kind": "relations", "with": "target", "amount": -25 },
+          { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": -5 }
+        ]
+      }
+    ]
+  }
+]
