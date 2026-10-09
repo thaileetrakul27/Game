@@ -5,16 +5,20 @@ import { pointsLeft, unanswered, useGameStore } from './gameStore.ts'
 
 const store = () => useGameStore.getState()
 
+/** Answer the crisis card and any demand, as a player must before ending the turn. */
+function answerPending(): void {
+  const { crisis, demand } = store().game
+  if (crisis) store().chooseCrisisResponse(crisis.responseIds[0])
+  if (demand) store().chooseDemandResponse('refuse')
+}
+
 describe('game store', () => {
   beforeEach(() => store().newGame(1))
 
   it('plays 40 turns end to end', () => {
     for (let turn = 1; turn <= MAX_TURNS; turn++) {
       expect(store().game.status).toBe('playing')
-      // Answer anything pending, as a player must before ending the turn.
-      const { crisis, demand } = store().game
-      if (crisis) store().chooseCrisisResponse(crisis.responseIds[0])
-      if (demand) store().chooseDemandResponse('refuse')
+      answerPending()
       expect(unanswered(store())).toEqual([])
       const partner = turn % 2 === 1 ? 'halvard' : 'tsengai'
       expect(store().planAction({ actionId: 'signTradeDeal', targetId: partner })).toBeNull()
@@ -37,10 +41,11 @@ describe('game store', () => {
 
   it('ends the turn with the planned actions and clears the plan', () => {
     store().planAction({ actionId: 'militarySpending' })
+    answerPending()
     store().endTurn()
     expect(store().game.turn).toBe(2)
     expect(store().planned).toEqual([])
-    expect(store().game.log).toContainEqual({ turn: 1, phase: 'actions', text: 'Kessara: Military spending.' })
+    expect(store().game.log).toContainEqual({ turn: 1, phase: 'actions', text: 'Kessara: Military spending.', actorId: 'kessara' })
   })
 
   it('drops planned actions that stop working when an earlier one is removed', () => {
@@ -58,7 +63,7 @@ describe('game store', () => {
     useGameStore.setState({
       game: {
         ...store().game,
-        crisis: { cardId: 'generalStrike', responseIds: ['meetDemands', 'breakStrike'] },
+        crisis: { cardId: 'generalStrike', responseIds: ['meetDemands', 'breakStrike'], targetId: null },
         demand: { demandId: 'navalBase', fromId: 'halvard' },
       },
     })
@@ -74,6 +79,7 @@ describe('game store', () => {
   it('starts a new game from a seed', () => {
     store().selectCountry('ostrel')
     store().planAction({ actionId: 'militarySpending' })
+    answerPending()
     store().endTurn()
     store().newGame(5)
     expect(store().game.seed).toBe(5)

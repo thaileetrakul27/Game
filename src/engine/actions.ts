@@ -3,14 +3,20 @@ import { getAction } from './data.ts'
 import { applyEffects } from './effects.ts'
 import type { Rng } from './rng.ts'
 import { withLog } from './state.ts'
-import type { ActionDef, ActionOption, Country, CountryId, GameState, PlayerAction } from './types.ts'
+import type { ActionDef, ActionOption, Country, CountryId, GameState, Phase, PlayerAction } from './types.ts'
 
 /**
  * Take one action for a country: check its target and option against the
  * action's data, then apply the effects. The caller spends the action points.
- * The player uses this now, and the computer rivals will use the same rules.
+ * The player and the computer rivals use the same rules.
  */
-export function takeAction(state: GameState, actorId: CountryId, action: PlayerAction, rng: Rng): GameState {
+export function takeAction(
+  state: GameState,
+  actorId: CountryId,
+  action: PlayerAction,
+  rng: Rng,
+  phase: Phase = 'actions',
+): GameState {
   const def = getAction(action.actionId)
   const actor = state.countries[actorId]
   const target = resolveTarget(state, actor, def, action.targetId)
@@ -22,10 +28,12 @@ export function takeAction(state: GameState, actorId: CountryId, action: PlayerA
   const effects = [...def.effects, ...(option?.effects ?? [])]
   const result = applyEffects(state, effects, { actorId, targetId: target?.id ?? null, rng })
   const details = [option?.name, target?.name].filter(Boolean).join(', ')
-  return withLog(result.state, 'actions', [
-    `${actor.name}: ${def.name}${details ? ` (${details})` : ''}.`,
-    ...result.texts,
-  ])
+  return withLog(
+    result.state,
+    phase,
+    [`${actor.name}: ${def.name}${details ? ` (${details})` : ''}.`, ...result.texts],
+    actorId,
+  )
 }
 
 function resolveTarget(

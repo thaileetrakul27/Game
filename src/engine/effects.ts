@@ -37,18 +37,22 @@ export function applyEffects(
 
 function applyEffect(state: GameState, effect: Effect, context: EffectContext): EffectResult {
   switch (effect.kind) {
-    case 'stat':
-      return { state: changeStat(state, subject(effect.who, context), effect.stat, effect.amount), texts: [] }
+    case 'stat': {
+      const id = effect.who === 'country' ? requireCountry(effect.country) : subject(effect.who, context)
+      return { state: changeStat(state, id, effect.stat, effect.amount), texts: [] }
+    }
     case 'economy':
       return { state: changeEconomy(state, subject(effect.who, context), effect.field, effect.amount), texts: [] }
     case 'relations': {
-      const targetId = requireTarget(context)
-      const otherId = effect.with === 'target' ? targetId : otherGreatPower(state, targetId)
+      const otherId = namedCountry(state, effect.with, effect.country, context)
       if (otherId === null) return { state, texts: [] }
       return { state: changeRelations(state, context.actorId, otherId, effect.amount), texts: [] }
     }
-    case 'alignment':
-      return { state: pullAlignment(state, context.actorId, requireTarget(context), effect.amount), texts: [] }
+    case 'alignment': {
+      const towardId = namedCountry(state, effect.toward ?? 'target', effect.country, context)
+      if (towardId === null) return { state, texts: [] }
+      return { state: pullAlignment(state, context.actorId, towardId, effect.amount), texts: [] }
+    }
     case 'borrow':
       return { state: borrow(state, context.actorId, requireTarget(context), effect.amount), texts: [] }
     case 'repayDebt':
@@ -63,6 +67,8 @@ function applyEffect(state: GameState, effect: Effect, context: EffectContext): 
       return setAccess(state, context.actorId, requireTarget(context), effect.access)
     case 'recallLoans':
       return recallLoans(state, context.actorId, requireTarget(context))
+    case 'forgiveDebt':
+      return forgiveDebt(state, context.actorId, requireTarget(context), effect.amount)
     case 'chance': {
       if (context.rng.next() >= effect.probability) return { state, texts: [] }
       const result = applyEffects(state, effect.effects, context)
@@ -78,6 +84,26 @@ function requireTarget(context: EffectContext): CountryId {
 
 function subject(who: 'self' | 'target', context: EffectContext): CountryId {
   return who === 'self' ? context.actorId : requireTarget(context)
+}
+
+function requireCountry(id: CountryId | undefined): CountryId {
+  if (id === undefined) throw new Error('This effect needs a country')
+  return id
+}
+
+/**
+ * The country an effect points at: the target, the great power on the other
+ * side from the target, or a named country. Null when there is no other power.
+ */
+function namedCountry(
+  state: GameState,
+  which: 'target' | 'otherGreatPower' | 'country',
+  country: CountryId | undefined,
+  context: EffectContext,
+): CountryId | null {
+  if (which === 'country') return requireCountry(country)
+  const targetId = requireTarget(context)
+  return which === 'target' ? targetId : otherGreatPower(state, targetId)
 }
 
 /** The great power on the other side from the target, or null if the target is not a great power. */
@@ -175,4 +201,16 @@ function recallLoans(state: GameState, debtorId: CountryId, creditorId: CountryI
   next = changeStat(next, debtorId, 'debt', -owed)
   next = updateCountry(next, debtorId, (country) => ({ ...country, creditors: { ...country.creditors, [creditorId]: 0 } }))
   return { state: next, texts: [`${state.countries[creditorId].name} recalls its loans: ${owed} repaid at once.`] }
+}
+
+/** The creditor writes off up to amount of what it is owed, without any payment. */
+function forgiveDebt(state: GameState, debtorId: CountryId, creditorId: CountryId, amount: number): EffectResult {
+  const owed = state.countries[debtorId].creditors[creditorId] ?? 0
+  const forgiven = Math.min(amount, owed)
+  if (forgiven <= 0) return { state, texts: [] }
+  const next = updateCountry(changeStat(state, debtorId, 'debt', -forgiven), debtorId, (country) => ({
+    ...country,
+    creditors: { ...country.creditors, [creditorId]: owed - forgiven },
+  }))
+  return { state: next, texts: [`${state.countries[creditorId].name} forgives ${forgiven} of the debt.`] }
 }

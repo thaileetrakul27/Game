@@ -6,6 +6,7 @@
     "description": "More income, shifts alignment toward that partner.",
     "target": "any",
     "blockedByTradeCut": true,
+    "playerMustAgree": true,
     "effects": [
       { "kind": "stat", "who": "self", "stat": "growth", "amount": 0.5 },
       { "kind": "stat", "who": "target", "stat": "growth", "amount": 0.25 },

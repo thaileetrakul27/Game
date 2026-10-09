@@ -1,6 +1,15 @@
 // Helpers shared by the engine tests.
 
+import { createGameState } from './createGameState.ts'
 import type { CountryId, Economy, GameState, PlayerAction, PlayerTurn, Stats } from './types.ts'
+
+/**
+ * A new game with the rivals and the event deck switched off, so a test sees
+ * only the effects of the player's own choices and the rule it is checking.
+ */
+export function quietGame(seed = 1): GameState {
+  return createGameState({ seed, settings: { rivals: false, events: false } })
+}
 
 /** A turn with no crisis response and the given actions. */
 export function turnWith(...actions: PlayerAction[]): PlayerTurn {

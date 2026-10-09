@@ -14,9 +14,9 @@ import {
   tradeCutBy,
 } from './index.ts'
 import type { FactionId, GameState, StraitAccess } from './index.ts'
-import { patchPlayer, turnAnswering, turnWith } from './testHelpers.ts'
+import { patchPlayer, quietGame, turnAnswering, turnWith } from './testHelpers.ts'
 
-const start = createGameState({ seed: 1 })
+const start = quietGame(1)
 
 function withAlignment(alignment: number, state: GameState = start): GameState {
   return patchPlayer(state, { stats: { alignment } })
@@ -133,7 +133,7 @@ describe('past plus or minus 70 for 4 turns in a row', () => {
 
   it('refusing costs 25 relations and can trigger a recall of loans', () => {
     const outcomes = seeds.map((seed) => {
-      const state: GameState = { ...withAlignment(80, createGameState({ seed })), demand: demanded.demand }
+      const state: GameState = { ...withAlignment(80, quietGame(seed)), demand: demanded.demand }
       const refused = advanceTurn(state, { ...turnWith(), demandResponse: 'refuse' })
       // Rival moves shift relations by up to 2 either way.
       const relationsDrop = state.countries.kessara.relations.halvard - refused.countries.kessara.relations.halvard
@@ -189,16 +189,18 @@ describe('factions', () => {
   })
 
   it('below 15, can trigger their crisis card', () => {
-    const drawn = seeds.map((seed) => wait(withFaction('generals', 14, createGameState({ seed }))).crisis?.cardId)
+    // The deck is on here. The coup card can't be drawn at random while loyalty is 30 or more.
+    const game = (seed: number) => createGameState({ seed, settings: { rivals: false } })
+    const drawn = seeds.map((seed) => wait(withFaction('generals', 14, game(seed))).crisis?.cardId)
     expect(drawn).toContain('coupAttempt')
-    expect(drawn).toContain(undefined)
+    expect(drawn.some((card) => card !== 'coupAttempt')).toBe(true)
 
-    const calm = seeds.map((seed) => wait(withFaction('generals', 15, createGameState({ seed }))).crisis)
-    expect(calm.every((crisis) => crisis === null)).toBe(true)
+    const calm = seeds.map((seed) => wait(withFaction('generals', 15, game(seed))).crisis?.cardId)
+    expect(calm).not.toContain('coupAttempt')
   })
 
   it("apply the chosen response's effects when the card is answered", () => {
-    const crisis: GameState = { ...start, crisis: { cardId: 'coupAttempt', responseIds: ['buyOff', 'purge'] } }
+    const crisis: GameState = { ...start, crisis: { cardId: 'coupAttempt', responseIds: ['buyOff', 'purge'], targetId: null } }
     const bought = advanceTurn(crisis, { ...turnWith(), crisisResponse: 'buyOff' })
     const purged = advanceTurn(crisis, { ...turnWith(), crisisResponse: 'purge' })
     expect(bought.factions.generals).toBe(start.factions.generals + 20)
@@ -232,7 +234,7 @@ describe('strait access and tolls', () => {
 
     const strikes = (access: StraitAccess) =>
       seeds.filter((seed) => {
-        const state = patchPlayer(withAccess('open', access, createGameState({ seed })), { stats: { defence: 0 } })
+        const state = patchPlayer(withAccess('open', access, quietGame(seed)), { stats: { defence: 0 } })
         return wait(state).log.some((entry) => entry.text.includes('in answer to the closed strait'))
       }).length
     expect(strikes('closed')).toBeGreaterThan(0)

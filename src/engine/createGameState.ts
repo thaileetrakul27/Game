@@ -2,7 +2,7 @@ import { GAME_DATA } from './data.ts'
 import { startTurn } from './phases.ts'
 import { createRng, normaliseSeed } from './rng.ts'
 import { ACTION_POINTS_PER_TURN } from './types.ts'
-import type { Country, CountryId, FactionId, GameState } from './types.ts'
+import type { Country, CountryId, FactionId, GameSettings, GameState } from './types.ts'
 
 /** The player's country. See DESIGN.md, "Concept". */
 const DEFAULT_PLAYER_ID = 'kessara'
@@ -13,6 +13,8 @@ export interface NewGameOptions {
   playerId?: CountryId
   /** Defaults to the countries in src/data/countries.json. */
   countries?: readonly Country[]
+  /** Switch off the computer rivals or the event deck. Both are on by default. */
+  settings?: Partial<GameSettings>
 }
 
 function startingFactions(): Record<FactionId, number> {
@@ -34,6 +36,7 @@ export function createGameState({
   seed,
   playerId = DEFAULT_PLAYER_ID,
   countries = GAME_DATA.countries,
+  settings = {},
 }: NewGameOptions): GameState {
   if (!countries.some((country) => country.id === playerId)) {
     throw new Error(`Unknown player country: ${playerId}`)
@@ -49,7 +52,11 @@ export function createGameState({
     playerId,
     actionPoints: ACTION_POINTS_PER_TURN,
     deficitTurns: 0,
+    settings: { rivals: true, events: true, ...settings },
     crisis: null,
+    chains: [],
+    lastDrawn: {},
+    rivalHistory: {},
     demand: null,
     demandTurns: 0,
     demandsAccepted: {},
