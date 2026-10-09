@@ -1,4 +1,4 @@
-import { quarterLabel } from '../engine/index.ts'
+import { quarterLabel, rivalNews } from '../engine/index.ts'
 import type { LogEntry } from '../engine/index.ts'
 import { useGameStore } from '../store/gameStore.ts'
 
@@ -18,17 +18,18 @@ export function TurnLog() {
           <h3>
             {quarterLabel(turn)} <span className="muted">· turn {turn}</span>
           </h3>
-          <TurnEntries entries={entries} />
+          <TurnEntries turn={turn} entries={entries} />
         </section>
       ))}
     </section>
   )
 }
 
-/** A turn's entries, with the rivals' relation changes folded into one collapsible line. */
-function TurnEntries({ entries }: { entries: LogEntry[] }) {
-  const rivals = entries.filter((entry) => entry.phase === 'rivals')
+/** A turn's entries, with what the other countries did folded into one collapsible line. */
+function TurnEntries({ turn, entries }: { turn: number; entries: LogEntry[] }) {
+  const game = useGameStore((store) => store.game)
   const firstRival = entries.findIndex((entry) => entry.phase === 'rivals')
+  const moves = entries.filter((entry) => entry.phase === 'rivals').length
 
   return (
     <ul className="plain">
@@ -45,11 +46,13 @@ function TurnEntries({ entries }: { entries: LogEntry[] }) {
           <li key={index} className="log-rivals">
             <details>
               <summary>
-                Rival relations: {rivals.length} {rivals.length === 1 ? 'change' : 'changes'}
+                Rival moves: {moves} {moves === 1 ? 'report' : 'reports'}
               </summary>
               <ul className="plain">
-                {rivals.map((rival, rivalIndex) => (
-                  <li key={rivalIndex}>{rival.text}</li>
+                {rivalNews(game, turn).map((story) => (
+                  <li key={story.countryId}>
+                    <strong>{story.name}:</strong> {story.lines.join(' ')}
+                  </li>
                 ))}
               </ul>
             </details>

@@ -1,4 +1,4 @@
-import { describeEffects, GAME_DATA, getDemand, getEvent } from '../engine/index.ts'
+import { describeCrisis, describeEffects, GAME_DATA, getDemand } from '../engine/index.ts'
 import type { DemandResponse } from '../engine/index.ts'
 import { useGameStore } from '../store/gameStore.ts'
 
@@ -60,16 +60,14 @@ function CrisisChoice() {
   const game = useGameStore((store) => store.game)
   const crisisResponse = useGameStore((store) => store.crisisResponse)
   const chooseCrisisResponse = useGameStore((store) => store.chooseCrisisResponse)
-  if (!game.crisis) return null
-
-  const card = getEvent(game.crisis.cardId)
-  const responses = card.responses.filter((response) => game.crisis?.responseIds.includes(response.id))
+  const card = describeCrisis(game)
+  if (!card) return null
 
   return (
     <fieldset className="decision crisis">
       <legend>Crisis: {card.name}</legend>
       <p>{card.description}</p>
-      {responses.map((response) => (
+      {card.responses.map((response) => (
         <label key={response.id} className="choice">
           <input
             type="radio"
@@ -80,10 +78,7 @@ function CrisisChoice() {
           />
           <span>
             <strong>{response.name}</strong>
-            <span className="muted">
-              {' · '}
-              {describeEffects(game, game.playerId, null, response.effects).join(' · ')}
-            </span>
+            {response.effects.length > 0 && <span className="muted"> · {response.effects.join(' · ')}</span>}
           </span>
         </label>
       ))}

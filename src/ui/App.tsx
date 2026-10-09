@@ -5,6 +5,7 @@ import { AlertsBar } from './AlertsBar.tsx'
 import { GameOver } from './GameOver.tsx'
 import { CountryDetails } from './map/CountryDetails.tsx'
 import { MapPanel } from './map/MapPanel.tsx'
+import { NewsPanel } from './NewsPanel.tsx'
 import { StatsPanel } from './StatsPanel.tsx'
 import { TurnLog } from './TurnLog.tsx'
 
@@ -34,13 +35,14 @@ export default function App() {
       <AlertsBar />
       {game.status === 'ended' && <GameOver />}
 
-      {/* Phone order: map, country details, actions, stats, log. Wider screens place them in columns. */}
+      {/* Phone order: map, country details, news, actions, stats, log. Wider screens place them in columns. */}
       <main className="layout">
         <MapPanel />
         {game.status === 'playing' && <ActionMenu />}
         <StatsPanel />
         <div className="side">
           <CountryDetails />
+          <NewsPanel />
           <TurnLog />
         </div>
       </main>

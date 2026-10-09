@@ -16,7 +16,10 @@ export function StatsPanel() {
   const [open, setOpen] = useState(false)
 
   return (
-    <section className={open ? 'panel stats-panel open' : 'panel stats-panel'} aria-labelledby="stats-heading">
+    <section
+      className={open ? 'panel stats-panel collapsible open' : 'panel stats-panel collapsible'}
+      aria-labelledby="stats-heading"
+    >
       <div className="panel-head">
         <h2 id="stats-heading">{player.name}</h2>
         <button
@@ -29,7 +32,7 @@ export function StatsPanel() {
           {open ? 'Hide stats' : 'Show stats'}
         </button>
       </div>
-      <p className="stats-summary muted">
+      <p className="collapsed-summary muted">
         Treasury {money(stats.treasury)} · Debt {money(stats.debt)} · Growth {percent(stats.growth)}
       </p>
 
