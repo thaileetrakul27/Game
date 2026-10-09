@@ -1,14 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { advanceTurn, createGameState } from './index.ts'
 import type { GameState } from './index.ts'
+import { turnAnswering } from './testHelpers.ts'
 
 function playFullGame(seed: number): GameState {
   let state = createGameState({ seed })
   while (state.status === 'playing') {
-    state = advanceTurn(state, {
-      crisisResponse: null,
-      actions: [{ actionId: 'diplomaticSummit', targetId: 'halvard' }],
-    })
+    state = advanceTurn(state, turnAnswering(state, { actionId: 'diplomaticSummit', targetId: 'halvard' }))
   }
   return state
 }
@@ -38,14 +36,14 @@ describe('advanceTurn', () => {
 
   describe('crisis responses', () => {
     const noCrisis = createGameState({ seed: 1 })
-    // The event deck arrives in milestone 6, so place a card by hand.
+    // Place a card by hand rather than waiting for one to be drawn.
     const withCrisis: GameState = {
       ...noCrisis,
-      crisis: { cardId: 'naval-standoff', responseIds: ['back-down', 'hold-firm'] },
+      crisis: { cardId: 'coupAttempt', responseIds: ['buyOff', 'purge'] },
     }
 
     it("accepts only one of the pending card's responses", () => {
-      expect(() => advanceTurn(withCrisis, { crisisResponse: 'hold-firm', actions: [] })).not.toThrow()
+      expect(() => advanceTurn(withCrisis, { crisisResponse: 'purge', actions: [] })).not.toThrow()
       expect(() => advanceTurn(withCrisis, { crisisResponse: null, actions: [] })).toThrow()
       expect(() => advanceTurn(withCrisis, { crisisResponse: 'surrender', actions: [] })).toThrow()
     })

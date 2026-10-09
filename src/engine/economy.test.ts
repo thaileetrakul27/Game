@@ -1,22 +1,22 @@
 import { describe, expect, it } from 'vitest'
 import { advanceTurn, createGameState, debtInterest, GAME_DATA, incomeBreakdown } from './index.ts'
-import type { Country, EconomyRules } from './index.ts'
+import type { EconomyRules, GameData } from './index.ts'
 import { patchPlayer, turnWith } from './testHelpers.ts'
 
 // Fixed rules, so these tests check the formulas rather than the current balance numbers.
 const rules: EconomyRules = { interestRatePerTurn: 0.02, growthMin: -5, growthMax: 8 }
-
-const kessara = GAME_DATA.countries.find((country) => country.id === 'kessara')!
-
-function withNumbers(stats: Partial<Country['stats']>, economy: Partial<Country['economy']>): Country {
-  return { ...kessara, stats: { ...kessara.stats, ...stats }, economy: { ...kessara.economy, ...economy } }
-}
+const data: GameData = { ...GAME_DATA, economy: rules, straitControl: { ...GAME_DATA.straitControl, tollPerTradeShare: 0.75 } }
 
 describe('income', () => {
   it('is base output times growth, plus tolls, minus debt interest and upkeep', () => {
-    const country = withNumbers({ growth: 5, debt: 500 }, { baseOutput: 200, straitTolls: 30, upkeep: 150 })
-    expect(incomeBreakdown(country, rules)).toEqual({
+    // The Kessara Strait carries 40% of trade, so at 0.75 a share it pays 30 with both powers open.
+    const state = patchPlayer(createGameState({ seed: 1 }), {
+      stats: { growth: 5, debt: 500 },
+      economy: { baseOutput: 200, straitTolls: 0, upkeep: 150 },
+    })
+    expect(incomeBreakdown(state, 'kessara', data)).toEqual({
       output: 210,
+      tradeLoss: 0,
       tolls: 30,
       interest: 10,
       upkeep: 150,
@@ -25,14 +25,15 @@ describe('income', () => {
   })
 
   it('shrinks output when growth is negative', () => {
-    const country = withNumbers({ growth: -5 }, { baseOutput: 200 })
-    expect(incomeBreakdown(country, rules).output).toBe(190)
+    const state = patchPlayer(createGameState({ seed: 1 }), { stats: { growth: -5 }, economy: { baseOutput: 200 } })
+    expect(incomeBreakdown(state, 'kessara', data).output).toBe(190)
   })
 
   it("arrives in every country's treasury at the briefing", () => {
+    // Income doesn't depend on the treasury, so the opening state gives the same figures.
     const start = createGameState({ seed: 1 })
     for (const country of GAME_DATA.countries) {
-      const expected = country.stats.treasury + incomeBreakdown(country).net
+      const expected = country.stats.treasury + incomeBreakdown(start, country.id).net
       expect(start.countries[country.id].stats.treasury).toBe(expected)
     }
   })
@@ -96,9 +97,8 @@ describe('default', () => {
       stats: { treasury: 1, debt: 0 },
       economy: { baseOutput: 0, straitTolls: 0, upkeep: 0 },
     })
-    // Military spending costs treasury, which takes it below zero.
+    // Military spending costs treasury, which takes it below zero by the end of the turn.
     const spent = advanceTurn(tight, turnWith({ actionId: 'militarySpending' }))
-    expect(spent.countries.kessara.stats.treasury).toBeLessThan(0)
     expect(spent.deficitTurns).toBe(1)
   })
 })

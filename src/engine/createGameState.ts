@@ -2,7 +2,7 @@ import { GAME_DATA } from './data.ts'
 import { startTurn } from './phases.ts'
 import { createRng, normaliseSeed } from './rng.ts'
 import { ACTION_POINTS_PER_TURN } from './types.ts'
-import type { Country, CountryId, GameState } from './types.ts'
+import type { Country, CountryId, FactionId, GameState } from './types.ts'
 
 /** The player's country. See DESIGN.md, "Concept". */
 const DEFAULT_PLAYER_ID = 'kessara'
@@ -13,6 +13,20 @@ export interface NewGameOptions {
   playerId?: CountryId
   /** Defaults to the countries in src/data/countries.json. */
   countries?: readonly Country[]
+}
+
+function startingFactions(): Record<FactionId, number> {
+  const entries = GAME_DATA.factions.factions.map((faction) => [faction.id, faction.start])
+  return Object.fromEntries(entries) as Record<FactionId, number>
+}
+
+/** Every great power starts with open access to every strait. */
+function openStraits(): GameState['straitAccess'] {
+  const access: GameState['straitAccess'] = {}
+  for (const strait of GAME_DATA.straits) {
+    access[strait.id] = Object.fromEntries(Object.keys(strait.traffic).map((powerId) => [powerId, 'open' as const]))
+  }
+  return access
 }
 
 /** Build the state for turn 1 of a new game, with turn 1's briefing and crisis card. */
@@ -36,6 +50,12 @@ export function createGameState({
     actionPoints: ACTION_POINTS_PER_TURN,
     deficitTurns: 0,
     crisis: null,
+    demand: null,
+    demandTurns: 0,
+    demandsAccepted: {},
+    brokerTurns: 0,
+    factions: startingFactions(),
+    straitAccess: openStraits(),
     // Copy so the game never shares objects with the caller's data.
     countries: Object.fromEntries(countries.map((country) => [country.id, structuredClone(country)])),
     log: [],

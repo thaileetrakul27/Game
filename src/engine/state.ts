@@ -5,11 +5,13 @@ import type {
   Country,
   CountryId,
   EconomyField,
+  FactionId,
   GameState,
   LogEntry,
   Phase,
   ProjectProgress,
   StatKey,
+  StraitAccess,
 } from './types.ts'
 
 export function clamp(value: number, min: number, max: number): number {
@@ -89,4 +91,15 @@ export function changeRelations(state: GameState, a: CountryId, b: CountryId, am
       relations: { ...country.relations, [to]: clamp((country.relations[to] ?? 0) + amount, -100, 100) },
     }))
   return shift(shift(state, a, b), b, a)
+}
+
+export function changeFaction(state: GameState, faction: FactionId, amount: number): GameState {
+  return { ...state, factions: { ...state.factions, [faction]: clamp(state.factions[faction] + amount, 0, 100) } }
+}
+
+export function setStraitAccess(state: GameState, straitId: string, powerId: CountryId, access: StraitAccess): GameState {
+  return {
+    ...state,
+    straitAccess: { ...state.straitAccess, [straitId]: { ...state.straitAccess[straitId], [powerId]: access } },
+  }
 }

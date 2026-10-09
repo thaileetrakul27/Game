@@ -1,0 +1,38 @@
+[
+  {
+    "id": "navalBase",
+    "name": "Host a naval base",
+    "description": "Your patron wants a permanent naval base in Kessara's deep-water port.",
+    "accept": [
+      { "kind": "alignment", "amount": 10 },
+      { "kind": "stat", "who": "self", "stat": "defence", "amount": 8 },
+      { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": -6 },
+      { "kind": "faction", "faction": "generals", "amount": 5 },
+      { "kind": "faction", "faction": "reformers", "amount": -6 }
+    ]
+  },
+  {
+    "id": "disputedIsland",
+    "name": "Recognise a disputed island",
+    "description": "Your patron wants you to back its claim to an island the other power also claims.",
+    "accept": [
+      { "kind": "alignment", "amount": 10 },
+      { "kind": "relations", "with": "otherGreatPower", "amount": -15 },
+      { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": -5 },
+      { "kind": "faction", "faction": "generals", "amount": 4 },
+      { "kind": "faction", "faction": "reformers", "amount": -4 }
+    ]
+  },
+  {
+    "id": "expelCompanies",
+    "name": "Expel a rival's companies",
+    "description": "Your patron wants the other power's companies thrown out of Kessara.",
+    "accept": [
+      { "kind": "alignment", "amount": 10 },
+      { "kind": "relations", "with": "otherGreatPower", "amount": -20 },
+      { "kind": "stat", "who": "self", "stat": "growth", "amount": -0.5 },
+      { "kind": "faction", "faction": "generals", "amount": 4 },
+      { "kind": "faction", "faction": "business", "amount": -8 }
+    ]
+  }
+]

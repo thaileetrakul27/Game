@@ -1,0 +1,22 @@
+{
+  "driftPerTurn": 2,
+  "tradeCutPast": 40,
+  "tradeCutOutputLoss": 0.15,
+  "courtingRelations": -2,
+  "courtingAlignment": 2,
+  "demandPast": 70,
+  "demandAfterTurns": 4,
+  "vassalAfterDemands": 3,
+  "brokerWithin": 20,
+  "brokerEveryTurns": 3,
+  "brokerBonusPoints": 1,
+  "demandRefusal": [
+    { "kind": "relations", "with": "target", "amount": -25 },
+    {
+      "kind": "chance",
+      "probability": 0.5,
+      "text": "Your patron recalls its loans.",
+      "effects": [{ "kind": "recallLoans" }]
+    }
+  ]
+}

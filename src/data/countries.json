@@ -14,7 +14,7 @@
       "defence": 40,
       "alignment": 0
     },
-    "economy": { "baseOutput": 100, "upkeep": 75, "straitTolls": 30 },
+    "economy": { "baseOutput": 100, "upkeep": 75, "straitTolls": 0 },
     "creditors": { "halvard": 80, "tsengai": 70 },
     "relations": {
       "halvard": 15,
@@ -144,7 +144,7 @@
       "defence": 25,
       "alignment": 30
     },
-    "economy": { "baseOutput": 50, "upkeep": 50, "straitTolls": 20 },
+    "economy": { "baseOutput": 50, "upkeep": 50, "straitTolls": 0 },
     "creditors": { "halvard": 60 },
     "relations": {
       "kessara": -10,

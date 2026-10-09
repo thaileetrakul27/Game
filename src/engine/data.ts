@@ -3,20 +3,33 @@
 
 import actionsJson from '../data/actions.json' with { type: 'json' }
 import countriesJson from '../data/countries.json' with { type: 'json' }
+import demandsJson from '../data/demands.json' with { type: 'json' }
 import economyJson from '../data/economy.json' with { type: 'json' }
+import eventsJson from '../data/events.json' with { type: 'json' }
+import factionsJson from '../data/factions.json' with { type: 'json' }
+import hedgingJson from '../data/hedging.json' with { type: 'json' }
 import projectsJson from '../data/projects.json' with { type: 'json' }
+import straitControlJson from '../data/straitControl.json' with { type: 'json' }
 import straitsJson from '../data/straits.json' with { type: 'json' }
 import type {
   ActionDef,
   ActionTarget,
   CountryDef,
   CountryKind,
+  DemandDef,
   Effect,
   EconomyField,
+  EventCard,
+  FactionDef,
+  FactionId,
+  FactionRules,
   GameData,
+  HedgingRules,
   Personality,
   ProjectDef,
   StatKey,
+  StraitAccess,
+  StraitControlRules,
   StraitDef,
 } from './types.ts'
 
@@ -25,6 +38,7 @@ const ECONOMY_FIELDS: EconomyField[] = ['baseOutput', 'upkeep', 'straitTolls']
 const TARGETS: ActionTarget[] = ['none', 'any', 'greatPower', 'minor']
 const KINDS: CountryKind[] = ['greatPower', 'minor']
 const PERSONALITIES: Personality[] = ['opportunist', 'hardliner', 'merchant']
+const ACCESS: StraitAccess[] = ['open', 'taxed', 'closed']
 
 function check(condition: boolean, where: string, problem: string): asserts condition {
   if (!condition) throw new Error(`Invalid game data in ${where}: ${problem}`)
@@ -35,12 +49,13 @@ function checkUniqueIds(items: readonly { id: string }[], file: string): void {
   check(ids.size === items.length, file, 'ids must be unique')
 }
 
-function checkEffects(
-  effects: readonly Effect[],
-  where: string,
-  target: ActionTarget,
-  projectIds: ReadonlySet<string>,
-): void {
+/** Ids that effects can refer to. */
+interface References {
+  projectIds: ReadonlySet<string>
+  factionIds: ReadonlySet<string>
+}
+
+function checkEffects(effects: readonly Effect[], where: string, target: ActionTarget, refs: References): void {
   const hasTarget = target !== 'none'
   for (const effect of effects) {
     switch (effect.kind) {
@@ -66,16 +81,37 @@ function checkEffects(
         check(target === 'greatPower', where, `a ${effect.kind} effect needs a great power as the target`)
         check(effect.amount > 0, where, `a ${effect.kind} amount must be above zero`)
         break
+      case 'recallLoans':
+      case 'straitAccess':
+        check(target === 'greatPower', where, `a ${effect.kind} effect needs a great power as the target`)
+        if (effect.kind === 'straitAccess') check(ACCESS.includes(effect.access), where, `bad access "${effect.access}"`)
+        break
+      case 'faction':
+        check(refs.factionIds.has(effect.faction), where, `unknown faction "${effect.faction}"`)
+        break
       case 'startProject':
-        check(projectIds.has(effect.projectId), where, `unknown project "${effect.projectId}"`)
+        check(refs.projectIds.has(effect.projectId), where, `unknown project "${effect.projectId}"`)
         break
       case 'chance':
         check(effect.probability >= 0 && effect.probability <= 1, where, 'probability must be 0 to 1')
-        checkEffects(effect.effects, where, target, projectIds)
+        checkEffects(effect.effects, where, target, refs)
         break
       default:
         check(false, where, `unknown effect kind "${(effect as { kind: unknown }).kind}"`)
     }
+  }
+}
+
+/** Every action, or every option of an action that has them, pleases one faction and annoys another. */
+function checkFactionReactions(action: ActionDef): void {
+  const choices = action.options?.map((option) => [option.id, option.effects] as const) ?? [['', []] as const]
+  for (const [optionId, optionEffects] of choices) {
+    const amounts = [...action.effects, ...optionEffects].flatMap((effect) =>
+      effect.kind === 'faction' ? [effect.amount] : [],
+    )
+    const where = `actions.json (${action.id}${optionId ? `, option ${optionId}` : ''})`
+    check(amounts.some((amount) => amount > 0), where, 'must please a faction')
+    check(amounts.some((amount) => amount < 0), where, 'must annoy a faction')
   }
 }
 
@@ -85,7 +121,14 @@ export function validateGameData(data: GameData): GameData {
   checkUniqueIds(data.actions, 'actions.json')
   checkUniqueIds(data.projects, 'projects.json')
   checkUniqueIds(data.straits, 'straits.json')
-  const projectIds = new Set(data.projects.map((project) => project.id))
+  checkUniqueIds(data.demands, 'demands.json')
+  checkUniqueIds(data.factions.factions, 'factions.json')
+  checkUniqueIds(data.events, 'events.json')
+  const refs: References = {
+    projectIds: new Set(data.projects.map((project) => project.id)),
+    factionIds: new Set(data.factions.factions.map((faction) => faction.id)),
+  }
+  const kindOf = (id: string) => data.countries.find((country) => country.id === id)?.kind
 
   for (const country of data.countries) {
     const where = `countries.json (${country.id})`
@@ -106,8 +149,7 @@ export function validateGameData(data: GameData): GameData {
       check(typeof country.relations[other.id] === 'number', where, `missing relations with "${other.id}"`)
     }
     for (const [creditorId, owed] of Object.entries(country.creditors)) {
-      const creditor = data.countries.find((candidate) => candidate.id === creditorId)
-      check(creditor?.kind === 'greatPower', where, `creditor "${creditorId}" is not a great power`)
+      check(kindOf(creditorId) === 'greatPower', where, `creditor "${creditorId}" is not a great power`)
       check(owed >= 0, where, `debt to "${creditorId}" cannot be negative`)
     }
     const owedToPowers = Object.values(country.creditors).reduce((total, owed) => total + owed, 0)
@@ -118,25 +160,56 @@ export function validateGameData(data: GameData): GameData {
     const where = `actions.json (${action.id})`
     check(TARGETS.includes(action.target), where, `unknown target "${action.target}"`)
     check(Number.isInteger(action.cost) && action.cost >= 1, where, 'cost must be a whole number of action points')
-    checkEffects(action.effects, where, action.target, projectIds)
+    checkEffects(action.effects, where, action.target, refs)
     if (action.options) checkUniqueIds(action.options, where)
     for (const option of action.options ?? []) {
-      checkEffects(option.effects, `${where}, option ${option.id}`, action.target, projectIds)
+      checkEffects(option.effects, `${where}, option ${option.id}`, action.target, refs)
     }
+    checkFactionReactions(action)
   }
 
   for (const project of data.projects) {
     const where = `projects.json (${project.id})`
     check(Number.isInteger(project.turns) && project.turns >= 1, where, 'turns must be a whole number')
     // A finished project pays out to its builder alone, so it has no target.
-    checkEffects(project.effects, where, 'none', projectIds)
+    checkEffects(project.effects, where, 'none', refs)
   }
 
   for (const strait of data.straits) {
-    check(strait.tradeShare >= 0 && strait.tradeShare <= 100, `straits.json (${strait.id})`, 'tradeShare must be 0 to 100')
+    const where = `straits.json (${strait.id})`
+    check(strait.tradeShare >= 0 && strait.tradeShare <= 100, where, 'tradeShare must be 0 to 100')
+    check(kindOf(strait.controlledBy) !== undefined, where, `unknown country "${strait.controlledBy}"`)
+    for (const powerId of Object.keys(strait.traffic)) {
+      check(kindOf(powerId) === 'greatPower', where, `traffic from "${powerId}", which is not a great power`)
+    }
+    const traffic = Object.values(strait.traffic).reduce((total, share) => total + share, 0)
+    check(traffic === 100, where, 'traffic must add up to 100')
   }
   const totalShare = data.straits.reduce((total, strait) => total + strait.tradeShare, 0)
   check(totalShare <= 100, 'straits.json', 'trade shares add up to more than 100%')
+
+  data.straitControl.closureEvents.forEach((event) =>
+    checkEffects(event.effects, `straitControl.json (${event.id})`, 'greatPower', refs),
+  )
+  checkEffects(data.hedging.demandRefusal, 'hedging.json (demandRefusal)', 'greatPower', refs)
+  for (const demand of data.demands) {
+    checkEffects(demand.accept, `demands.json (${demand.id})`, 'greatPower', refs)
+  }
+
+  const eventIds = new Set(data.events.map((event) => event.id))
+  for (const event of data.events) {
+    const where = `events.json (${event.id})`
+    check(event.responses.length > 0, where, 'needs at least one response')
+    checkUniqueIds(event.responses, where)
+    for (const response of event.responses) {
+      checkEffects(response.effects, `${where}, response ${response.id}`, 'none', refs)
+    }
+  }
+  for (const faction of data.factions.factions) {
+    const where = `factions.json (${faction.id})`
+    check(faction.start >= 0 && faction.start <= 100, where, 'start must be 0 to 100')
+    check(eventIds.has(faction.crisisCard), where, `unknown crisis card "${faction.crisisCard}"`)
+  }
 
   return data
 }
@@ -147,16 +220,22 @@ export const GAME_DATA: GameData = validateGameData({
   projects: projectsJson as unknown as ProjectDef[],
   straits: straitsJson as StraitDef[],
   economy: economyJson,
+  straitControl: straitControlJson as unknown as StraitControlRules,
+  hedging: hedgingJson as unknown as HedgingRules,
+  demands: demandsJson as unknown as DemandDef[],
+  factions: factionsJson as unknown as FactionRules,
+  events: eventsJson as unknown as EventCard[],
 })
 
-export function getAction(id: string): ActionDef {
-  const action = GAME_DATA.actions.find((candidate) => candidate.id === id)
-  if (!action) throw new Error(`Unknown action: ${id}`)
-  return action
+function find<T extends { id: string }>(items: readonly T[], id: string, kind: string): T {
+  const item = items.find((candidate) => candidate.id === id)
+  if (!item) throw new Error(`Unknown ${kind}: ${id}`)
+  return item
 }
 
-export function getProject(id: string): ProjectDef {
-  const project = GAME_DATA.projects.find((candidate) => candidate.id === id)
-  if (!project) throw new Error(`Unknown project: ${id}`)
-  return project
-}
+export const getAction = (id: string): ActionDef => find(GAME_DATA.actions, id, 'action')
+export const getProject = (id: string): ProjectDef => find(GAME_DATA.projects, id, 'project')
+export const getStrait = (id: string): StraitDef => find(GAME_DATA.straits, id, 'strait')
+export const getDemand = (id: string): DemandDef => find(GAME_DATA.demands, id, 'demand')
+export const getEvent = (id: string): EventCard => find(GAME_DATA.events, id, 'event card')
+export const getFaction = (id: FactionId): FactionDef => find(GAME_DATA.factions.factions, id, 'faction')

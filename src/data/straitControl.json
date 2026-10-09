@@ -1,0 +1,27 @@
+{
+  "tollPerTradeShare": 0.75,
+  "taxedTollMultiplier": 1.6,
+  "closureRiskBase": 0.3,
+  "closureRiskLessPerDefence": 0.0025,
+  "closureEvents": [
+    {
+      "id": "blockade",
+      "name": "Blockade",
+      "text": "{power} blockades the coast in answer to the closed strait.",
+      "effects": [
+        { "kind": "stat", "who": "self", "stat": "treasury", "amount": -40 },
+        { "kind": "stat", "who": "self", "stat": "growth", "amount": -0.5 }
+      ]
+    },
+    {
+      "id": "incident",
+      "name": "Staged incident",
+      "text": "{power} stages an incident at sea in answer to the closed strait.",
+      "effects": [
+        { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": -6 },
+        { "kind": "stat", "who": "self", "stat": "militaryLoyalty", "amount": -6 },
+        { "kind": "relations", "with": "target", "amount": -10 }
+      ]
+    }
+  ]
+}

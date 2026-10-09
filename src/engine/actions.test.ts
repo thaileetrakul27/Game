@@ -116,9 +116,9 @@ describe('actions', () => {
     })
   })
 
-  it('denying strait access angers that power and pleases the other', () => {
+  it('closing the strait to a power angers it and pleases the other', () => {
     const before = start.countries.kessara.relations
-    const after = advanceTurn(start, turnWith({ actionId: 'straitAccess', targetId: 'tsengai', option: 'deny' }))
+    const after = advanceTurn(start, turnWith({ actionId: 'straitAccess', targetId: 'tsengai', option: 'closed' }))
     expect(after.countries.kessara.relations.tsengai).toBeLessThan(before.tsengai)
     expect(after.countries.kessara.relations.halvard).toBeGreaterThan(before.halvard)
   })
@@ -179,17 +179,27 @@ describe('helpers for the interface', () => {
       'Halvard Compact: growth +0.25%',
       'Relations with Halvard Compact +5',
       'Alignment up to 5 toward Halvard Compact',
+      'Business +4',
+      'Generals −3',
     ])
-    expect(describeAction(start, 'kessara', { actionId: 'straitAccess', targetId: 'halvard', option: 'deny' })).toEqual([
+    expect(describeAction(start, 'kessara', { actionId: 'straitAccess', targetId: 'halvard', option: 'closed' })).toEqual([
+      'Kessara Strait closed to Halvard Compact (now open)',
+      'While closed, 20% chance each turn of a blockade or staged incident',
       'Relations with Halvard Compact −25',
-      'Relations with Tsengai Republic +15',
+      'Relations with Tsengai Republic +20',
+      'Generals +6',
+      'Business −8',
     ])
     expect(describeAction(start, 'kessara', { actionId: 'buildInfrastructure', option: 'powerGrid' })).toEqual([
+      'Business +4',
+      'Reformers −3',
       'Costs 90, takes 3 turns, then growth +0.5%, legitimacy +4, upkeep +4 a turn',
     ])
     expect(describeAction(start, 'kessara', { actionId: 'covertOperation', targetId: 'ostrel' })).toEqual([
       'Treasury −20',
       'Ostrel: legitimacy −8',
+      'Generals +4',
+      'Reformers −4',
       '30% chance the operation is exposed: relations with Ostrel −25, legitimacy −5',
     ])
     expect(describeAction(start, 'kessara', { actionId: 'repayDebt', targetId: 'tsengai' })[0]).toBe(

@@ -6,9 +6,9 @@ import type { GameState, PlayerAction, PlayerTurn } from './types.ts'
 
 /**
  * End the player's turn and return the new state.
- * The turn's briefing has already run and its crisis card is in state.crisis,
- * so the player submits all of their choices at once: the crisis response and
- * the actions to take. This plays the crisis, actions, rival moves and
+ * The turn's briefing has already run, and its crisis card and any demand are
+ * in the state, so the player submits all of their choices at once: the
+ * crisis response, the answer to a demand, and the actions to take. This plays the crisis, actions, rival moves and
  * resolution phases, then opens the next turn with its briefing and crisis card.
  * Pure: the input state is never mutated, and the same state and choices
  * always give the same result.
@@ -17,10 +17,11 @@ export function advanceTurn(state: GameState, playerTurn: PlayerTurn): GameState
   if (state.status !== 'playing') throw new Error('The game has already ended')
 
   const rng = createRng(state.rngState)
-  let next = crisisPhase(state, playerTurn.crisisResponse)
+  const alignmentAtStart = state.countries[state.playerId].stats.alignment
+  let next = crisisPhase(state, playerTurn, rng)
   next = actionsPhase(next, playerTurn.actions, rng)
   next = rivalsPhase(next, rng)
-  next = resolutionPhase(next, rng)
+  next = resolutionPhase(next, rng, alignmentAtStart)
   if (next.status === 'playing') next = startTurn(next, rng)
   return { ...next, rngState: rng.state }
 }

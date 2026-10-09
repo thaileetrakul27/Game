@@ -1,0 +1,27 @@
+{
+  "unrestBelow": 15,
+  "unrestCrisisChance": 0.5,
+  "factions": [
+    {
+      "id": "generals",
+      "name": "Generals",
+      "description": "The officer corps. Wants a strong, well-funded military and a firm hand.",
+      "start": 45,
+      "crisisCard": "coupAttempt"
+    },
+    {
+      "id": "business",
+      "name": "Business",
+      "description": "Traders, shippers and bankers. Wants open trade and low costs.",
+      "start": 55,
+      "crisisCard": "generalStrike"
+    },
+    {
+      "id": "reformers",
+      "name": "Reformers",
+      "description": "Students, unions and the opposition. Wants accountable, modern government.",
+      "start": 40,
+      "crisisCard": "massProtests"
+    }
+  ]
+}
