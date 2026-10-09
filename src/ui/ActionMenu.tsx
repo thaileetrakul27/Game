@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { checkPlannedAction, describeAction, GAME_DATA, getAction, targetsFor } from '../engine/index.ts'
+import { actionsFor, checkPlannedAction, describeAction, getAction, targetsFor } from '../engine/index.ts'
 import type { ActionDef, PlayerAction } from '../engine/index.ts'
 import { pointsLeft, unanswered, useGameStore } from '../store/gameStore.ts'
 import { Decisions } from './Decisions.tsx'
@@ -9,10 +9,11 @@ export function ActionMenu() {
   const planned = useGameStore((store) => store.planned)
   const crisisResponse = useGameStore((store) => store.crisisResponse)
   const demandResponse = useGameStore((store) => store.demandResponse)
+  const offerResponse = useGameStore((store) => store.offerResponse)
   const unplanAction = useGameStore((store) => store.unplanAction)
   const endTurn = useGameStore((store) => store.endTurn)
   const left = pointsLeft({ game, planned })
-  const missing = unanswered({ game, crisisResponse, demandResponse })
+  const missing = unanswered({ game, crisisResponse, demandResponse, offerResponse })
 
   return (
     <section className="panel actions-panel" aria-labelledby="actions-heading">
@@ -25,7 +26,7 @@ export function ActionMenu() {
       </p>
 
       <ul className="actions">
-        {GAME_DATA.actions.map((def) => (
+        {actionsFor(game, game.playerId).map((def) => (
           <ActionRow key={def.id} def={def} showProblem={left > 0} />
         ))}
       </ul>

@@ -4,6 +4,7 @@ import type { Country } from '../engine/index.ts'
 import { useGameStore } from '../store/gameStore.ts'
 import { money, percent, signed } from './format.ts'
 import { FactionsSection, HedgingSection, StraitSection } from './PositionSections.tsx'
+import { TradeDeals } from './TradeDeals.tsx'
 
 export function StatsPanel() {
   const game = useGameStore((store) => store.game)
@@ -83,6 +84,8 @@ export function StatsPanel() {
             </tr>
           </tbody>
         </table>
+
+        <TradeDeals countryId={player.id} heading="Trade deals" />
 
         <StraitSection />
 

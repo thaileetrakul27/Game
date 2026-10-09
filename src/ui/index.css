@@ -797,7 +797,7 @@ select {
   color: var(--muted);
 }
 
-/* Demands and crisis cards */
+/* Demands, offers and crisis cards */
 
 .decisions {
   display: grid;
@@ -814,6 +814,10 @@ select {
 
 .decision.demand {
   border-color: var(--status-critical);
+}
+
+.decision.offer {
+  border-color: var(--status-info);
 }
 
 .decision legend {

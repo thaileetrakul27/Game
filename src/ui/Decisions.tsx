@@ -1,16 +1,53 @@
-import { describeCrisis, describeEffects, GAME_DATA, getDemand } from '../engine/index.ts'
-import type { DemandResponse } from '../engine/index.ts'
+import { describeCrisis, describeEffects, describeOffer, GAME_DATA, getDemand } from '../engine/index.ts'
+import type { DemandResponse, OfferResponse } from '../engine/index.ts'
 import { useGameStore } from '../store/gameStore.ts'
 
-/** A pending demand and crisis card, each answered before the turn can end. */
+/** A pending demand, offer and crisis card, each answered before the turn can end. */
 export function Decisions() {
   const game = useGameStore((store) => store.game)
-  if (!game.demand && !game.crisis) return null
+  if (!game.demand && !game.offer && !game.crisis) return null
   return (
     <div className="decisions">
       {game.demand && <DemandChoice />}
+      {game.offer && <OfferChoice />}
       {game.crisis && <CrisisChoice />}
     </div>
+  )
+}
+
+function OfferChoice() {
+  const game = useGameStore((store) => store.game)
+  const offerResponse = useGameStore((store) => store.offerResponse)
+  const chooseOfferResponse = useGameStore((store) => store.chooseOfferResponse)
+  const offer = describeOffer(game)
+  if (!offer) return null
+  const options: { id: OfferResponse; name: string; effects: string[] }[] = [
+    { id: 'accept', name: 'Accept', effects: offer.accept },
+    { id: 'decline', name: 'Decline', effects: offer.decline },
+  ]
+
+  return (
+    <fieldset className="decision offer">
+      <legend>
+        {offer.fromName} offers: {offer.name}
+      </legend>
+      <p>{offer.description}</p>
+      {options.map((option) => (
+        <label key={option.id} className="choice">
+          <input
+            type="radio"
+            name="offer-response"
+            value={option.id}
+            checked={offerResponse === option.id}
+            onChange={() => chooseOfferResponse(option.id)}
+          />
+          <span>
+            <strong>{option.name}</strong>
+            <span className="muted"> · {option.effects.join(' · ')}</span>
+          </span>
+        </label>
+      ))}
+    </fieldset>
   )
 }
 

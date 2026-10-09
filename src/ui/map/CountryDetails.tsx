@@ -2,6 +2,7 @@ import { STAT_NAMES } from '../../engine/index.ts'
 import type { StatKey } from '../../engine/index.ts'
 import { useGameStore } from '../../store/gameStore.ts'
 import { money, percent, signed } from '../format.ts'
+import { TradeDeals } from '../TradeDeals.tsx'
 
 const STAT_ORDER: StatKey[] = ['treasury', 'debt', 'growth', 'legitimacy', 'militaryLoyalty', 'defence', 'alignment']
 
@@ -71,6 +72,8 @@ export function CountryDetails() {
           </tbody>
         </table>
       </div>
+
+      <TradeDeals countryId={country.id} heading="Trade deals" />
     </section>
   )
 }
