@@ -11,7 +11,7 @@ Most geopolitics games put you in charge of a superpower and reward conquest. Th
 - **Setting** is a fictional archipelago called the Meridian Sea, so nothing is tied to real politics and you control every number.
 - **Your country** is Kessara, a middle-income state with a deep-water port, a restless military and an ageing ruling coalition.
 - **The great powers** are the Halvard Compact (a maritime trading bloc) and the Tsengai Republic (a fast-rising land power). Both want your port, your votes and your loyalty.
-- **Neighbours** are four smaller states with their own agendas, rivalries and coups.
+- **Neighbours** are four smaller states with their own agendas, rivalries and coups: Valmora, Ostrel, the Sabu Islands and Daranth (see World model).
 - **Session length** is 40 turns, each one a quarter, so a full game is ten in-game years and about 45 minutes of real play.
 
 The original hook is the hedging meter. Every deal you take from one power shifts your alignment toward it. Lean too far and the other side punishes you. Lean too far for too long and your patron starts issuing demands you cannot refuse.
@@ -21,10 +21,12 @@ The original hook is the hedging meter. Every deal you take from one power shift
 Each turn runs through five fixed phases, and you get 4 action points to spend in the middle one.
 
 1. **Briefing.** Income arrives, trade flows through the strait, and a news ticker reports what rivals did last turn.
-2. **Crisis.** One event card is drawn (a coup next door, a naval standoff, a debt offer, a typhoon). You pick one of two or three responses, each with visible and hidden effects.
+2. **Crisis.** One event card is resolved (a coup next door, a naval standoff, a debt offer, a typhoon). The card was drawn at the end of the previous turn and shown to you before you act, so you always see it before committing to anything. You pick one of two or three responses, each with visible and hidden effects. The first turn's card is drawn when the game starts.
 3. **Actions.** Spend 4 action points across the action menu below. Some actions take several turns to finish.
 4. **Rival moves.** Both great powers and all four neighbours act, using the same rules you do.
-5. **Resolution.** Stats update, thresholds are checked, demands are issued, and the game checks for a win or loss.
+5. **Resolution.** Stats update, thresholds are checked, demands are issued, the game checks for a win or loss, and next turn's crisis card is drawn.
+
+You make all of a turn's choices at once: your crisis response together with how you spend your action points. The engine then plays the five phases in order.
 
 | Action | Cost | What it does |
 | --- | --- | --- |
@@ -54,6 +56,15 @@ The map has 7 countries and 3 sea chokepoints, and every country runs on the sam
 | Alignment | minus 100 to plus 100 | Every deal with either power | Minus is Tsengai, plus is Halvard |
 
 Each country also has a **relations score** with every other country (minus 100 to 100) and a **personality** for the computer players, such as Opportunist, Hardliner or Merchant, which weights the actions they choose.
+
+**Neighbours.** The four smaller states around Kessara:
+
+| Country | Type | Personality | Agenda |
+| --- | --- | --- | --- |
+| Valmora | Coastal republic | Opportunist | Shifts toward whichever power is winning |
+| Ostrel | Military-run state | Hardliner | Border dispute with Kessara |
+| The Sabu Islands | Small trading archipelago | Merchant | Rival port competing for strait traffic |
+| Daranth | Landlocked | Hardliner | Heavily in debt to Tsengai |
 
 All of this lives in plain JSON data files (countries, events, actions, projects), so you can rebalance or add content without touching the engine.
 
