@@ -3,13 +3,17 @@
 // is marked with the milestone that replaces it.
 
 import { actionsCost, takeAction } from './actions.ts'
-import { drawCrisis, resolveCrisis } from './crisis.ts'
+import { resolveCrisis } from './crisis.ts'
+import { drawCrisis } from './deck.ts'
 import { getProject } from './data.ts'
 import { incomeBreakdown } from './economy.ts'
 import { applyEffects } from './effects.ts'
 import { answerDemand, checkVassal, resolveHedging } from './hedging.ts'
+import { answerOffer } from './offers.ts'
+import { rivalReactions, rivalTurn } from './rivals.ts'
+import { expireTradeDeals } from './trade.ts'
 import type { Rng } from './rng.ts'
-import { changeRelations, changeStat, quarterLabel, signed, withLog } from './state.ts'
+import { changeStat, quarterLabel, signed, withLog } from './state.ts'
 import { ACTION_POINTS_PER_TURN, DEFAULT_AFTER_DEFICIT_TURNS, MAX_TURNS } from './types.ts'
 import type { GameState, PlayerAction, PlayerTurn } from './types.ts'
 
@@ -20,7 +24,6 @@ export function briefingPhase(state: GameState): GameState {
     next = changeStat(next, country.id, 'treasury', incomeBreakdown(state, country.id).net)
   }
 
-  // Stub: the news ticker arrives with the rivals in milestone 6.
   const { output, tradeLoss, tolls, interest, upkeep, net } = incomeBreakdown(state, state.playerId)
   const cut = tradeLoss > 0 ? `, trade cut -${tradeLoss}` : ''
   return withLog(next, 'briefing', [
@@ -29,10 +32,11 @@ export function briefingPhase(state: GameState): GameState {
   ])
 }
 
-/** 2. Crisis: the card drawn last turn and any pending demand are answered with the player's choices. */
+/** 2. Crisis: the card drawn last turn, any pending demand and any pending offer are answered with the player's choices. */
 export function crisisPhase(state: GameState, playerTurn: PlayerTurn, rng: Rng): GameState {
   const afterCrisis = resolveCrisis(state, playerTurn.crisisResponse, rng)
-  return answerDemand(afterCrisis, playerTurn.demandResponse, rng)
+  const afterDemand = answerDemand(afterCrisis, playerTurn.demandResponse, rng)
+  return answerOffer(afterDemand, playerTurn.offerResponse, rng)
 }
 
 /** 3. Actions: the player spends action points on actions from src/data/actions.json. */
@@ -49,30 +53,29 @@ export function actionsPhase(state: GameState, playerActions: readonly PlayerAct
   return next
 }
 
-/** 4. Rival moves: every computer-controlled country acts. */
-export function rivalsPhase(state: GameState, rng: Rng): GameState {
-  // Stub until the utility-based rivals arrive in milestone 6: each rival's
-  // relations with the player drift by a random -2 to +2.
-  const player = state.countries[state.playerId]
-  let next = state
-  const texts: string[] = []
+/**
+ * 4. Rival moves: the great power the player turned away from reacts, then
+ * every computer-controlled country takes its best actions.
+ */
+export function rivalsPhase(state: GameState, rng: Rng, alignmentAtStart: number): GameState {
+  if (!state.settings.rivals) return state
+  let next = rivalReactions(state, alignmentAtStart)
   for (const rival of Object.values(state.countries)) {
     if (rival.id === state.playerId) continue
-    const shift = rng.int(-2, 2)
-    next = changeRelations(next, rival.id, player.id, shift)
-    if (shift !== 0) texts.push(`${rival.name} relations with ${player.name} ${signed(shift)}.`)
+    next = rivalTurn(next, rival.id, rng).state
   }
-  return withLog(next, 'rivals', texts)
+  return next
 }
 
 /**
- * 5. Resolution: finished projects pay out, the hedging rules run (drift,
+ * 5. Resolution: finished projects pay out, trade deals at the end of their
+ * term expire, the hedging rules run (drift,
  * courting, strait risks, demands and the broker bonus), and the game checks
  * for default, vassalage and its last turn.
  */
 export function resolutionPhase(state: GameState, rng: Rng, alignmentAtStart: number): GameState {
   // Stub: other win and loss checks arrive in milestone 7.
-  const hedging = resolveHedging(completeProjects(state, rng), rng, alignmentAtStart)
+  const hedging = resolveHedging(expireTradeDeals(completeProjects(state, rng)), rng, alignmentAtStart)
   let next = checkDefault(hedging.state)
   if (next.status === 'playing') next = checkVassal(next)
   if (next.status === 'ended') return next
@@ -122,6 +125,5 @@ function checkDefault(state: GameState): GameState {
  * sees both before choosing anything.
  */
 export function startTurn(state: GameState, rng: Rng): GameState {
-  const briefed = briefingPhase(state)
-  return { ...briefed, crisis: drawCrisis(briefed, rng) }
+  return drawCrisis(briefingPhase(state), rng)
 }

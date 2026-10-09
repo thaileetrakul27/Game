@@ -1,0 +1,49 @@
+{
+  "noise": 2,
+  "minimumUtility": 2,
+  "repeatAfterTurns": 3,
+  "repeatAfterTurnsFor": { "investmentPackage": 8 },
+  "incomeHorizon": 8,
+  "treasuryScale": 200,
+  "deficitPenalty": 2,
+  "greatPowerRelations": 2,
+  "relationsScale": 50,
+  "statScale": 60,
+  "playerBloc": 2,
+  "greatPowerBloc": 1,
+  "tensionCurve": 3.5,
+  "projectDiscount": 0.6,
+  "reactionPerAlignment": 0.6,
+  "personalities": {
+    "merchant": {
+      "treasury": 0.5,
+      "income": 1.5,
+      "legitimacy": 0.5,
+      "militaryLoyalty": 0.2,
+      "defence": 0.2,
+      "relations": 0.6,
+      "bloc": 0.3,
+      "harm": 0.2
+    },
+    "hardliner": {
+      "treasury": 0.25,
+      "income": 0.8,
+      "legitimacy": 0.6,
+      "militaryLoyalty": 1,
+      "defence": 1.2,
+      "relations": 0.15,
+      "bloc": 1,
+      "harm": 4
+    },
+    "opportunist": {
+      "treasury": 0.4,
+      "income": 1,
+      "legitimacy": 0.6,
+      "militaryLoyalty": 0.5,
+      "defence": 0.5,
+      "relations": 0.5,
+      "bloc": 0.4,
+      "harm": 0.6
+    }
+  }
+}

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { advanceTurn, createGameState } from './index.ts'
 import type { GameState } from './index.ts'
-import { turnAnswering } from './testHelpers.ts'
+import { quietGame, turnAnswering } from './testHelpers.ts'
 
 function playFullGame(seed: number): GameState {
   let state = createGameState({ seed })
@@ -27,7 +27,7 @@ describe('advanceTurn', () => {
     expect(start.log.length).toBeGreaterThan(0)
     expect(start.log.every((entry) => entry.turn === 1 && entry.phase === 'briefing')).toBe(true)
 
-    const next = advanceTurn(start, { crisisResponse: null, actions: [] })
+    const next = advanceTurn(start, turnAnswering(start))
     expect(next.log.at(-1)).toMatchObject({ turn: 2, phase: 'briefing' })
 
     // No briefing for a turn after the last one.
@@ -35,11 +35,11 @@ describe('advanceTurn', () => {
   })
 
   describe('crisis responses', () => {
-    const noCrisis = createGameState({ seed: 1 })
+    const noCrisis = quietGame(1)
     // Place a card by hand rather than waiting for one to be drawn.
     const withCrisis: GameState = {
       ...noCrisis,
-      crisis: { cardId: 'coupAttempt', responseIds: ['buyOff', 'purge'] },
+      crisis: { cardId: 'coupAttempt', responseIds: ['buyOff', 'purge'], targetId: null },
     }
 
     it("accepts only one of the pending card's responses", () => {

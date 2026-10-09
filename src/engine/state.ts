@@ -32,8 +32,8 @@ export function projectTurnsLeft(state: GameState, progress: ProjectProgress): n
   return Math.max(0, progress.completesOnTurn - state.turn + 1)
 }
 
-export function withLog(state: GameState, phase: Phase, texts: string[]): GameState {
-  const entries: LogEntry[] = texts.map((text) => ({ turn: state.turn, phase, text }))
+export function withLog(state: GameState, phase: Phase, texts: string[], actorId?: CountryId): GameState {
+  const entries: LogEntry[] = texts.map((text) => ({ turn: state.turn, phase, text, ...(actorId ? { actorId } : {}) }))
   return { ...state, log: [...state.log, ...entries] }
 }
 

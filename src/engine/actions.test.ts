@@ -4,7 +4,6 @@ import {
   advanceTurn,
   checkActions,
   checkPlannedAction,
-  createGameState,
   debtInterest,
   describeAction,
   getProject,
@@ -13,9 +12,9 @@ import {
   targetsFor,
 } from './index.ts'
 import type { GameState } from './index.ts'
-import { patchPlayer, turnWith } from './testHelpers.ts'
+import { patchPlayer, quietGame, turnWith } from './testHelpers.ts'
 
-const start = createGameState({ seed: 1 })
+const start = quietGame(1)
 
 describe('actions', () => {
   it('spend action points at the costs in the action data', () => {
@@ -175,10 +174,11 @@ describe('helpers for the interface', () => {
 
   it('describe exactly what an action will do with its target and option', () => {
     expect(describeAction(start, 'kessara', { actionId: 'signTradeDeal', targetId: 'halvard' })).toEqual([
-      'Growth +0.5%',
-      'Halvard Compact: growth +0.25%',
+      'Growth +0.5% for 8 turns',
+      'Halvard Compact: growth +0.25% for 8 turns',
       'Relations with Halvard Compact +5',
       'Alignment up to 5 toward Halvard Compact',
+      'Tsengai Republic resents it: relations up to −3',
       'Business +4',
       'Generals −3',
     ])

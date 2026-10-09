@@ -1,75 +1,615 @@
-[
-  {
-    "id": "massProtests",
-    "name": "Mass protests",
-    "description": "The Reformers fill the capital's squares, demanding change.",
-    "responses": [
-      {
-        "id": "promiseReforms",
-        "name": "Promise reforms",
-        "effects": [
-          { "kind": "faction", "faction": "reformers", "amount": 15 },
-          { "kind": "faction", "faction": "business", "amount": -5 },
-          { "kind": "stat", "who": "self", "stat": "treasury", "amount": -20 }
-        ]
-      },
-      {
-        "id": "clearSquares",
-        "name": "Clear the squares",
-        "effects": [
-          { "kind": "faction", "faction": "reformers", "amount": -10 },
-          { "kind": "faction", "faction": "generals", "amount": 5 },
-          { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": -8 }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "generalStrike",
-    "name": "General strike",
-    "description": "Business owners and dockworkers shut the port.",
-    "responses": [
-      {
-        "id": "meetDemands",
-        "name": "Meet their demands",
-        "effects": [
-          { "kind": "faction", "faction": "business", "amount": 15 },
-          { "kind": "stat", "who": "self", "stat": "treasury", "amount": -40 }
-        ]
-      },
-      {
-        "id": "breakStrike",
-        "name": "Break the strike",
-        "effects": [
-          { "kind": "faction", "faction": "business", "amount": -10 },
-          { "kind": "faction", "faction": "generals", "amount": 5 },
-          { "kind": "stat", "who": "self", "stat": "growth", "amount": -0.5 }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "coupAttempt",
-    "name": "Coup attempt",
-    "description": "Disgruntled officers move troops toward the capital.",
-    "responses": [
-      {
-        "id": "buyOff",
-        "name": "Buy them off",
-        "effects": [
-          { "kind": "faction", "faction": "generals", "amount": 20 },
-          { "kind": "stat", "who": "self", "stat": "treasury", "amount": -60 }
-        ]
-      },
-      {
-        "id": "purge",
-        "name": "Purge the plotters",
-        "effects": [
-          { "kind": "faction", "faction": "generals", "amount": -10 },
-          { "kind": "stat", "who": "self", "stat": "militaryLoyalty", "amount": -10 },
-          { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": 5 }
-        ]
-      }
-    ]
-  }
-]
+{
+  "cooldownTurns": 6,
+  "cards": [
+    {
+      "id": "massProtests",
+      "name": "Mass protests",
+      "description": "The Reformers fill the capital's squares, demanding change.",
+      "weight": 0,
+      "responses": [
+        {
+          "id": "promiseReforms",
+          "name": "Promise reforms",
+          "effects": [
+            { "kind": "faction", "faction": "reformers", "amount": 15 },
+            { "kind": "faction", "faction": "business", "amount": -5 },
+            { "kind": "stat", "who": "self", "stat": "treasury", "amount": -20 }
+          ]
+        },
+        {
+          "id": "clearSquares",
+          "name": "Clear the squares",
+          "effects": [
+            { "kind": "faction", "faction": "reformers", "amount": -10 },
+            { "kind": "faction", "faction": "generals", "amount": 5 },
+            { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": -8 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generalStrike",
+      "name": "General strike",
+      "description": "Business owners and dockworkers shut the port.",
+      "weight": 0,
+      "responses": [
+        {
+          "id": "meetDemands",
+          "name": "Meet their demands",
+          "effects": [
+            { "kind": "faction", "faction": "business", "amount": 15 },
+            { "kind": "stat", "who": "self", "stat": "treasury", "amount": -40 }
+          ]
+        },
+        {
+          "id": "breakStrike",
+          "name": "Break the strike",
+          "effects": [
+            { "kind": "faction", "faction": "business", "amount": -10 },
+            { "kind": "faction", "faction": "generals", "amount": 5 },
+            { "kind": "stat", "who": "self", "stat": "growth", "amount": -0.5 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coupAttempt",
+      "name": "Coup attempt",
+      "description": "Disgruntled officers move troops toward the capital.",
+      "weight": 3,
+      "conditions": [{ "kind": "stat", "stat": "militaryLoyalty", "below": 30 }],
+      "responses": [
+        {
+          "id": "buyOff",
+          "name": "Buy them off",
+          "effects": [
+            { "kind": "faction", "faction": "generals", "amount": 20 },
+            { "kind": "stat", "who": "self", "stat": "treasury", "amount": -60 }
+          ]
+        },
+        {
+          "id": "purge",
+          "name": "Purge the plotters",
+          "effects": [
+            { "kind": "faction", "faction": "generals", "amount": -10 },
+            { "kind": "stat", "who": "self", "stat": "militaryLoyalty", "amount": -10 },
+            { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": 5 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "navalStandoff",
+      "name": "Naval standoff",
+      "description": "Halvard and Tsengai warships face off in the Kessara Strait, each daring the other to blink.",
+      "weight": 3,
+      "target": "halvard",
+      "boosts": [{ "when": { "kind": "straitClosed" }, "times": 2 }],
+      "responses": [
+        {
+          "id": "mediate",
+          "name": "Call both sides to talks",
+          "effects": [
+            { "kind": "stat", "who": "self", "stat": "treasury", "amount": -20 },
+            { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": 4 },
+            { "kind": "relations", "with": "target", "amount": 4 },
+            { "kind": "relations", "with": "otherGreatPower", "amount": 4 }
+          ]
+        },
+        {
+          "id": "backHalvard",
+          "name": "Back the Halvard fleet",
+          "effects": [
+            { "kind": "relations", "with": "target", "amount": 10 },
+            { "kind": "relations", "with": "otherGreatPower", "amount": -12 },
+            { "kind": "alignment", "amount": 5 }
+          ],
+          "chain": { "card": "straitBlockade", "chance": 0.5, "after": 1 }
+        },
+        {
+          "id": "backTsengai",
+          "name": "Back the Tsengai fleet",
+          "effects": [
+            { "kind": "relations", "with": "otherGreatPower", "amount": 10 },
+            { "kind": "relations", "with": "target", "amount": -12 },
+            { "kind": "alignment", "amount": 5, "toward": "otherGreatPower" }
+          ],
+          "chain": { "card": "straitBlockade", "chance": 0.5, "after": 1 }
+        }
+      ]
+    },
+    {
+      "id": "straitBlockade",
+      "name": "Blockade of the strait",
+      "description": "Warships close the approaches to the Kessara Strait. Nothing moves in or out.",
+      "weight": 0,
+      "responses": [
+        {
+          "id": "negotiate",
+          "name": "Negotiate passage",
+          "effects": [
+            { "kind": "stat", "who": "self", "stat": "treasury", "amount": -40 },
+            { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": -4 }
+          ]
+        },
+        {
+          "id": "sendNavy",
+          "name": "Send the navy to break it",
+          "effects": [
+            { "kind": "stat", "who": "self", "stat": "militaryLoyalty", "amount": 5 },
+            { "kind": "stat", "who": "self", "stat": "defence", "amount": -6 },
+            { "kind": "faction", "faction": "generals", "amount": 6 }
+          ],
+          "hidden": [
+            {
+              "kind": "chance",
+              "probability": 0.4,
+              "text": "The navy is humiliated.",
+              "effects": [
+                { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": -8 },
+                { "kind": "stat", "who": "self", "stat": "militaryLoyalty", "amount": -10 }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "waitItOut",
+          "name": "Wait it out",
+          "effects": [
+            { "kind": "stat", "who": "self", "stat": "growth", "amount": -0.5 },
+            { "kind": "stat", "who": "self", "stat": "treasury", "amount": -25 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "valmoraElection",
+      "name": "Valmora goes to the polls",
+      "description": "Valmora's parties court whichever great power looks stronger, and one of them courts you too.",
+      "weight": 2,
+      "target": "valmora",
+      "responses": [
+        {
+          "id": "fundAllies",
+          "name": "Fund the friendly party",
+          "effects": [
+            { "kind": "stat", "who": "self", "stat": "treasury", "amount": -30 },
+            { "kind": "relations", "with": "target", "amount": 12 }
+          ],
+          "hidden": [
+            {
+              "kind": "chance",
+              "probability": 0.3,
+              "text": "The funding is exposed.",
+              "effects": [
+                { "kind": "relations", "with": "target", "amount": -20 },
+                { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": -4 }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "stayOut",
+          "name": "Stay out of it",
+          "effects": [{ "kind": "stat", "who": "self", "stat": "legitimacy", "amount": 2 }]
+        }
+      ]
+    },
+    {
+      "id": "ostrelBorderClash",
+      "name": "Clash on the Ostrel border",
+      "description": "Ostrel troops cross the disputed border and dig in.",
+      "weight": 2,
+      "target": "ostrel",
+      "conditions": [{ "kind": "relations", "country": "ostrel", "below": -20 }],
+      "boosts": [{ "when": { "kind": "stat", "stat": "defence", "below": 40 }, "times": 2 }],
+      "responses": [
+        {
+          "id": "pushBack",
+          "name": "Push them back",
+          "effects": [
+            { "kind": "stat", "who": "self", "stat": "militaryLoyalty", "amount": 6 },
+            { "kind": "stat", "who": "self", "stat": "defence", "amount": -4 },
+            { "kind": "relations", "with": "target", "amount": -10 },
+            { "kind": "faction", "faction": "generals", "amount": 6 }
+          ],
+          "chain": { "card": "ostrelMobilises", "chance": 0.4, "after": 1 }
+        },
+        {
+          "id": "openTalks",
+          "name": "Open talks",
+          "effects": [
+            { "kind": "relations", "with": "target", "amount": 8 },
+            { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": -4 },
+            { "kind": "faction", "faction": "generals", "amount": -6 }
+          ]
+        },
+        {
+          "id": "askTsengai",
+          "name": "Ask Tsengai to rein Ostrel in",
+          "effects": [
+            { "kind": "relations", "with": "target", "amount": 5 },
+            { "kind": "alignment", "amount": 5, "toward": "country", "country": "tsengai" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ostrelMobilises",
+      "name": "Ostrel mobilises",
+      "description": "Ostrel calls up its reserves along the whole border.",
+      "weight": 0,
+      "target": "ostrel",
+      "responses": [
+        {
+          "id": "mobilise",
+          "name": "Mobilise in turn",
+          "effects": [
+            { "kind": "stat", "who": "self", "stat": "treasury", "amount": -50 },
+            { "kind": "stat", "who": "self", "stat": "defence", "amount": 8 },
+            { "kind": "faction", "faction": "generals", "amount": 8 },
+            { "kind": "faction", "faction": "business", "amount": -6 }
+          ]
+        },
+        {
+          "id": "concede",
+          "name": "Give up the border village",
+          "effects": [
+            { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": -10 },
+            { "kind": "relations", "with": "target", "amount": 15 },
+            { "kind": "faction", "faction": "generals", "amount": -10 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sabuPortWar",
+      "name": "Sabu undercuts the port",
+      "description": "The Sabu Islands slash their port fees to pull traffic away from the Kessara Strait.",
+      "weight": 2,
+      "target": "sabu",
+      "responses": [
+        {
+          "id": "matchFees",
+          "name": "Match their fees",
+          "effects": [
+            { "kind": "stat", "who": "self", "stat": "treasury", "amount": -30 },
+            { "kind": "relations", "with": "target", "amount": -5 },
+            { "kind": "faction", "faction": "business", "amount": 4 }
+          ]
+        },
+        {
+          "id": "portPact",
+          "name": "Offer a port pact",
+          "effects": [
+            { "kind": "relations", "with": "target", "amount": 12 },
+            { "kind": "economy", "who": "self", "field": "straitTolls", "amount": -3 }
+          ]
+        },
+        {
+          "id": "ignore",
+          "name": "Ignore it",
+          "effects": [{ "kind": "stat", "who": "self", "stat": "growth", "amount": -0.5 }]
+        }
+      ]
+    },
+    {
+      "id": "sabuSmugglers",
+      "name": "Smugglers from Sabu",
+      "description": "Customs uncover a smuggling ring running cargo through the Sabu Islands.",
+      "weight": 1,
+      "target": "sabu",
+      "responses": [
+        {
+          "id": "prosecute",
+          "name": "Prosecute openly",
+          "effects": [
+            { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": 5 },
+            { "kind": "relations", "with": "target", "amount": -10 },
+            { "kind": "faction", "faction": "reformers", "amount": 4 }
+          ]
+        },
+        {
+          "id": "settleQuietly",
+          "name": "Settle it quietly",
+          "effects": [
+            { "kind": "stat", "who": "self", "stat": "treasury", "amount": 30 },
+            { "kind": "faction", "faction": "reformers", "amount": -5 }
+          ],
+          "hidden": [
+            {
+              "kind": "chance",
+              "probability": 0.4,
+              "text": "The deal leaks to the press.",
+              "effects": [{ "kind": "stat", "who": "self", "stat": "legitimacy", "amount": -8 }]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "daranthDebtCrisis",
+      "name": "Daranth's debt crisis",
+      "description": "Daranth can't meet its payments to Tsengai and asks Kessara for help.",
+      "weight": 2,
+      "target": "daranth",
+      "conditions": [{ "kind": "stat", "country": "daranth", "stat": "debt", "above": 400 }],
+      "responses": [
+        {
+          "id": "lend",
+          "name": "Lend Daranth money",
+          "effects": [
+            { "kind": "stat", "who": "self", "stat": "treasury", "amount": -40 },
+            { "kind": "relations", "with": "target", "amount": 15 },
+            { "kind": "relations", "with": "country", "country": "tsengai", "amount": -4 }
+          ]
+        },
+        {
+          "id": "refuse",
+          "name": "Stay out of it",
+          "effects": [{ "kind": "relations", "with": "target", "amount": -6 }]
+        }
+      ]
+    },
+    {
+      "id": "daranthCoup",
+      "name": "Coup in Daranth",
+      "description": "Officers seize power in Daranth and ask the region for recognition.",
+      "weight": 3,
+      "target": "daranth",
+      "conditions": [{ "kind": "stat", "country": "daranth", "stat": "legitimacy", "below": 40 }],
+      "responses": [
+        {
+          "id": "recognise",
+          "name": "Recognise the junta",
+          "effects": [
+            { "kind": "relations", "with": "target", "amount": 10 },
+            { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": -3 },
+            { "kind": "faction", "faction": "generals", "amount": 5 },
+            { "kind": "faction", "faction": "reformers", "amount": -5 }
+          ]
+        },
+        {
+          "id": "condemn",
+          "name": "Condemn the coup",
+          "effects": [
+            { "kind": "relations", "with": "target", "amount": -15 },
+            { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": 3 },
+            { "kind": "faction", "faction": "reformers", "amount": 6 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "daranthRefugees",
+      "name": "Refugees from Daranth",
+      "description": "Families cross the border as Daranth's economy stalls.",
+      "weight": 1,
+      "target": "daranth",
+      "conditions": [{ "kind": "stat", "country": "daranth", "stat": "growth", "below": 1 }],
+      "responses": [
+        {
+          "id": "openBorder",
+          "name": "Open the border",
+          "effects": [
+            { "kind": "stat", "who": "self", "stat": "treasury", "amount": -25 },
+            { "kind": "relations", "with": "target", "amount": 6 },
+            { "kind": "faction", "faction": "reformers", "amount": 6 },
+            { "kind": "faction", "faction": "generals", "amount": -4 }
+          ]
+        },
+        {
+          "id": "closeBorder",
+          "name": "Close the border",
+          "effects": [
+            { "kind": "faction", "faction": "generals", "amount": 5 },
+            { "kind": "faction", "faction": "reformers", "amount": -6 },
+            { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": -2 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "typhoon",
+      "name": "Typhoon",
+      "description": "A typhoon tears through the coast and floods the port.",
+      "weight": 2,
+      "responses": [
+        {
+          "id": "rebuild",
+          "name": "Rebuild at once",
+          "effects": [
+            { "kind": "stat", "who": "self", "stat": "treasury", "amount": -50 },
+            { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": 5 }
+          ]
+        },
+        {
+          "id": "halvardAid",
+          "name": "Accept Halvard's aid",
+          "effects": [
+            { "kind": "stat", "who": "self", "stat": "treasury", "amount": -10 },
+            { "kind": "relations", "with": "country", "country": "halvard", "amount": 6 },
+            { "kind": "alignment", "amount": 4, "toward": "country", "country": "halvard" }
+          ]
+        },
+        {
+          "id": "tsengaiAid",
+          "name": "Accept Tsengai's aid",
+          "effects": [
+            { "kind": "stat", "who": "self", "stat": "treasury", "amount": -10 },
+            { "kind": "relations", "with": "country", "country": "tsengai", "amount": 6 },
+            { "kind": "alignment", "amount": 4, "toward": "country", "country": "tsengai" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "loanOffer",
+      "name": "A generous loan",
+      "description": "{target} bankers offer a large loan on easy terms, hoping to win you over.",
+      "weight": 2,
+      "target": "otherPower",
+      "conditions": [{ "kind": "stat", "stat": "treasury", "below": 150 }],
+      "responses": [
+        {
+          "id": "takeLoan",
+          "name": "Take the loan",
+          "effects": [
+            { "kind": "borrow", "amount": 200 },
+            { "kind": "alignment", "amount": 8 }
+          ],
+          "hidden": [{ "kind": "faction", "faction": "reformers", "amount": -4 }]
+        },
+        {
+          "id": "decline",
+          "name": "Decline politely",
+          "effects": [{ "kind": "relations", "with": "target", "amount": -4 }]
+        }
+      ]
+    },
+    {
+      "id": "debtTrap",
+      "name": "The debt trap",
+      "description": "{target}, your largest creditor, offers to forgive part of your debt for a stake in the port.",
+      "weight": 3,
+      "target": "largestCreditor",
+      "conditions": [{ "kind": "stat", "stat": "debt", "above": 300 }],
+      "responses": [
+        {
+          "id": "handOverStake",
+          "name": "Hand over a stake in the port",
+          "effects": [
+            { "kind": "forgiveDebt", "amount": 150 },
+            { "kind": "economy", "who": "self", "field": "straitTolls", "amount": -8 },
+            { "kind": "alignment", "amount": 8 },
+            { "kind": "relations", "with": "target", "amount": 8 }
+          ],
+          "hidden": [{ "kind": "stat", "who": "self", "stat": "legitimacy", "amount": -5 }]
+        },
+        {
+          "id": "refuseStake",
+          "name": "Refuse",
+          "effects": [
+            { "kind": "relations", "with": "target", "amount": -10 },
+            {
+              "kind": "chance",
+              "probability": 0.3,
+              "text": "Your creditor recalls its loans.",
+              "effects": [{ "kind": "recallLoans" }]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shippingBoom",
+      "name": "Shipping boom",
+      "description": "Record traffic flows through the strait as trade booms across the region.",
+      "weight": 2,
+      "responses": [
+        {
+          "id": "raiseFees",
+          "name": "Raise port fees",
+          "effects": [
+            { "kind": "stat", "who": "self", "stat": "treasury", "amount": 40 },
+            { "kind": "relations", "with": "country", "country": "halvard", "amount": -3 },
+            { "kind": "relations", "with": "country", "country": "tsengai", "amount": -3 },
+            { "kind": "faction", "faction": "business", "amount": -3 }
+          ]
+        },
+        {
+          "id": "invest",
+          "name": "Invest the windfall",
+          "effects": [
+            { "kind": "stat", "who": "self", "stat": "growth", "amount": 0.5 },
+            { "kind": "stat", "who": "self", "stat": "treasury", "amount": 10 },
+            { "kind": "faction", "faction": "business", "amount": 4 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "corruptionScandal",
+      "name": "Corruption scandal",
+      "description": "A minister is caught taking bribes from shipping firms.",
+      "weight": 2,
+      "conditions": [{ "kind": "stat", "stat": "legitimacy", "below": 50 }],
+      "responses": [
+        {
+          "id": "sack",
+          "name": "Sack the minister",
+          "effects": [
+            { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": 3 },
+            { "kind": "faction", "faction": "business", "amount": -5 },
+            { "kind": "faction", "faction": "reformers", "amount": 4 }
+          ]
+        },
+        {
+          "id": "coverUp",
+          "name": "Cover it up",
+          "effects": [{ "kind": "faction", "faction": "business", "amount": 3 }],
+          "hidden": [
+            {
+              "kind": "chance",
+              "probability": 0.5,
+              "text": "The cover-up comes out.",
+              "effects": [
+                { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": -10 },
+                { "kind": "faction", "faction": "reformers", "amount": -8 }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fleetVisit",
+      "name": "Halvard fleet visit",
+      "description": "The Halvard Compact wants to bring a carrier group into your port.",
+      "weight": 2,
+      "target": "halvard",
+      "responses": [
+        {
+          "id": "welcome",
+          "name": "Welcome the fleet",
+          "effects": [
+            { "kind": "relations", "with": "target", "amount": 10 },
+            { "kind": "relations", "with": "otherGreatPower", "amount": -6 },
+            { "kind": "alignment", "amount": 4 },
+            { "kind": "faction", "faction": "generals", "amount": 3 }
+          ]
+        },
+        {
+          "id": "declineVisit",
+          "name": "Politely decline",
+          "effects": [{ "kind": "relations", "with": "target", "amount": -5 }]
+        }
+      ]
+    },
+    {
+      "id": "railOffer",
+      "name": "Tsengai's railway",
+      "description": "Tsengai offers to build a railway across Kessara to Daranth.",
+      "weight": 2,
+      "target": "tsengai",
+      "responses": [
+        {
+          "id": "acceptRailway",
+          "name": "Accept the railway",
+          "effects": [
+            { "kind": "economy", "who": "self", "field": "baseOutput", "amount": 8 },
+            { "kind": "alignment", "amount": 8 },
+            { "kind": "relations", "with": "target", "amount": 10 },
+            { "kind": "relations", "with": "otherGreatPower", "amount": -6 },
+            { "kind": "faction", "faction": "business", "amount": 4 }
+          ]
+        },
+        {
+          "id": "declineRailway",
+          "name": "Decline",
+          "effects": [{ "kind": "relations", "with": "target", "amount": -8 }]
+        }
+      ]
+    }
+  ]
+}

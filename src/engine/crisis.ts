@@ -1,31 +1,15 @@
-import { GAME_DATA, getEvent } from './data.ts'
+import { getEvent } from './data.ts'
+import { describeEffectsInline } from './describe.ts'
 import { applyEffects } from './effects.ts'
 import type { Rng } from './rng.ts'
 import { withLog } from './state.ts'
-import type { GameState, PendingCrisis } from './types.ts'
+import type { Effect, GameState } from './types.ts'
 
 /**
- * Draw the crisis card for the coming turn. Called when a game starts and at
- * the end of every turn, so the player always sees the card before acting.
- * A faction in unrest (below the line in factions.json) may trigger its own
- * card, starting with the least satisfied.
+ * Play the pending crisis card with the player's chosen response: its visible
+ * effects, then its hidden ones, which only show in the log. A response with
+ * a chain may also set off a follow-up card for a later turn.
  */
-export function drawCrisis(state: GameState, rng: Rng): PendingCrisis | null {
-  const { unrestBelow, unrestCrisisChance, factions } = GAME_DATA.factions
-  const restless = factions
-    .filter((faction) => state.factions[faction.id] < unrestBelow)
-    .sort((a, b) => state.factions[a.id] - state.factions[b.id])
-  for (const faction of restless) {
-    if (rng.next() < unrestCrisisChance) {
-      const card = getEvent(faction.crisisCard)
-      return { cardId: card.id, responseIds: card.responses.map((response) => response.id) }
-    }
-  }
-  // Stub: the weighted, conditional event deck arrives in milestone 6.
-  return null
-}
-
-/** Play the pending crisis card with the player's chosen response. */
 export function resolveCrisis(state: GameState, responseId: string | null, rng: Rng): GameState {
   const { crisis } = state
   if (crisis === null) {
@@ -38,10 +22,21 @@ export function resolveCrisis(state: GameState, responseId: string | null, rng: 
     throw new Error(`${card.name} needs one of these responses: ${card.responses.map((r) => r.name).join(', ')}`)
   }
 
-  const result = applyEffects({ ...state, crisis: null }, response.effects, {
-    actorId: state.playerId,
-    targetId: null,
-    rng,
-  })
-  return withLog(result.state, 'crisis', [`${card.name}. You chose: ${response.name}.`, ...result.texts])
+  const context = { actorId: state.playerId, targetId: crisis.targetId, rng }
+  const visible = applyEffects({ ...state, crisis: null }, response.effects, context)
+  const hidden = applyEffects(visible.state, response.hidden ?? [], context)
+  let next = hidden.state
+
+  const texts = [`${card.name}. You chose: ${response.name}.`, ...visible.texts]
+  const plainHidden = (response.hidden ?? []).filter((effect: Effect) => effect.kind !== 'chance')
+  if (plainHidden.length > 0) {
+    texts.push(`Hidden effect: ${describeEffectsInline(state, state.playerId, crisis.targetId, plainHidden)}.`)
+  }
+  texts.push(...hidden.texts)
+
+  if (response.chain && rng.next() < response.chain.chance) {
+    const chain = { cardId: response.chain.card, dueTurn: state.turn + response.chain.after, targetId: crisis.targetId }
+    next = { ...next, chains: [...next.chains, chain] }
+  }
+  return withLog(next, 'crisis', texts)
 }

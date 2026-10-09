@@ -30,7 +30,7 @@ You make all of a turn's choices at once, after seeing the briefing and the cris
 
 | Action | Cost | What it does |
 | --- | --- | --- |
-| Sign trade deal | 1 | More income, shifts alignment toward that partner |
+| Sign trade deal | 1 | More income for 8 turns, shifts alignment toward that partner |
 | Accept loan or investment | 1 | Big cash now, debt and alignment shift later |
 | Repay debt | 1 | Pay off part of the debt to one great power from the treasury, shifts alignment slightly away from that power since you depend on them less |
 | Build infrastructure | 2 | Multi-turn project (port, canal, rail, power grid) |
@@ -83,6 +83,15 @@ Each country also has a **relations score** with every other country (minus 100 
 | The Sabu Islands | Small trading archipelago | Merchant | Rival port competing for strait traffic |
 | Daranth | Landlocked | Hardliner | Heavily in debt to Tsengai |
 
+**Variety between games.** The seed varies the four neighbours at the start of each game, so no two games begin alike and the region doesn't always end up split the same way. For each neighbour:
+
+- its alignment moves by up to 20 either way;
+- its relations with every other country move by up to 10 either way, by the same amount on both sides;
+- its legitimacy, military loyalty and defence move by up to 8, its treasury by up to a quarter, and its growth by up to 0.5%, in steps of 0.25%;
+- one game in five, it gets one of the other two personalities instead of its usual one from the table above. The log says so at the start of the game.
+
+Debt stays as written, so Daranth always starts heavily in debt to Tsengai. The great powers and Kessara never vary. The ranges live in src/data/variety.json.
+
 All of this lives in plain JSON data files (countries, events, actions, projects), so you can rebalance or add content without touching the engine.
 
 ## Systems
@@ -92,6 +101,8 @@ Five systems drive the game, and the hedging system is the one that makes it fee
 **1. Economy.** Income each turn equals base output times growth, plus strait tolls, minus debt interest and upkeep. Trade deals raise growth. Infrastructure takes 3 to 8 turns to build, then pays out for the rest of the game. Loans from the great powers are generous but come with strings (see demands).
 
 - **Growth does not compound.** It is a percentage applied to base output each turn: 100 base output at 3% growth gives 103 output, every turn that growth stays at 3%.
+- **Trade deals last 8 turns.** A trade deal raises the signer's growth by 0.5% and the partner's by 0.25%. It counts in the next 8 briefings, then expires at the end of the 8th turn after it was signed, and that growth goes away. The relations and alignment it brought stay.
+- **One deal per partner.** Two countries can have only one active trade deal between them, whoever signed it. A new one can be signed once the old one has expired. The interface lists your active deals and the turns each has left.
 - **Debt is tracked by creditor.** A loan from a great power is owed to that power. The rest of a country's debt is owed to lenders outside the region.
 - **Interest never reduces debt.** It is charged each turn on the whole debt. The only way to pay debt down is the Repay debt action, which pays off part of what you owe one great power.
 
@@ -126,7 +137,42 @@ The numbers in these systems are starting values. They live in the data files so
 
 **5. Crises and events.** A deck of 60 or more event cards, weighted by game state. A coup card only enters the deck if loyalty is low. A debt-trap card only appears if debt is high. Some cards chain across turns, so a naval standoff can escalate into a blockade if handled badly.
 
+- **Drawing.** Each turn draws one card, in this order:
+  1. a chained card that has come due;
+  2. a faction's crisis card, if a faction is in unrest;
+  3. a card picked by weight from the cards whose conditions hold.
+- **Weights and conditions.** A card's weight can be boosted while a condition holds, such as a naval standoff becoming more likely while the strait is closed. A card with weight 0 is never picked at random, only by a chain or a faction.
+- **Repeats.** A card can't be drawn again within 6 turns of its last draw.
+- **Targets.** A card can be about a named country, or about whichever power is your patron, the other power, or your largest creditor at the time.
+- **Hidden effects.** Each response shows its visible effects before you choose. Some also have hidden effects, revealed in the log afterwards.
+- **Chains.** A response can have a chance to bring a follow-up card a set number of turns later.
+- The starter deck has 20 cards, including the three faction crisis cards. Milestone 7 and later can add more to reach the 60 planned above.
+
 **Computer rivals.** Each rival scores every legal action with a simple utility function (gain in its own stats, weighted by personality, plus a bit of randomness), then picks the top ones. No machine learning needed, and it stays readable when you debug it.
+
+- **Choosing.** Each rival has 4 action points, like you. It keeps picking its highest-scoring action until its points run out or nothing is expected to score above a small minimum. The randomness only changes the order of actions worth taking; it never makes a worthless action worth taking.
+- **No repeats.** A rival doesn't take the same action on the same target again within 3 turns, so it never takes it twice in a turn and its moves vary from turn to turn. An investment package takes longer: a power waits 8 turns before offering the same country another, because the money takes time to spend.
+- **The utility** of an action adds up its change to the rival's own treasury (worth less to a rich country), income over the next 8 turns, legitimacy, military loyalty, defence, relations (great powers count double), and its bloc, plus the damage done to countries it is hostile to.
+- **Rising tension.** Hostile rivals start the game cautious and grow bolder. The weight a rival puts on harming a country it is hostile to rises from nothing on the first turn to its full value on the last, slowly at first: it grows with the share of the game played raised to the power 3.5, so it is under a tenth of its full value halfway through. A Hardliner's full harm weight is 4. Covert operations against you therefore come late: a bitter enemy starts plotting around turn 25, a country only mildly hostile to you in the last seven turns.
+- **Diminishing returns.** Legitimacy, military loyalty, defence, relations and how far a rival leans count for less the higher they already are, so rivals stop chasing scores that are already high instead of pushing everything to 100.
+- **Great powers.** The Halvard Compact and the Tsengai Republic are rivals for the region and never sign deals or hold summits with each other.
+- **Bloc** means something different for each kind of rival:
+  - A great power wants smaller states, Kessara above all, moving toward its end of the scale. Both great powers weigh this the same, whatever their personality; they differ in how they pursue it.
+  - A Hardliner wants to move further toward the side it already leans to.
+  - An Opportunist wants to move toward the winning side, the end of the scale that the smaller states lean toward overall.
+  - A Merchant wants to stay balanced.
+- **Personalities.** Each personality weights these differently:
+  - Merchants care most about income.
+  - Hardliners care about defence, military loyalty and hurting their enemies.
+  - Opportunists sit in between.
+- **Chance effects** are scored at their expected value, so a rival can't see the outcome in advance.
+- **Consent.** A rival can't sign a trade deal with you on your behalf. Deals with you only happen when you choose them.
+- **Investment packages, the Merchant power's strength.** A great power with the Merchant personality, the Halvard Compact, can spend 1 action point to offer a smaller state an investment package. The receiver gets 80 in cash and 3 more base output a turn from the power's treasury, relations with the power rise by 8, and the receiver's alignment moves up to 8 toward the power. Declining costs 4 relations with it.
+  - A computer neighbour accepts only if it is better off by its own utility, so the power only offers where it will be accepted.
+  - An offer to you arrives like a demand: you accept or decline it with your next turn's choices. Only one offer can wait for you at a time. Accepting pleases Business and annoys the Reformers.
+  - A rival scores an offer to you as if you will accept it.
+- **Reactions.** When your alignment moves during a turn, the great power you moved away from resents it before the rivals act, losing 0.6 relations with you per point moved. A trade deal with Halvard improves your Halvard relations and costs about 3 with Tsengai.
+- **News.** What the rivals did last turn appears as the news at the start of your turn.
 
 **Not yet in effect.** The Diplomatic summit's leverage gain has no effect until leverage is defined. A coup attempt cannot succeed and end the game until milestone 7 adds the win and loss checks.
 
@@ -187,6 +233,10 @@ Because the engine is pure functions with a seeded random generator, you can hav
 - **Unit tests** for every formula and threshold, written alongside each milestone.
 - **Simulation script.** Ask Claude Code for a script that runs 1,000 games with bot players (random, always-Halvard, always-Tsengai, pure hedger) and prints win rates and the most common cause of loss for each.
 - **Balance targets.** The pure hedger should win about 35% of the time, the one-side bots about 20%, the random bot under 5%. If one strategy dominates, change the data files, not the code.
+- **Rival balance targets.** Measured over 100 seeded games with a passive player, who takes no actions, picks crisis responses at random and declines every offer and demand:
+  - Over the 100 games, the four neighbours end roughly evenly split between the two powers, with about as many leaning toward Halvard as toward Tsengai. Individual games end with different splits, thanks to the variety between games.
+  - Passive play is still punished, but the rivals never push the passive player's legitimacy below 20 before turn 30. Unlucky crisis answers alone can still do it in the odd game, which the simulation reports separately.
+  - `npm run simulate` plays these 100 games and prints both measures, including how often each neighbour ends on each side and how many games end with each split.
 - **Playtesting.** Get two or three friends to play one full game each and note the turn where they first got bored or confused.
 
 **Stretch ideas** once it works: a second playable country, a hot-seat two-player mode where each player is a great power competing for Kessara, and a live news feed of your decisions styled like a Geopolitics Journal front page.

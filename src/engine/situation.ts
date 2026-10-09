@@ -3,7 +3,7 @@
 // and the warnings that apply right now. Every rule comes from the engine.
 
 import { isPast, inBrokerRange, patronOf, tradeCutBy } from './alignment.ts'
-import { GAME_DATA, getDemand, getEvent, getFaction } from './data.ts'
+import { GAME_DATA, getAction, getDemand, getEvent, getFaction } from './data.ts'
 import { accessOf, closureRisk, straitOwnedBy } from './straits.ts'
 import { ACTION_POINTS_PER_TURN, DEFAULT_AFTER_DEFICIT_TURNS } from './types.ts'
 import type { CountryId, FactionId, GameState } from './types.ts'
@@ -117,6 +117,16 @@ export function alerts(state: GameState): Alert[] {
     })
   }
 
+  if (state.offer) {
+    const offer = getAction(state.offer.actionId).offer
+    list.push({
+      id: 'offer',
+      level: 'info',
+      title: `${name(state.offer.fromId)} offers: ${offer?.name ?? 'a deal'}`,
+      text: 'Accept or decline before ending the turn.',
+    })
+  }
+
   if (state.crisis) {
     list.push({
       id: 'crisis',
@@ -194,4 +204,29 @@ export function alerts(state: GameState): Alert[] {
   }
 
   return list.sort((a, b) => LEVEL_ORDER.indexOf(a.level) - LEVEL_ORDER.indexOf(b.level))
+}
+
+export interface NewsStory {
+  countryId: CountryId
+  name: string
+  /** What the country did, in order, without its name in front. */
+  lines: string[]
+}
+
+/** What each of the other countries did in the rivals phase of a turn, in the order they acted. */
+export function rivalNews(state: GameState, turn: number): NewsStory[] {
+  const stories = new Map<CountryId, NewsStory>()
+  for (const entry of state.log) {
+    if (entry.phase !== 'rivals' || entry.turn !== turn || !entry.actorId) continue
+    const { name } = state.countries[entry.actorId]
+    const story = stories.get(entry.actorId) ?? { countryId: entry.actorId, name, lines: [] }
+    story.lines.push(entry.text.startsWith(`${name}: `) ? entry.text.slice(name.length + 2) : entry.text)
+    stories.set(entry.actorId, story)
+  }
+  return [...stories.values()]
+}
+
+/** The news for the player: what the other countries did in the turn just played. Empty on the first turn. */
+export function latestNews(state: GameState): NewsStory[] {
+  return rivalNews(state, state.status === 'ended' ? state.turn : state.turn - 1)
 }

@@ -9,11 +9,15 @@ import eventsJson from '../data/events.json' with { type: 'json' }
 import factionsJson from '../data/factions.json' with { type: 'json' }
 import hedgingJson from '../data/hedging.json' with { type: 'json' }
 import projectsJson from '../data/projects.json' with { type: 'json' }
+import rivalsJson from '../data/rivals.json' with { type: 'json' }
 import straitControlJson from '../data/straitControl.json' with { type: 'json' }
 import straitsJson from '../data/straits.json' with { type: 'json' }
+import varietyJson from '../data/variety.json' with { type: 'json' }
 import type {
   ActionDef,
   ActionTarget,
+  CardTarget,
+  Condition,
   CountryDef,
   CountryKind,
   DemandDef,
@@ -27,6 +31,7 @@ import type {
   HedgingRules,
   Personality,
   ProjectDef,
+  RivalRules,
   StatKey,
   StraitAccess,
   StraitControlRules,
@@ -53,6 +58,11 @@ function checkUniqueIds(items: readonly { id: string }[], file: string): void {
 interface References {
   projectIds: ReadonlySet<string>
   factionIds: ReadonlySet<string>
+  countryIds: ReadonlySet<string>
+}
+
+function checkCountry(id: string | undefined, where: string, refs: References): void {
+  check(id !== undefined && refs.countryIds.has(id), where, `unknown country "${id}"`)
 }
 
 function checkEffects(effects: readonly Effect[], where: string, target: ActionTarget, refs: References): void {
@@ -63,31 +73,46 @@ function checkEffects(effects: readonly Effect[], where: string, target: ActionT
         check(STATS.includes(effect.stat), where, `unknown stat "${effect.stat}"`)
         // Debt is tracked by creditor, so it only changes through borrow and repayDebt.
         check(effect.stat !== 'debt', where, 'change debt with a borrow or repayDebt effect')
-        check(effect.who === 'self' || (effect.who === 'target' && hasTarget), where, `bad "who": ${effect.who}`)
+        check(
+          effect.who === 'self' || effect.who === 'country' || (effect.who === 'target' && hasTarget),
+          where,
+          `bad "who": ${effect.who}`,
+        )
+        if (effect.who === 'country') checkCountry(effect.country, where, refs)
         break
       case 'economy':
         check(ECONOMY_FIELDS.includes(effect.field), where, `unknown economy field "${effect.field}"`)
         check(effect.who === 'self' || (effect.who === 'target' && hasTarget), where, `bad "who": ${effect.who}`)
         break
       case 'relations':
-        check(hasTarget, where, 'a relations effect needs a target')
-        check(['target', 'otherGreatPower'].includes(effect.with), where, `bad "with": ${effect.with}`)
+        check(['target', 'otherGreatPower', 'country'].includes(effect.with), where, `bad "with": ${effect.with}`)
+        if (effect.with === 'country') checkCountry(effect.country, where, refs)
+        else check(hasTarget, where, 'a relations effect needs a target')
         break
-      case 'alignment':
-        check(hasTarget, where, 'an alignment effect needs a target')
+      case 'alignment': {
+        const toward = effect.toward ?? 'target'
+        check(['target', 'otherGreatPower', 'country'].includes(toward), where, `bad "toward": ${toward}`)
+        if (toward === 'country') checkCountry(effect.country, where, refs)
+        else check(hasTarget, where, 'an alignment effect needs a target')
         break
+      }
       case 'borrow':
       case 'repayDebt':
         check(target === 'greatPower', where, `a ${effect.kind} effect needs a great power as the target`)
         check(effect.amount > 0, where, `a ${effect.kind} amount must be above zero`)
         break
       case 'recallLoans':
+      case 'forgiveDebt':
       case 'straitAccess':
         check(target === 'greatPower', where, `a ${effect.kind} effect needs a great power as the target`)
         if (effect.kind === 'straitAccess') check(ACCESS.includes(effect.access), where, `bad access "${effect.access}"`)
         break
       case 'faction':
         check(refs.factionIds.has(effect.faction), where, `unknown faction "${effect.faction}"`)
+        break
+      case 'tradeDeal':
+        check(hasTarget, where, 'a tradeDeal effect needs a target')
+        check(Number.isInteger(effect.turns) && effect.turns >= 1, where, 'a trade deal must last a whole number of turns')
         break
       case 'startProject':
         check(refs.projectIds.has(effect.projectId), where, `unknown project "${effect.projectId}"`)
@@ -102,14 +127,54 @@ function checkEffects(effects: readonly Effect[], where: string, target: ActionT
   }
 }
 
-/** Every action, or every option of an action that has them, pleases one faction and annoys another. */
+const SPECIAL_TARGETS = ['patron', 'otherPower', 'largestCreditor']
+
+/** The kind of target a card's effects can use. Situation targets are always great powers. */
+function cardTargetKind(
+  target: CardTarget | undefined,
+  where: string,
+  refs: References,
+  kindOf: (id: string) => string | undefined,
+): ActionTarget {
+  if (target === undefined) return 'none'
+  if (SPECIAL_TARGETS.includes(target)) return 'greatPower'
+  checkCountry(target, where, refs)
+  return kindOf(target) === 'greatPower' ? 'greatPower' : 'any'
+}
+
+function checkCondition(condition: Condition, where: string, refs: References): void {
+  switch (condition.kind) {
+    case 'stat':
+      check(STATS.includes(condition.stat), where, `unknown stat "${condition.stat}" in a condition`)
+      if (condition.country !== undefined) checkCountry(condition.country, where, refs)
+      break
+    case 'relations':
+      checkCountry(condition.country, where, refs)
+      break
+    case 'faction':
+      check(refs.factionIds.has(condition.faction), where, `unknown faction "${condition.faction}" in a condition`)
+      break
+    case 'straitClosed':
+    case 'turn':
+      break
+    default:
+      check(false, where, `unknown condition kind "${(condition as { kind: unknown }).kind}"`)
+  }
+}
+
+/**
+ * Every action, or every option of an action that has them, pleases one
+ * faction and annoys another. For an offer, accepting it does.
+ */
 function checkFactionReactions(action: ActionDef): void {
-  const choices = action.options?.map((option) => [option.id, option.effects] as const) ?? [['', []] as const]
+  const choices = action.offer
+    ? [['accepted', action.offer.accepted] as const]
+    : (action.options?.map((option) => [`option ${option.id}`, option.effects] as const) ?? [['', []] as const])
   for (const [optionId, optionEffects] of choices) {
     const amounts = [...action.effects, ...optionEffects].flatMap((effect) =>
       effect.kind === 'faction' ? [effect.amount] : [],
     )
-    const where = `actions.json (${action.id}${optionId ? `, option ${optionId}` : ''})`
+    const where = `actions.json (${action.id}${optionId ? `, ${optionId}` : ''})`
     check(amounts.some((amount) => amount > 0), where, 'must please a faction')
     check(amounts.some((amount) => amount < 0), where, 'must annoy a faction')
   }
@@ -127,6 +192,7 @@ export function validateGameData(data: GameData): GameData {
   const refs: References = {
     projectIds: new Set(data.projects.map((project) => project.id)),
     factionIds: new Set(data.factions.factions.map((faction) => faction.id)),
+    countryIds: new Set(data.countries.map((country) => country.id)),
   }
   const kindOf = (id: string) => data.countries.find((country) => country.id === id)?.kind
 
@@ -159,6 +225,18 @@ export function validateGameData(data: GameData): GameData {
   for (const action of data.actions) {
     const where = `actions.json (${action.id})`
     check(TARGETS.includes(action.target), where, `unknown target "${action.target}"`)
+    if (action.actor?.kind !== undefined) check(KINDS.includes(action.actor.kind), where, `unknown actor kind "${action.actor.kind}"`)
+    if (action.actor?.personality !== undefined) {
+      check(PERSONALITIES.includes(action.actor.personality), where, `unknown actor personality "${action.actor.personality}"`)
+    }
+    if (action.offer) {
+      check(action.target !== 'none', where, 'an offer needs a target to make it to')
+      check(action.effects.length === 0 && !action.options, where, "an offer's effects go in offer.accepted and offer.declined")
+      // The receiver applies them, with the country making the offer as its target.
+      const offerer = action.actor?.kind === 'greatPower' ? 'greatPower' : 'any'
+      checkEffects(action.offer.accepted, `${where}, accepted`, offerer, refs)
+      checkEffects(action.offer.declined, `${where}, declined`, offerer, refs)
+    }
     check(Number.isInteger(action.cost) && action.cost >= 1, where, 'cost must be a whole number of action points')
     checkEffects(action.effects, where, action.target, refs)
     if (action.options) checkUniqueIds(action.options, where)
@@ -199,16 +277,45 @@ export function validateGameData(data: GameData): GameData {
   const eventIds = new Set(data.events.map((event) => event.id))
   for (const event of data.events) {
     const where = `events.json (${event.id})`
+    check(event.weight >= 0, where, 'weight cannot be negative')
     check(event.responses.length > 0, where, 'needs at least one response')
     checkUniqueIds(event.responses, where)
+    const target = cardTargetKind(event.target, where, refs, kindOf)
+    for (const condition of [...(event.conditions ?? []), ...(event.boosts ?? []).map((boost) => boost.when)]) {
+      checkCondition(condition, where, refs)
+    }
+    for (const boost of event.boosts ?? []) check(boost.times > 0, where, 'a boost must multiply by more than 0')
     for (const response of event.responses) {
-      checkEffects(response.effects, `${where}, response ${response.id}`, 'none', refs)
+      const at = `${where}, response ${response.id}`
+      checkEffects([...response.effects, ...(response.hidden ?? [])], at, target, refs)
+      if (response.chain) {
+        check(eventIds.has(response.chain.card), at, `unknown chained card "${response.chain.card}"`)
+        check(response.chain.chance > 0 && response.chain.chance <= 1, at, 'chain chance must be above 0, up to 1')
+        check(Number.isInteger(response.chain.after) && response.chain.after >= 1, at, 'chain must come 1 or more turns later')
+      }
     }
   }
   for (const faction of data.factions.factions) {
     const where = `factions.json (${faction.id})`
     check(faction.start >= 0 && faction.start <= 100, where, 'start must be 0 to 100')
     check(eventIds.has(faction.crisisCard), where, `unknown crisis card "${faction.crisisCard}"`)
+  }
+
+  for (const personality of PERSONALITIES) {
+    check(data.rivals.personalities[personality] !== undefined, 'rivals.json', `missing weights for "${personality}"`)
+  }
+  check(data.rivals.tensionCurve >= 0, 'rivals.json', 'tensionCurve cannot be negative')
+
+  const { personalitySwapChance, ...ranges } = data.variety
+  for (const [name, range] of Object.entries(ranges)) check(range >= 0, 'variety.json', `${name} cannot be negative`)
+  check(personalitySwapChance >= 0 && personalitySwapChance <= 1, 'variety.json', 'personalitySwapChance must be 0 to 1')
+  check(Number.isInteger(data.variety.growth / 0.25), 'variety.json', 'growth must be a whole number of 0.25% steps')
+  for (const scale of ['treasuryScale', 'relationsScale', 'statScale'] as const) {
+    check(data.rivals[scale] > 0, 'rivals.json', `${scale} must be above 0`)
+  }
+  for (const [actionId, turns] of Object.entries({ any: data.rivals.repeatAfterTurns, ...data.rivals.repeatAfterTurnsFor })) {
+    if (actionId !== 'any') check(data.actions.some((action) => action.id === actionId), 'rivals.json', `unknown action "${actionId}"`)
+    check(Number.isInteger(turns) && turns >= 1, 'rivals.json', 'turns to wait before a repeat must be a whole number of at least 1')
   }
 
   return data
@@ -224,7 +331,10 @@ export const GAME_DATA: GameData = validateGameData({
   hedging: hedgingJson as unknown as HedgingRules,
   demands: demandsJson as unknown as DemandDef[],
   factions: factionsJson as unknown as FactionRules,
-  events: eventsJson as unknown as EventCard[],
+  events: (eventsJson as unknown as { cards: EventCard[] }).cards,
+  deck: { cooldownTurns: eventsJson.cooldownTurns },
+  rivals: rivalsJson as unknown as RivalRules,
+  variety: varietyJson,
 })
 
 function find<T extends { id: string }>(items: readonly T[], id: string, kind: string): T {

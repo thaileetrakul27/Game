@@ -20,7 +20,7 @@ export function advanceTurn(state: GameState, playerTurn: PlayerTurn): GameState
   const alignmentAtStart = state.countries[state.playerId].stats.alignment
   let next = crisisPhase(state, playerTurn, rng)
   next = actionsPhase(next, playerTurn.actions, rng)
-  next = rivalsPhase(next, rng)
+  next = rivalsPhase(next, rng, alignmentAtStart)
   next = resolutionPhase(next, rng, alignmentAtStart)
   if (next.status === 'playing') next = startTurn(next, rng)
   return { ...next, rngState: rng.state }

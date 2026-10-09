@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { advanceTurn, createGameState, debtInterest, GAME_DATA, incomeBreakdown } from './index.ts'
+import { advanceTurn, debtInterest, GAME_DATA, incomeBreakdown } from './index.ts'
 import type { EconomyRules, GameData } from './index.ts'
-import { patchPlayer, turnWith } from './testHelpers.ts'
+import { patchPlayer, quietGame, turnWith } from './testHelpers.ts'
 
 // Fixed rules, so these tests check the formulas rather than the current balance numbers.
 const rules: EconomyRules = { interestRatePerTurn: 0.02, growthMin: -5, growthMax: 8 }
@@ -10,7 +10,7 @@ const data: GameData = { ...GAME_DATA, economy: rules, straitControl: { ...GAME_
 describe('income', () => {
   it('is base output times growth, plus tolls, minus debt interest and upkeep', () => {
     // The Kessara Strait carries 40% of trade, so at 0.75 a share it pays 30 with both powers open.
-    const state = patchPlayer(createGameState({ seed: 1 }), {
+    const state = patchPlayer(quietGame(1), {
       stats: { growth: 5, debt: 500 },
       economy: { baseOutput: 200, straitTolls: 0, upkeep: 150 },
     })
@@ -25,13 +25,13 @@ describe('income', () => {
   })
 
   it('shrinks output when growth is negative', () => {
-    const state = patchPlayer(createGameState({ seed: 1 }), { stats: { growth: -5 }, economy: { baseOutput: 200 } })
+    const state = patchPlayer(quietGame(1), { stats: { growth: -5 }, economy: { baseOutput: 200 } })
     expect(incomeBreakdown(state, 'kessara', data).output).toBe(190)
   })
 
   it("arrives in every country's treasury at the briefing", () => {
     // Income doesn't depend on the treasury, so the opening state gives the same figures.
-    const start = createGameState({ seed: 1 })
+    const start = quietGame(1)
     for (const country of GAME_DATA.countries) {
       const expected = country.stats.treasury + incomeBreakdown(start, country.id).net
       expect(start.countries[country.id].stats.treasury).toBe(expected)
@@ -47,7 +47,7 @@ describe('debt interest', () => {
   })
 
   it('drains the treasury each turn without paying down the debt', () => {
-    const start = createGameState({ seed: 1 })
+    const start = quietGame(1)
     const debtFree = patchPlayer(start, { stats: { debt: 0 } })
     const indebted = patchPlayer(start, { stats: { debt: 1000 } })
 
@@ -62,7 +62,7 @@ describe('debt interest', () => {
 
 describe('default', () => {
   it('ends the game after two turns in a row with the treasury below zero', () => {
-    const broke = patchPlayer(createGameState({ seed: 1 }), {
+    const broke = patchPlayer(quietGame(1), {
       stats: { treasury: -500, debt: 0 },
       economy: { baseOutput: 0, straitTolls: 0, upkeep: 10 },
     })
@@ -78,7 +78,7 @@ describe('default', () => {
   })
 
   it('forgives a single turn below zero if income recovers', () => {
-    const shortOfCash = patchPlayer(createGameState({ seed: 1 }), {
+    const shortOfCash = patchPlayer(quietGame(1), {
       stats: { treasury: -10, debt: 0 },
       economy: { baseOutput: 100, straitTolls: 0, upkeep: 0 },
     })
@@ -93,7 +93,7 @@ describe('default', () => {
   })
 
   it('counts spending during the turn', () => {
-    const tight = patchPlayer(createGameState({ seed: 1 }), {
+    const tight = patchPlayer(quietGame(1), {
       stats: { treasury: 1, debt: 0 },
       economy: { baseOutput: 0, straitTolls: 0, upkeep: 0 },
     })
