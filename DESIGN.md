@@ -139,8 +139,11 @@ The numbers in these systems are starting values. They live in the data files so
 
 **Computer rivals.** Each rival scores every legal action with a simple utility function (gain in its own stats, weighted by personality, plus a bit of randomness), then picks the top ones. No machine learning needed, and it stays readable when you debug it.
 
-- **Choosing.** Each rival has 4 action points, like you. It keeps picking its highest-scoring action until its points run out or nothing scores above a small minimum, and never takes the same action twice in a turn.
+- **Choosing.** Each rival has 4 action points, like you. It keeps picking its highest-scoring action until its points run out or nothing is expected to score above a small minimum. The randomness only changes the order of actions worth taking; it never makes a worthless action worth taking.
+- **No repeats.** A rival doesn't take the same action on the same target again within 3 turns, so it never takes it twice in a turn and its moves vary from turn to turn.
 - **The utility** of an action adds up its change to the rival's own treasury (worth less to a rich country), income over the next 8 turns, legitimacy, military loyalty, defence, relations (great powers count double), and its bloc, plus the damage done to countries it is hostile to.
+- **Diminishing returns.** Legitimacy, military loyalty, defence, relations and how far a rival leans count for less the higher they already are, so rivals stop chasing scores that are already high instead of pushing everything to 100.
+- **Great powers.** The Halvard Compact and the Tsengai Republic are rivals for the region and never sign deals or hold summits with each other.
 - **Bloc** means something different for each kind of rival:
   - A great power wants smaller states, Kessara above all, moving toward its end of the scale.
   - A Hardliner wants to move further toward the side it already leans to.
