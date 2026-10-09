@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { MAX_TURNS } from '../engine/index.ts'
 import { patchPlayer } from '../engine/testHelpers.ts'
-import { pointsLeft, useGameStore } from './gameStore.ts'
+import { pointsLeft, unanswered, useGameStore } from './gameStore.ts'
 
 const store = () => useGameStore.getState()
 
@@ -11,6 +11,11 @@ describe('game store', () => {
   it('plays 40 turns end to end', () => {
     for (let turn = 1; turn <= MAX_TURNS; turn++) {
       expect(store().game.status).toBe('playing')
+      // Answer anything pending, as a player must before ending the turn.
+      const { crisis, demand } = store().game
+      if (crisis) store().chooseCrisisResponse(crisis.responseIds[0])
+      if (demand) store().chooseDemandResponse('refuse')
+      expect(unanswered(store())).toEqual([])
       const partner = turn % 2 === 1 ? 'halvard' : 'tsengai'
       expect(store().planAction({ actionId: 'signTradeDeal', targetId: partner })).toBeNull()
       expect(store().planAction({ actionId: 'diplomaticSummit', targetId: 'valmora' })).toBeNull()
@@ -47,6 +52,23 @@ describe('game store', () => {
 
     store().unplanAction(0)
     expect(store().planned).toEqual([{ actionId: 'militarySpending' }])
+  })
+
+  it('lists what must be answered before the turn can end', () => {
+    useGameStore.setState({
+      game: {
+        ...store().game,
+        crisis: { cardId: 'generalStrike', responseIds: ['meetDemands', 'breakStrike'] },
+        demand: { demandId: 'navalBase', fromId: 'halvard' },
+      },
+    })
+    expect(unanswered(store())).toEqual(['the demand', 'the crisis'])
+    store().chooseDemandResponse('accept')
+    store().chooseCrisisResponse('meetDemands')
+    expect(unanswered(store())).toEqual([])
+    store().endTurn()
+    expect(store().game.demandsAccepted.halvard).toBe(1)
+    expect(store().demandResponse).toBeNull()
   })
 
   it('starts a new game from a seed', () => {

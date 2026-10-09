@@ -1,21 +1,24 @@
 import { useState } from 'react'
 import { checkPlannedAction, describeAction, GAME_DATA, getAction, targetsFor } from '../engine/index.ts'
 import type { ActionDef, PlayerAction } from '../engine/index.ts'
-import { pointsLeft, useGameStore } from '../store/gameStore.ts'
+import { pointsLeft, unanswered, useGameStore } from '../store/gameStore.ts'
+import { Decisions } from './Decisions.tsx'
 
 export function ActionMenu() {
   const game = useGameStore((store) => store.game)
   const planned = useGameStore((store) => store.planned)
   const crisisResponse = useGameStore((store) => store.crisisResponse)
+  const demandResponse = useGameStore((store) => store.demandResponse)
   const unplanAction = useGameStore((store) => store.unplanAction)
   const endTurn = useGameStore((store) => store.endTurn)
   const left = pointsLeft({ game, planned })
+  const missing = unanswered({ game, crisisResponse, demandResponse })
 
   return (
     <section className="panel actions-panel" aria-labelledby="actions-heading">
       <h2 id="actions-heading">Actions</h2>
 
-      {game.crisis && <CrisisChoice />}
+      <Decisions />
 
       <p className="points" aria-live="polite">
         <strong>{left}</strong> of {game.actionPoints} action points left
@@ -43,11 +46,17 @@ export function ActionMenu() {
             ))}
           </ol>
         )}
+        {missing.length > 0 && (
+          <p className="problem" id="end-turn-blocked">
+            Answer {missing.join(' and ')} before ending the turn.
+          </p>
+        )}
         <button
           type="button"
           className="primary"
           onClick={endTurn}
-          disabled={game.crisis !== null && crisisResponse === null}
+          disabled={missing.length > 0}
+          aria-describedby={missing.length > 0 ? 'end-turn-blocked' : undefined}
         >
           End turn
         </button>
@@ -126,30 +135,5 @@ function ActionRow({ def, showProblem }: { def: ActionDef; showProblem: boolean 
       </div>
       {problem && showProblem && <p className="problem">{problem}</p>}
     </li>
-  )
-}
-
-function CrisisChoice() {
-  const crisis = useGameStore((store) => store.game.crisis)
-  const crisisResponse = useGameStore((store) => store.crisisResponse)
-  const chooseCrisisResponse = useGameStore((store) => store.chooseCrisisResponse)
-  if (!crisis) return null
-
-  return (
-    <fieldset className="crisis">
-      <legend>Crisis: {crisis.cardId}</legend>
-      {crisis.responseIds.map((id) => (
-        <label key={id}>
-          <input
-            type="radio"
-            name="crisis-response"
-            value={id}
-            checked={crisisResponse === id}
-            onChange={() => chooseCrisisResponse(id)}
-          />
-          {id}
-        </label>
-      ))}
-    </fieldset>
   )
 }

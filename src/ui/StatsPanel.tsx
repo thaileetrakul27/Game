@@ -1,19 +1,15 @@
 import { useState } from 'react'
-import {
-  DEFAULT_AFTER_DEFICIT_TURNS,
-  getProject,
-  incomeBreakdown,
-  projectTurnsLeft,
-} from '../engine/index.ts'
+import { getProject, incomeBreakdown, projectTurnsLeft } from '../engine/index.ts'
 import type { Country } from '../engine/index.ts'
 import { useGameStore } from '../store/gameStore.ts'
 import { money, percent, signed } from './format.ts'
+import { FactionsSection, HedgingSection, StraitSection } from './PositionSections.tsx'
 
 export function StatsPanel() {
   const game = useGameStore((store) => store.game)
   const player = game.countries[game.playerId]
   const { stats } = player
-  const income = incomeBreakdown(player)
+  const income = incomeBreakdown(game, player.id)
   const owedToPowers = Object.values(player.creditors).reduce((total, owed) => total + owed, 0)
   const others = Object.values(game.countries).filter((country) => country.id !== player.id)
   // Only phones can collapse the panel. Wider screens always show it in full.
@@ -50,14 +46,8 @@ export function StatsPanel() {
           <Gauge label="Defence" value={stats.defence} />
         </dl>
 
-        {stats.treasury < 0 && (
-          <p className="warning">
-            The treasury is below zero. Ending {DEFAULT_AFTER_DEFICIT_TURNS} turns in a row below zero means
-            default. Turns so far: {game.deficitTurns}.
-          </p>
-        )}
-
-        <AlignmentMeter value={stats.alignment} />
+        <FactionsSection />
+        <HedgingSection />
 
         <h3>Income per turn</h3>
         <table className="figures">
@@ -66,6 +56,12 @@ export function StatsPanel() {
               <th scope="row">Output</th>
               <td>{money(income.output)}</td>
             </tr>
+            {income.tradeLoss > 0 && (
+              <tr>
+                <th scope="row">Trade cut</th>
+                <td className="bad">−{money(income.tradeLoss)}</td>
+              </tr>
+            )}
             <tr>
               <th scope="row">Strait tolls</th>
               <td>{money(income.tolls)}</td>
@@ -84,6 +80,8 @@ export function StatsPanel() {
             </tr>
           </tbody>
         </table>
+
+        <StraitSection />
 
         <h3>Debt owed to</h3>
         <table className="figures">
@@ -147,33 +145,6 @@ function Gauge({ label, value }: { label: string; value: number }) {
         <span>{value}</span>
       </dd>
     </>
-  )
-}
-
-function AlignmentMeter({ value }: { value: number }) {
-  // The scale runs from -100 (Tsengai) to +100 (Halvard), so 0 sits in the middle.
-  const position = (value + 100) / 2
-  return (
-    <div className="alignment">
-      <div className="alignment-label">
-        <span>Alignment</span>
-        <span>{signed(value)}</span>
-      </div>
-      <div
-        className="alignment-track"
-        role="meter"
-        aria-label="Alignment, from Tsengai at -100 to Halvard at +100"
-        aria-valuemin={-100}
-        aria-valuemax={100}
-        aria-valuenow={value}
-      >
-        <div className="alignment-marker" style={{ left: `${position}%` }} />
-      </div>
-      <div className="alignment-ends">
-        <span>Tsengai</span>
-        <span>Halvard</span>
-      </div>
-    </div>
   )
 }
 
