@@ -30,7 +30,10 @@ const countries = [
 function playFullGame(seed: number): GameState {
   let state = createGameState({ seed, playerId: 'kessara', countries })
   while (state.status === 'playing') {
-    state = advanceTurn(state, [{ actionId: 'diplomaticSummit', targetId: 'halvard' }])
+    state = advanceTurn(state, {
+      crisisResponse: null,
+      actions: [{ actionId: 'diplomaticSummit', targetId: 'halvard' }],
+    })
   }
   return state
 }
@@ -44,5 +47,24 @@ describe('advanceTurn', () => {
 
     // A different seed must change the game, or the check above proves nothing.
     expect(playFullGame(7).countries).not.toEqual(first.countries)
+  })
+
+  describe('crisis responses', () => {
+    const noCrisis = createGameState({ seed: 1, playerId: 'kessara', countries })
+    // The event deck arrives in milestone 6, so place a card by hand.
+    const withCrisis: GameState = {
+      ...noCrisis,
+      crisis: { cardId: 'naval-standoff', responseIds: ['back-down', 'hold-firm'] },
+    }
+
+    it("accepts only one of the pending card's responses", () => {
+      expect(() => advanceTurn(withCrisis, { crisisResponse: 'hold-firm', actions: [] })).not.toThrow()
+      expect(() => advanceTurn(withCrisis, { crisisResponse: null, actions: [] })).toThrow()
+      expect(() => advanceTurn(withCrisis, { crisisResponse: 'surrender', actions: [] })).toThrow()
+    })
+
+    it('rejects a response when there is no crisis', () => {
+      expect(() => advanceTurn(noCrisis, { crisisResponse: 'hold-firm', actions: [] })).toThrow()
+    })
   })
 })

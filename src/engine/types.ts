@@ -42,6 +42,21 @@ export interface PlayerAction {
   targetId?: CountryId
 }
 
+/** Everything the player decides for one turn, submitted together. */
+export interface PlayerTurn {
+  /** Id of the chosen response to the pending crisis, or null when there is none. */
+  crisisResponse: string | null
+  actions: PlayerAction[]
+}
+
+/** A crisis card drawn ahead of its turn, so the player sees it before acting. */
+export interface PendingCrisis {
+  /** Id of an event card defined in src/data. */
+  cardId: string
+  /** Ids of the responses the player can choose from. */
+  responseIds: string[]
+}
+
 export type Phase = 'briefing' | 'crisis' | 'actions' | 'rivals' | 'resolution'
 
 export interface LogEntry {
@@ -63,6 +78,8 @@ export interface GameState {
   playerId: CountryId
   /** Action points available to the player this turn. */
   actionPoints: number
+  /** The crisis card for this turn, drawn at the end of the previous one. */
+  crisis: PendingCrisis | null
   countries: Record<CountryId, Country>
   log: LogEntry[]
 }

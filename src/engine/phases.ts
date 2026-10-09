@@ -3,6 +3,7 @@
 // Milestone 1: every phase is stub logic, marked with the milestone that
 // replaces it.
 
+import { drawCrisis } from './crisis.ts'
 import type { Rng } from './rng.ts'
 import { ACTION_POINTS_PER_TURN, MAX_TURNS } from './types.ts'
 import type { GameState, LogEntry, Phase, PlayerAction } from './types.ts'
@@ -31,10 +32,23 @@ export function briefingPhase(state: GameState): GameState {
   return withLog(state, 'briefing', [`Year ${year}, Q${quarter} briefing.`])
 }
 
-/** 2. Crisis: one event card is drawn and resolved. */
-export function crisisPhase(state: GameState): GameState {
-  // Stub: the event deck arrives in milestone 6.
-  return withLog(state, 'crisis', ['No crisis this quarter.'])
+/** 2. Crisis: the card drawn last turn is resolved with the player's response. */
+export function crisisPhase(state: GameState, crisisResponse: string | null): GameState {
+  const { crisis } = state
+  if (crisis === null) {
+    if (crisisResponse !== null) throw new Error('There is no crisis to respond to')
+    return withLog(state, 'crisis', ['No crisis this quarter.'])
+  }
+  if (crisisResponse === null || !crisis.responseIds.includes(crisisResponse)) {
+    throw new Error(
+      `Crisis "${crisis.cardId}" needs one of these responses: ${crisis.responseIds.join(', ')}`,
+    )
+  }
+
+  // Stub: response effects arrive in milestone 6.
+  return withLog({ ...state, crisis: null }, 'crisis', [
+    `Crisis "${crisis.cardId}": chose "${crisisResponse}".`,
+  ])
 }
 
 /** 3. Actions: the player spends action points. */
@@ -87,13 +101,17 @@ export function rivalsPhase(state: GameState, rng: Rng): GameState {
   return withLog({ ...state, countries }, 'rivals', texts)
 }
 
-/** 5. Resolution: stats update, thresholds are checked, the game checks for its end. */
-export function resolutionPhase(state: GameState): GameState {
+/**
+ * 5. Resolution: stats update, thresholds are checked, the game checks for its
+ * end, and next turn's crisis card is drawn.
+ */
+export function resolutionPhase(state: GameState, rng: Rng): GameState {
   // Stub: thresholds and demands arrive in milestone 5, win and loss checks in milestone 7.
   if (state.turn >= MAX_TURNS) {
     return withLog({ ...state, status: 'ended' }, 'resolution', [
       `Turn ${MAX_TURNS} reached. The game is over.`,
     ])
   }
-  return { ...state, turn: state.turn + 1, actionPoints: ACTION_POINTS_PER_TURN }
+  const next = { ...state, turn: state.turn + 1, actionPoints: ACTION_POINTS_PER_TURN }
+  return { ...next, crisis: drawCrisis(next, rng) }
 }
