@@ -30,7 +30,7 @@ You make all of a turn's choices at once, after seeing the briefing and the cris
 
 | Action | Cost | What it does |
 | --- | --- | --- |
-| Sign trade deal | 1 | More income, shifts alignment toward that partner |
+| Sign trade deal | 1 | More income for 8 turns, shifts alignment toward that partner |
 | Accept loan or investment | 1 | Big cash now, debt and alignment shift later |
 | Repay debt | 1 | Pay off part of the debt to one great power from the treasury, shifts alignment slightly away from that power since you depend on them less |
 | Build infrastructure | 2 | Multi-turn project (port, canal, rail, power grid) |
@@ -92,6 +92,8 @@ Five systems drive the game, and the hedging system is the one that makes it fee
 **1. Economy.** Income each turn equals base output times growth, plus strait tolls, minus debt interest and upkeep. Trade deals raise growth. Infrastructure takes 3 to 8 turns to build, then pays out for the rest of the game. Loans from the great powers are generous but come with strings (see demands).
 
 - **Growth does not compound.** It is a percentage applied to base output each turn: 100 base output at 3% growth gives 103 output, every turn that growth stays at 3%.
+- **Trade deals last 8 turns.** A trade deal raises the signer's growth by 0.5% and the partner's by 0.25%. It counts in the next 8 briefings, then expires at the end of the 8th turn after it was signed, and that growth goes away. The relations and alignment it brought stay.
+- **One deal per partner.** Two countries can have only one active trade deal between them, whoever signed it. A new one can be signed once the old one has expired. The interface lists your active deals and the turns each has left.
 - **Debt is tracked by creditor.** A loan from a great power is owed to that power. The rest of a country's debt is owed to lenders outside the region.
 - **Interest never reduces debt.** It is charged each turn on the whole debt. The only way to pay debt down is the Repay debt action, which pays off part of what you owe one great power.
 
@@ -155,6 +157,10 @@ The numbers in these systems are starting values. They live in the data files so
   - Opportunists sit in between.
 - **Chance effects** are scored at their expected value, so a rival can't see the outcome in advance.
 - **Consent.** A rival can't sign a trade deal with you on your behalf. Deals with you only happen when you choose them.
+- **Investment packages, the Merchant power's strength.** A great power with the Merchant personality, the Halvard Compact, can spend 1 action point to offer a smaller state an investment package. The receiver gets 80 in cash and 3 more base output a turn from the power's treasury, relations with the power rise by 8, and the receiver's alignment moves up to 6 toward the power. Declining costs 4 relations with it.
+  - A computer neighbour accepts only if it is better off by its own utility, so the power only offers where it will be accepted.
+  - An offer to you arrives like a demand: you accept or decline it with your next turn's choices. Only one offer can wait for you at a time. Accepting pleases Business and annoys the Reformers.
+  - A rival scores an offer to you as if you will accept it.
 - **Reactions.** When your alignment moves during a turn, the great power you moved away from resents it before the rivals act, losing 0.6 relations with you per point moved. A trade deal with Halvard improves your Halvard relations and costs about 3 with Tsengai.
 - **News.** What the rivals did last turn appears as the news at the start of your turn.
 
@@ -217,6 +223,10 @@ Because the engine is pure functions with a seeded random generator, you can hav
 - **Unit tests** for every formula and threshold, written alongside each milestone.
 - **Simulation script.** Ask Claude Code for a script that runs 1,000 games with bot players (random, always-Halvard, always-Tsengai, pure hedger) and prints win rates and the most common cause of loss for each.
 - **Balance targets.** The pure hedger should win about 35% of the time, the one-side bots about 20%, the random bot under 5%. If one strategy dominates, change the data files, not the code.
+- **Rival balance targets.** Measured over 100 seeded games with a passive player, who takes no actions, picks crisis responses at random and declines every offer and demand:
+  - The four neighbours end the game roughly evenly split between the two powers, with about as many leaning toward Halvard as toward Tsengai.
+  - Passive play is still punished, but the passive player's legitimacy never falls below 20 before turn 30.
+  - `npm run simulate` plays these 100 games and prints both measures.
 - **Playtesting.** Get two or three friends to play one full game each and note the turn where they first got bored or confused.
 
 **Stretch ideas** once it works: a second playable country, a hot-seat two-player mode where each player is a great power competing for Kessara, and a live news feed of your decisions styled like a Geopolitics Journal front page.
