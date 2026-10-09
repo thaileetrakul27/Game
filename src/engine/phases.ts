@@ -1,35 +1,32 @@
 // The five phases of a turn, in the order DESIGN.md gives them. Each phase
-// takes a state and returns a new one without mutating its input.
-// Milestone 1: every phase is stub logic, marked with the milestone that
-// replaces it.
+// takes a state and returns a new one without mutating its input. Stub logic
+// is marked with the milestone that replaces it.
 
+import { takeAction } from './actions.ts'
 import { drawCrisis } from './crisis.ts'
+import { getAction, getProject } from './data.ts'
+import { incomeBreakdown } from './economy.ts'
+import { applyEffects } from './effects.ts'
 import type { Rng } from './rng.ts'
-import { ACTION_POINTS_PER_TURN, MAX_TURNS } from './types.ts'
-import type { GameState, LogEntry, Phase, PlayerAction } from './types.ts'
+import { changeRelations, changeStat, signed, withLog } from './state.ts'
+import { ACTION_POINTS_PER_TURN, DEFAULT_AFTER_DEFICIT_TURNS, MAX_TURNS } from './types.ts'
+import type { GameState, PlayerAction } from './types.ts'
 
-// Stub until action data arrives in milestone 2: every action costs 1 point.
-const STUB_ACTION_COST = 1
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value))
-}
-
-function signed(value: number): string {
-  return value > 0 ? `+${value}` : `${value}`
-}
-
-function withLog(state: GameState, phase: Phase, texts: string[]): GameState {
-  const entries: LogEntry[] = texts.map((text) => ({ turn: state.turn, phase, text }))
-  return { ...state, log: [...state.log, ...entries] }
-}
-
-/** 1. Briefing: income arrives, trade flows and the news ticker runs. Called by startTurn. */
+/** 1. Briefing: income arrives in every country's treasury. Called by startTurn. */
 export function briefingPhase(state: GameState): GameState {
-  // Stub: income and strait trade arrive in milestone 2.
+  let next = state
+  for (const country of Object.values(state.countries)) {
+    next = changeStat(next, country.id, 'treasury', incomeBreakdown(country).net)
+  }
+
+  // Stub: the news ticker arrives with the rivals in milestone 6.
   const year = Math.ceil(state.turn / 4)
   const quarter = ((state.turn - 1) % 4) + 1
-  return withLog(state, 'briefing', [`Year ${year}, Q${quarter} briefing.`])
+  const { output, tolls, interest, upkeep, net } = incomeBreakdown(state.countries[state.playerId])
+  return withLog(next, 'briefing', [
+    `Year ${year}, Q${quarter} briefing.`,
+    `Income ${signed(net)}: output ${output}, strait tolls ${tolls}, debt interest -${interest}, upkeep -${upkeep}.`,
+  ])
 }
 
 /** 2. Crisis: the card drawn last turn is resolved with the player's response. */
@@ -51,65 +48,83 @@ export function crisisPhase(state: GameState, crisisResponse: string | null): Ga
   ])
 }
 
-/** 3. Actions: the player spends action points. */
-export function actionsPhase(state: GameState, playerActions: readonly PlayerAction[]): GameState {
-  const cost = playerActions.length * STUB_ACTION_COST
+/** 3. Actions: the player spends action points on actions from src/data/actions.json. */
+export function actionsPhase(state: GameState, playerActions: readonly PlayerAction[], rng: Rng): GameState {
+  const cost = playerActions.reduce((total, action) => total + getAction(action.actionId).cost, 0)
   if (cost > state.actionPoints) {
     throw new Error(`Actions cost ${cost} points but only ${state.actionPoints} are available`)
   }
-  for (const action of playerActions) {
-    if (action.targetId !== undefined && !Object.hasOwn(state.countries, action.targetId)) {
-      throw new Error(`Unknown target country: ${action.targetId}`)
-    }
-  }
 
-  // Stub: action effects arrive in milestone 2.
-  const player = state.countries[state.playerId]
-  const texts = playerActions.map((action) => {
-    const target = action.targetId ? ` targeting ${state.countries[action.targetId].name}` : ''
-    return `${player.name} takes action "${action.actionId}"${target}.`
-  })
-  return withLog({ ...state, actionPoints: state.actionPoints - cost }, 'actions', texts)
+  let next: GameState = { ...state, actionPoints: state.actionPoints - cost }
+  for (const action of playerActions) {
+    next = takeAction(next, state.playerId, action, rng)
+  }
+  return next
 }
 
 /** 4. Rival moves: every computer-controlled country acts. */
 export function rivalsPhase(state: GameState, rng: Rng): GameState {
   // Stub until the utility-based rivals arrive in milestone 6: each rival's
   // relations with the player drift by a random -2 to +2.
-  const countries = { ...state.countries }
+  const player = state.countries[state.playerId]
+  let next = state
   const texts: string[] = []
   for (const rival of Object.values(state.countries)) {
     if (rival.id === state.playerId) continue
-    const player = countries[state.playerId]
     const shift = rng.int(-2, 2)
-    countries[rival.id] = {
-      ...rival,
-      relations: {
-        ...rival.relations,
-        [player.id]: clamp((rival.relations[player.id] ?? 0) + shift, -100, 100),
-      },
-    }
-    countries[player.id] = {
-      ...player,
-      relations: {
-        ...player.relations,
-        [rival.id]: clamp((player.relations[rival.id] ?? 0) + shift, -100, 100),
-      },
-    }
+    next = changeRelations(next, rival.id, player.id, shift)
     if (shift !== 0) texts.push(`${rival.name} relations with ${player.name} ${signed(shift)}.`)
   }
-  return withLog({ ...state, countries }, 'rivals', texts)
+  return withLog(next, 'rivals', texts)
 }
 
-/** 5. Resolution: stats update, thresholds are checked, the game checks for its end. */
-export function resolutionPhase(state: GameState): GameState {
-  // Stub: thresholds and demands arrive in milestone 5, win and loss checks in milestone 7.
-  if (state.turn >= MAX_TURNS) {
-    return withLog({ ...state, status: 'ended' }, 'resolution', [
+/**
+ * 5. Resolution: finished projects pay out, and the game checks for the
+ * player's default and for its last turn.
+ */
+export function resolutionPhase(state: GameState, rng: Rng): GameState {
+  // Stub: thresholds and demands arrive in milestone 5, other win and loss checks in milestone 7.
+  let next = completeProjects(state, rng)
+  next = checkDefault(next)
+  if (next.status === 'ended') return next
+
+  if (next.turn >= MAX_TURNS) {
+    return withLog({ ...next, status: 'ended', endReason: 'turnLimit' }, 'resolution', [
       `Turn ${MAX_TURNS} reached. The game is over.`,
     ])
   }
-  return { ...state, turn: state.turn + 1, actionPoints: ACTION_POINTS_PER_TURN }
+  return { ...next, turn: next.turn + 1, actionPoints: ACTION_POINTS_PER_TURN }
+}
+
+/** Apply the payout of every project that finishes this turn. */
+function completeProjects(state: GameState, rng: Rng): GameState {
+  let next = state
+  for (const country of Object.values(state.countries)) {
+    for (const progress of country.projects) {
+      if (progress.completesOnTurn !== state.turn) continue
+      const project = getProject(progress.projectId)
+      const result = applyEffects(next, project.effects, { actorId: country.id, targetId: null, rng })
+      next = withLog(result.state, 'resolution', [`${country.name} completes ${project.name}.`, ...result.texts])
+    }
+  }
+  return next
+}
+
+/** The player defaults after DEFAULT_AFTER_DEFICIT_TURNS turns in a row ending below zero. */
+function checkDefault(state: GameState): GameState {
+  const player = state.countries[state.playerId]
+  if (player.stats.treasury >= 0) return { ...state, deficitTurns: 0 }
+
+  const deficitTurns = state.deficitTurns + 1
+  if (deficitTurns >= DEFAULT_AFTER_DEFICIT_TURNS) {
+    return withLog({ ...state, deficitTurns, status: 'ended', endReason: 'default' }, 'resolution', [
+      `${player.name} defaults on its debts. The game is over.`,
+    ])
+  }
+  const left = DEFAULT_AFTER_DEFICIT_TURNS - deficitTurns
+  return withLog({ ...state, deficitTurns }, 'resolution', [
+    `The treasury is below zero. ${left === 1 ? 'One more turn' : `${left} more turns`} in deficit means default.`,
+  ])
 }
 
 /**

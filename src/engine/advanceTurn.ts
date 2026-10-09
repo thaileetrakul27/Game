@@ -16,9 +16,9 @@ export function advanceTurn(state: GameState, playerTurn: PlayerTurn): GameState
 
   const rng = createRng(state.rngState)
   let next = crisisPhase(state, playerTurn.crisisResponse)
-  next = actionsPhase(next, playerTurn.actions)
+  next = actionsPhase(next, playerTurn.actions, rng)
   next = rivalsPhase(next, rng)
-  next = resolutionPhase(next)
+  next = resolutionPhase(next, rng)
   if (next.status === 'playing') next = startTurn(next, rng)
   return { ...next, rngState: rng.state }
 }
