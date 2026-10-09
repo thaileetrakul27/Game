@@ -1,0 +1,20 @@
+[
+  {
+    "id": "kessaraStrait",
+    "name": "Kessara Strait",
+    "description": "Runs past Kessara's coast and links the gulf off the Tsengai coast to the Meridian Sea.",
+    "tradeShare": 40
+  },
+  {
+    "id": "sabuPassage",
+    "name": "Sabu Passage",
+    "description": "Between the Sabu Islands and the Halvard coast, out to the open ocean.",
+    "tradeShare": 35
+  },
+  {
+    "id": "valmoraChannel",
+    "name": "Valmora Channel",
+    "description": "Between Valmora and the Sabu Islands, out to the open ocean.",
+    "tradeShare": 25
+  }
+]

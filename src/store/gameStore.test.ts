@@ -26,7 +26,7 @@ describe('game store', () => {
     expect(store().planAction({ actionId: 'domesticReform' })).toBeNull()
     expect(pointsLeft(store())).toBe(0)
 
-    expect(store().planAction({ actionId: 'militarySpending' })).toMatch(/action points/)
+    expect(store().planAction({ actionId: 'militarySpending' })).toBe('Needs 1 point, only 0 left')
     expect(store().planned).toHaveLength(2)
   })
 
@@ -50,11 +50,13 @@ describe('game store', () => {
   })
 
   it('starts a new game from a seed', () => {
+    store().selectCountry('ostrel')
     store().planAction({ actionId: 'militarySpending' })
     store().endTurn()
     store().newGame(5)
     expect(store().game.seed).toBe(5)
     expect(store().game.turn).toBe(1)
     expect(store().planned).toEqual([])
+    expect(store().selectedCountryId).toBeNull()
   })
 })

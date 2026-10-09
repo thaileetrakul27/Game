@@ -72,7 +72,7 @@ function subject(who: 'self' | 'target', context: EffectContext): CountryId {
 }
 
 /** The great power on the other side from the target, or null if the target is not a great power. */
-function otherGreatPower(state: GameState, targetId: CountryId): CountryId | null {
+export function otherGreatPower(state: GameState, targetId: CountryId): CountryId | null {
   if (state.countries[targetId].kind !== 'greatPower') return null
   const other = Object.values(state.countries).find(
     (country) => country.kind === 'greatPower' && country.id !== targetId,

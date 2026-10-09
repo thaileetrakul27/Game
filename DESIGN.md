@@ -46,6 +46,22 @@ The map has 7 countries and 3 sea chokepoints, and every country runs on the sam
 
 **Map.** A hand-drawn vector map with clickable countries and three straits. The Kessara Strait carries about 40% of regional trade at the start. Building a canal or land bridge elsewhere can reroute that trade, which is the biggest long-term swing in the game.
 
+**Geography.** The Meridian Sea sits in the middle of the map, with land on three sides and the open ocean to the south.
+
+- The **Tsengai Republic** covers the north-west. The **Halvard Compact** runs down the whole eastern coast, and the two great powers share a land border in the far north.
+- **Kessara** is a peninsula reaching east into the sea, bordering Tsengai to the north and Ostrel to the west.
+- Tsengai's southern coast and Halvard's western coast enclose a gulf north of Kessara. Its only outlet is the Kessara Strait, between Kessara's eastern tip and the Halvard coast, so Tsengai's sea trade depends on that strait.
+- **Ostrel** lies west of Kessara and south of Tsengai, with the disputed border running along Kessara's western edge.
+- **Daranth** is landlocked, between Tsengai, Ostrel and Valmora.
+- **Valmora** holds the south-western coast.
+- **The Sabu Islands** are three islands in the south of the Meridian Sea, between Valmora and the Halvard coast.
+
+| Strait | Where | Share of regional trade at the start |
+| --- | --- | --- |
+| Kessara Strait | Between Kessara's eastern tip and the Halvard coast, the only way in or out of the gulf off the Tsengai coast | 40% |
+| Sabu Passage | Between the Sabu Islands and the Halvard coast, out to the open ocean | 35% |
+| Valmora Channel | Between Valmora and the Sabu Islands, out to the open ocean | 25% |
+
 | Stat | Range | What moves it | Why it matters |
 | --- | --- | --- | --- |
 | Treasury | money | Income, deals, loans, spending | Hits zero and you default |
@@ -123,7 +139,7 @@ Build it as a browser game in TypeScript, with all the game rules in a separate 
 The interface only sends player actions to the store and draws whatever state comes back. Every rule lives in the engine.
 
 - **Language and tooling.** TypeScript, Vite for the dev server, React for the interface, Zustand for the game store.
-- **Map.** A single SVG file with one shape per country, styled by state. No game engine or canvas library needed.
+- **Map.** A single SVG with one shape per country, styled by state. The shapes live in src/ui/map/geometry.ts, so each country can be coloured and clicked directly. No game engine or canvas library needed.
 - **Randomness.** A seeded generator (for example, mulberry32), so any game can be replayed exactly from its seed.
 - **Testing.** Vitest for unit tests and the simulation script.
 - **Hosting.** Free on GitHub Pages at thaileetrakul27.github.io/Game/, so friends can play from a link. GitHub Actions builds and deploys the game on every push to main.

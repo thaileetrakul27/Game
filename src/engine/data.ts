@@ -5,6 +5,7 @@ import actionsJson from '../data/actions.json' with { type: 'json' }
 import countriesJson from '../data/countries.json' with { type: 'json' }
 import economyJson from '../data/economy.json' with { type: 'json' }
 import projectsJson from '../data/projects.json' with { type: 'json' }
+import straitsJson from '../data/straits.json' with { type: 'json' }
 import type {
   ActionDef,
   ActionTarget,
@@ -16,6 +17,7 @@ import type {
   Personality,
   ProjectDef,
   StatKey,
+  StraitDef,
 } from './types.ts'
 
 const STATS: StatKey[] = ['treasury', 'debt', 'growth', 'legitimacy', 'militaryLoyalty', 'defence', 'alignment']
@@ -82,6 +84,7 @@ export function validateGameData(data: GameData): GameData {
   checkUniqueIds(data.countries, 'countries.json')
   checkUniqueIds(data.actions, 'actions.json')
   checkUniqueIds(data.projects, 'projects.json')
+  checkUniqueIds(data.straits, 'straits.json')
   const projectIds = new Set(data.projects.map((project) => project.id))
 
   for (const country of data.countries) {
@@ -129,6 +132,12 @@ export function validateGameData(data: GameData): GameData {
     checkEffects(project.effects, where, 'none', projectIds)
   }
 
+  for (const strait of data.straits) {
+    check(strait.tradeShare >= 0 && strait.tradeShare <= 100, `straits.json (${strait.id})`, 'tradeShare must be 0 to 100')
+  }
+  const totalShare = data.straits.reduce((total, strait) => total + strait.tradeShare, 0)
+  check(totalShare <= 100, 'straits.json', 'trade shares add up to more than 100%')
+
   return data
 }
 
@@ -136,6 +145,7 @@ export const GAME_DATA: GameData = validateGameData({
   countries: (countriesJson as unknown as CountryDef[]).map((country) => ({ ...country, projects: [] })),
   actions: actionsJson as unknown as ActionDef[],
   projects: projectsJson as unknown as ProjectDef[],
+  straits: straitsJson as StraitDef[],
   economy: economyJson,
 })
 

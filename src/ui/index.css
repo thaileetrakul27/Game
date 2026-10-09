@@ -9,6 +9,13 @@
   --bad: #b3261e;
   --warning-bg: #fff4e5;
   --warning-border: #e8a33d;
+  /* Alignment scale: Tsengai red, neutral grey, Halvard blue (equal lightness poles). */
+  --align-tsengai: #cf4443;
+  --align-neutral: #f0efec;
+  --align-halvard: #2a78d6;
+  --sea: #dce4e9;
+  --wave: #bccbd4;
+  --coast: #8e8e87;
 
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.45;
@@ -29,6 +36,12 @@
     --bad: #f2867e;
     --warning-bg: #2e2416;
     --warning-border: #b8822f;
+    --align-tsengai: #e34948;
+    --align-neutral: #383835;
+    --align-halvard: #3987e5;
+    --sea: #131719;
+    --wave: #253037;
+    --coast: #77776f;
     color-scheme: dark;
   }
 }
@@ -155,35 +168,58 @@ select {
 .layout {
   display: grid;
   gap: 1rem;
-  grid-template-columns: 1fr;
   align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'map' 'details' 'actions' 'stats' 'log';
+}
+
+.map-panel {
+  grid-area: map;
+}
+.country-details {
+  grid-area: details;
+}
+.actions-panel {
+  grid-area: actions;
+}
+.stats-panel {
+  grid-area: stats;
+}
+.log {
+  grid-area: log;
+}
+
+/* The side wrapper only groups details and log on the widest layout. */
+.side {
+  display: contents;
 }
 
 @media (min-width: 760px) {
   .layout {
-    grid-template-columns: minmax(260px, 320px) 1fr;
-  }
-  .layout .log {
-    grid-column: 1 / -1;
+    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr auto;
+    grid-template-areas:
+      'stats map'
+      'stats details'
+      'stats actions'
+      'log log';
   }
 }
 
 @media (min-width: 1180px) {
   .layout {
     grid-template-columns: 320px minmax(0, 1fr) 360px;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      'stats map side'
+      'stats actions side';
   }
-  .layout .log {
-    grid-column: auto;
-  }
-}
-
-/* Once the game ends the action menu goes, so the log takes its place. */
-@media (min-width: 760px) {
-  .layout.ended {
-    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
-  }
-  .layout.ended .log {
-    grid-column: auto;
+  .side {
+    grid-area: side;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
   }
 }
 
@@ -257,7 +293,7 @@ select {
   height: 10px;
   margin: 0.3rem 0;
   border-radius: 5px;
-  background: linear-gradient(to right, #b5544a, var(--border) 50%, #3f7fb0);
+  background: linear-gradient(in oklab to right, var(--align-tsengai), var(--align-neutral), var(--align-halvard));
 }
 
 .alignment-marker {
@@ -302,6 +338,15 @@ select {
 .figures .total td {
   border-top: 1px solid var(--border);
   font-weight: 600;
+}
+
+.relations .tag {
+  display: inline-block;
+  margin-left: 0;
+}
+
+.relations th[scope='row'] {
+  padding-right: 0.25rem;
 }
 
 .tag {
@@ -455,4 +500,209 @@ select {
 
 .game-over p {
   margin: 0.5rem 0;
+}
+
+/* Panel headings with a control on the right */
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.panel-head h2 {
+  margin-bottom: 0.75rem;
+}
+
+/* The stats panel collapses on phones only. */
+
+.collapse-toggle,
+.stats-summary {
+  display: none;
+}
+
+@media (max-width: 759px) {
+  .collapse-toggle {
+    display: inline-block;
+  }
+  .stats-panel:not(.open) .stats-summary {
+    display: block;
+    margin: 0;
+  }
+  .stats-panel:not(.open) .collapsible-body {
+    display: none;
+  }
+}
+
+/* Effects on action cards */
+
+.effects {
+  margin: 0 0 0.5rem;
+  padding-left: 1.1rem;
+  font-size: 0.82rem;
+}
+
+.effects li {
+  padding: 0.05rem 0;
+}
+
+/* Rival changes folded into one line in the log */
+
+.log-rivals summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.log-rivals ul {
+  margin: 0.2rem 0 0.2rem 1rem;
+}
+
+/* Map */
+
+.map {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+
+.map .sea {
+  fill: var(--sea);
+}
+
+.map .country {
+  stroke: var(--coast);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.map .country:hover {
+  filter: brightness(0.94);
+}
+
+.map .country:focus {
+  outline: none;
+}
+
+.map .country:focus-visible {
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+
+.map .selection {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 3;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.map text {
+  paint-order: stroke;
+  stroke: var(--panel);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  fill: var(--text);
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.map .country-label {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.map .country-label.player {
+  font-weight: 700;
+}
+
+.map .sea-label {
+  font-size: 14px;
+  font-style: italic;
+  fill: var(--muted);
+  stroke: var(--sea);
+  letter-spacing: 0.15em;
+}
+
+.map .strait line {
+  stroke: var(--text);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+
+.map .strait text {
+  font-size: 13px;
+}
+
+.map .waves {
+  fill: none;
+  stroke: var(--wave);
+  stroke-width: 1;
+}
+
+@media (max-width: 759px) {
+  .map .country-label {
+    font-size: 23px;
+  }
+  .map .strait .strait-name,
+  .map .strait .strait-share-detail {
+    display: none;
+  }
+  .map .strait text {
+    font-size: 20px;
+    font-weight: 600;
+  }
+  .map .sea-label {
+    font-size: 20px;
+  }
+}
+
+.map-legend {
+  margin-top: 0.6rem;
+}
+
+.legend-scale {
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(in oklab to right, var(--align-tsengai), var(--align-neutral), var(--align-halvard));
+}
+
+.legend-ends {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
+.map-legend p {
+  margin: 0.4rem 0 0.75rem;
+  font-size: 0.85rem;
+}
+
+/* Details of the country selected on the map */
+
+.country-details > p {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.details-grid {
+  display: grid;
+  gap: 0.5rem 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.details-grid .stats {
+  display: block;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.2rem 0;
 }

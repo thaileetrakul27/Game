@@ -140,6 +140,15 @@ export interface EconomyRules {
   growthMax: number
 }
 
+/** A sea chokepoint that regional trade passes through. */
+export interface StraitDef {
+  id: string
+  name: string
+  description: string
+  /** Percent of regional trade passing through it at the start of the game. */
+  tradeShare: number
+}
+
 /** Country data as written in src/data/countries.json. */
 export type CountryDef = Omit<Country, 'projects'>
 
@@ -147,6 +156,7 @@ export interface GameData {
   countries: Country[]
   actions: ActionDef[]
   projects: ProjectDef[]
+  straits: StraitDef[]
   economy: EconomyRules
 }
 

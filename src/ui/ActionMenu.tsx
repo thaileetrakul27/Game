@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { checkActions, GAME_DATA, getAction, targetsFor } from '../engine/index.ts'
+import { checkPlannedAction, describeAction, GAME_DATA, getAction, targetsFor } from '../engine/index.ts'
 import type { ActionDef, PlayerAction } from '../engine/index.ts'
 import { pointsLeft, useGameStore } from '../store/gameStore.ts'
 
@@ -12,7 +12,7 @@ export function ActionMenu() {
   const left = pointsLeft({ game, planned })
 
   return (
-    <section className="panel" aria-labelledby="actions-heading">
+    <section className="panel actions-panel" aria-labelledby="actions-heading">
       <h2 id="actions-heading">Actions</h2>
 
       {game.crisis && <CrisisChoice />}
@@ -75,7 +75,8 @@ function ActionRow({ def, showProblem }: { def: ActionDef; showProblem: boolean 
   const action: PlayerAction = { actionId: def.id }
   if (targets.length > 0) action.targetId = targetId
   if (def.options) action.option = optionId
-  const problem = checkActions(game, [...planned, action])
+  const problem = checkPlannedAction(game, planned, action)
+  const effects = describeAction(game, game.playerId, action)
 
   return (
     <li className="action">
@@ -84,6 +85,11 @@ function ActionRow({ def, showProblem }: { def: ActionDef; showProblem: boolean 
         <span className="cost">{def.cost} AP</span>
       </div>
       <p className="muted">{def.description}</p>
+      <ul className="effects" aria-label={`Effects of ${def.name}`}>
+        {effects.map((line) => (
+          <li key={line}>{line}</li>
+        ))}
+      </ul>
       <div className="action-controls">
         {targets.length > 0 && (
           <label>
