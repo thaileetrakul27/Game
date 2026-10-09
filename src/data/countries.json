@@ -1,0 +1,177 @@
+[
+  {
+    "id": "kessara",
+    "name": "Kessara",
+    "description": "Middle-income state with a deep-water port, a restless military and an ageing ruling coalition.",
+    "kind": "minor",
+    "personality": null,
+    "stats": {
+      "treasury": 150,
+      "debt": 150,
+      "growth": 2,
+      "legitimacy": 50,
+      "militaryLoyalty": 45,
+      "defence": 40,
+      "alignment": 0
+    },
+    "economy": { "baseOutput": 100, "upkeep": 75, "straitTolls": 30 },
+    "relations": {
+      "halvard": 15,
+      "tsengai": 15,
+      "valmora": 20,
+      "ostrel": -35,
+      "sabu": -10,
+      "daranth": 5
+    }
+  },
+  {
+    "id": "halvard",
+    "name": "Halvard Compact",
+    "description": "Maritime trading bloc.",
+    "kind": "greatPower",
+    "personality": "merchant",
+    "stats": {
+      "treasury": 1500,
+      "debt": 800,
+      "growth": 1.5,
+      "legitimacy": 70,
+      "militaryLoyalty": 70,
+      "defence": 85,
+      "alignment": 100
+    },
+    "economy": { "baseOutput": 600, "upkeep": 500, "straitTolls": 0 },
+    "relations": {
+      "kessara": 15,
+      "tsengai": -40,
+      "valmora": 20,
+      "ostrel": -10,
+      "sabu": 35,
+      "daranth": -30
+    }
+  },
+  {
+    "id": "tsengai",
+    "name": "Tsengai Republic",
+    "description": "Fast-rising land power.",
+    "kind": "greatPower",
+    "personality": "hardliner",
+    "stats": {
+      "treasury": 1200,
+      "debt": 300,
+      "growth": 4,
+      "legitimacy": 60,
+      "militaryLoyalty": 80,
+      "defence": 80,
+      "alignment": -100
+    },
+    "economy": { "baseOutput": 500, "upkeep": 430, "straitTolls": 0 },
+    "relations": {
+      "kessara": 15,
+      "halvard": -40,
+      "valmora": 15,
+      "ostrel": 25,
+      "sabu": -5,
+      "daranth": 45
+    }
+  },
+  {
+    "id": "valmora",
+    "name": "Valmora",
+    "description": "Coastal republic. Shifts toward whichever power is winning.",
+    "kind": "minor",
+    "personality": "opportunist",
+    "stats": {
+      "treasury": 120,
+      "debt": 120,
+      "growth": 2.5,
+      "legitimacy": 60,
+      "militaryLoyalty": 55,
+      "defence": 30,
+      "alignment": 10
+    },
+    "economy": { "baseOutput": 70, "upkeep": 55, "straitTolls": 0 },
+    "relations": {
+      "kessara": 20,
+      "halvard": 20,
+      "tsengai": 15,
+      "ostrel": -5,
+      "sabu": 10,
+      "daranth": 0
+    }
+  },
+  {
+    "id": "ostrel",
+    "name": "Ostrel",
+    "description": "Military-run state with a border dispute with Kessara.",
+    "kind": "minor",
+    "personality": "hardliner",
+    "stats": {
+      "treasury": 80,
+      "debt": 200,
+      "growth": 1,
+      "legitimacy": 35,
+      "militaryLoyalty": 75,
+      "defence": 60,
+      "alignment": -30
+    },
+    "economy": { "baseOutput": 60, "upkeep": 52, "straitTolls": 0 },
+    "relations": {
+      "kessara": -35,
+      "halvard": -10,
+      "tsengai": 25,
+      "valmora": -5,
+      "sabu": -15,
+      "daranth": 20
+    }
+  },
+  {
+    "id": "sabu",
+    "name": "The Sabu Islands",
+    "description": "Small trading archipelago. A rival port competing for strait traffic.",
+    "kind": "minor",
+    "personality": "merchant",
+    "stats": {
+      "treasury": 140,
+      "debt": 60,
+      "growth": 3,
+      "legitimacy": 65,
+      "militaryLoyalty": 50,
+      "defence": 25,
+      "alignment": 30
+    },
+    "economy": { "baseOutput": 50, "upkeep": 50, "straitTolls": 20 },
+    "relations": {
+      "kessara": -10,
+      "halvard": 35,
+      "tsengai": -5,
+      "valmora": 10,
+      "ostrel": -15,
+      "daranth": 0
+    }
+  },
+  {
+    "id": "daranth",
+    "name": "Daranth",
+    "description": "Landlocked state, heavily in debt to Tsengai.",
+    "kind": "minor",
+    "personality": "hardliner",
+    "stats": {
+      "treasury": 40,
+      "debt": 450,
+      "growth": 0.5,
+      "legitimacy": 45,
+      "militaryLoyalty": 60,
+      "defence": 45,
+      "alignment": -60
+    },
+    "economy": { "baseOutput": 55, "upkeep": 40, "straitTolls": 0 },
+    "relations": {
+      "kessara": 5,
+      "halvard": -30,
+      "tsengai": 45,
+      "valmora": 0,
+      "ostrel": 20,
+      "sabu": 0
+    }
+  }
+]
