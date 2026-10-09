@@ -2,6 +2,7 @@
   "noise": 2,
   "minimumUtility": 2,
   "repeatAfterTurns": 3,
+  "repeatAfterTurnsFor": { "investmentPackage": 8 },
   "incomeHorizon": 8,
   "treasuryScale": 200,
   "deficitPenalty": 2,
@@ -9,6 +10,8 @@
   "relationsScale": 50,
   "statScale": 60,
   "playerBloc": 2,
+  "greatPowerBloc": 1,
+  "tensionCurve": 3,
   "projectDiscount": 0.6,
   "reactionPerAlignment": 0.6,
   "personalities": {
@@ -30,7 +33,7 @@
       "defence": 1.2,
       "relations": 0.15,
       "bloc": 1,
-      "harm": 2
+      "harm": 4
     },
     "opportunist": {
       "treasury": 0.4,
@@ -39,7 +42,7 @@
       "militaryLoyalty": 0.5,
       "defence": 0.5,
       "relations": 0.5,
-      "bloc": 0.8,
+      "bloc": 0.4,
       "harm": 0.6
     }
   }

@@ -2,15 +2,15 @@
 // weighted by its personality, plus a little randomness, and takes the best
 // until its action points run out. See DESIGN.md, "Computer rivals".
 
-import { takeAction, targetsFor } from './actions.ts'
-import { greatPowerOnSide, tradeCutBy } from './alignment.ts'
+import { canTake, takeAction, targetsFor } from './actions.ts'
+import { greatPowerOnSide } from './alignment.ts'
 import { GAME_DATA, getAction, getProject } from './data.ts'
 import { applyEffects } from './effects.ts'
 import type { Rng } from './rng.ts'
 import { changeRelations, withLog } from './state.ts'
-import { straitIncome } from './straits.ts'
 import { ACTION_POINTS_PER_TURN } from './types.ts'
-import type { ActionDef, Country, CountryId, GameState, PlayerAction } from './types.ts'
+import type { ActionDef, CountryId, GameState, PlayerAction } from './types.ts'
+import { utility } from './utility.ts'
 
 const rules = () => GAME_DATA.rivals
 
@@ -39,6 +39,7 @@ export function candidateActions(state: GameState, actorId: CountryId): PlayerAc
 
   const candidates: PlayerAction[] = []
   for (const def of GAME_DATA.actions) {
+    if (!canTake(state, actorId, def)) continue
     const targets =
       def.target === 'none' ? [undefined] : targetsFor(state, actorId, def.id).filter((id) => allowed(def, id))
     const options = def.options ? def.options.map((option) => option.id) : [undefined]
@@ -54,105 +55,12 @@ export function candidateActions(state: GameState, actorId: CountryId): PlayerAc
   return candidates
 }
 
-/** What a treasury is worth: each extra coin matters less to a rich country, and debt below zero hurts. */
-function moneyValue(treasury: number): number {
-  const { treasuryScale, deficitPenalty } = rules()
-  return treasury >= 0 ? treasuryScale * Math.log1p(treasury / treasuryScale) : deficitPenalty * treasury
-}
-
-/**
- * What a stat, relations score or depth of alignment is worth: in full below
- * zero, and less for each point above it, so a rival stops chasing a score
- * that is already high.
- */
-function softValue(value: number, scale: number): number {
-  return value <= 0 ? value : scale * (1 - Math.exp(-value / scale))
-}
-
-/** The gain from moving a value from one level to another, counted with diminishing returns. */
-function softGain(from: number, to: number, scale: number): number {
-  return softValue(to, scale) - softValue(from, scale)
-}
-
-/** Income per turn without rounding, so small changes in growth still count. */
-function incomeValue(state: GameState, id: CountryId): number {
-  const country = state.countries[id]
-  const output = country.economy.baseOutput * (1 + country.stats.growth / 100)
-  const cut = tradeCutBy(state, id) ? output * GAME_DATA.hedging.tradeCutOutputLoss : 0
-  const interest = country.stats.debt * GAME_DATA.economy.interestRatePerTurn
-  return output - cut + straitIncome(state, id) + country.economy.straitTolls - interest - country.economy.upkeep
-}
-
-/** The end of the scale the smaller states lean toward overall: 1 for Halvard, -1 for Tsengai, 0 if even. */
-export function winningSide(state: GameState): number {
-  const minors = Object.values(state.countries).filter((country) => country.kind === 'minor')
-  return Math.sign(minors.reduce((sum, country) => sum + country.stats.alignment, 0))
-}
-
-/** How far an action moved things the way this rival wants on the alignment scale. */
-function blocGain(before: GameState, after: GameState, actor: Country): number {
-  if (actor.kind === 'greatPower') {
-    // A great power wants the smaller states, Kessara above all, to move toward its end.
-    const side = Math.sign(actor.stats.alignment)
-    return Object.values(before.countries)
-      .filter((country) => country.kind === 'minor')
-      .reduce((sum, country) => {
-        const moved = (after.countries[country.id].stats.alignment - country.stats.alignment) * side
-        return sum + moved * (country.id === before.playerId ? rules().playerBloc : 1)
-      }, 0)
-  }
-  const from = actor.stats.alignment
-  const to = after.countries[actor.id].stats.alignment
-  const deeper = (side: number) => softGain(from * side, to * side, rules().statScale)
-  switch (actor.personality) {
-    case 'hardliner':
-      return deeper(Math.sign(from))
-    case 'opportunist':
-      return deeper(winningSide(before))
-    default:
-      // Merchants like to stay balanced.
-      return Math.abs(from) - Math.abs(to)
-  }
-}
-
-/** How much better off a rival is after an action, by its personality's weights. */
-export function utility(before: GameState, after: GameState, actorId: CountryId): number {
-  const actor = before.countries[actorId]
-  const weights = rules().personalities[actor.personality ?? 'opportunist']
-  const { statScale, relationsScale } = rules()
-  const was = actor.stats
-  const now = after.countries[actorId].stats
-
-  let score = weights.treasury * (moneyValue(now.treasury) - moneyValue(was.treasury))
-  score += weights.income * rules().incomeHorizon * (incomeValue(after, actorId) - incomeValue(before, actorId))
-  score += weights.legitimacy * softGain(was.legitimacy, now.legitimacy, statScale)
-  score += weights.militaryLoyalty * softGain(was.militaryLoyalty, now.militaryLoyalty, statScale)
-  score += weights.defence * softGain(was.defence, now.defence, statScale)
-
-  for (const other of Object.values(before.countries)) {
-    if (other.id === actorId) continue
-    const relationsBefore = actor.relations[other.id] ?? 0
-    const relationsAfter = after.countries[actorId].relations[other.id] ?? 0
-    const weight = other.kind === 'greatPower' ? rules().greatPowerRelations : 1
-    score += weights.relations * weight * softGain(relationsBefore, relationsAfter, relationsScale)
-
-    // Damage done to a country counts in proportion to how hostile the rival is to it.
-    const hostility = Math.max(0, -relationsBefore) / 100
-    const hurt = after.countries[other.id].stats
-    const damage =
-      other.stats.legitimacy - hurt.legitimacy + (other.stats.defence - hurt.defence) +
-      (other.stats.militaryLoyalty - hurt.militaryLoyalty)
-    score += weights.harm * hostility * damage
-  }
-
-  return score + weights.bloc * blocGain(before, after, actor)
-}
-
 /** Utility of one possible outcome, counting a newly started project as if built, at a discount. */
 function outcomeUtility(before: GameState, actorId: CountryId, action: PlayerAction, rng: Rng): number | null {
   let after: GameState
   try {
-    after = takeAction(before, actorId, action, rng, 'rivals')
+    // An offer to the player is weighed as if the player accepts it.
+    after = takeAction(before, actorId, action, rng, 'rivals', true)
   } catch {
     return null
   }
@@ -193,7 +101,8 @@ const actionKey = (action: PlayerAction) => `${action.actionId}|${action.targetI
 /** Whether the rival took this same action, with the same target and option, too recently to take it again. */
 function tookRecently(state: GameState, rivalId: CountryId, action: PlayerAction): boolean {
   const last = state.rivalHistory[rivalId]?.[actionKey(action)]
-  return last !== undefined && state.turn - last < rules().repeatAfterTurns
+  const wait = rules().repeatAfterTurnsFor[action.actionId] ?? rules().repeatAfterTurns
+  return last !== undefined && state.turn - last < wait
 }
 
 function remember(state: GameState, rivalId: CountryId, action: PlayerAction): GameState {

@@ -116,6 +116,12 @@ export type Effect =
   | { kind: 'recallLoans' }
   /** The target great power writes off up to amount of what the actor owes it. */
   | { kind: 'forgiveDebt'; amount: number }
+  /**
+   * Sign a trade deal with the target that raises the actor's growth by growth
+   * and the target's by partnerGrowth, for turns turns. Two countries can have
+   * only one active deal between them.
+   */
+  | { kind: 'tradeDeal'; turns: number; growth: number; partnerGrowth: number }
   /** With the given probability, log the text and apply the effects. */
   | { kind: 'chance'; probability: number; text: string; effects: Effect[] }
 
@@ -125,6 +131,26 @@ export interface ActionOption {
   effects: Effect[]
 }
 
+/** Who may take an action. A field left out allows anyone. */
+export interface ActionActor {
+  kind?: CountryKind
+  personality?: Personality
+}
+
+/**
+ * Terms of an action that offers something to its target, which accepts or
+ * declines. The effects apply from the receiver's side: "self" is the
+ * receiver and "target" the country making the offer.
+ */
+export interface OfferDef {
+  /** What the receiver sees the offer called, such as "Investment package". */
+  name: string
+  /** The offer as the receiver sees it. */
+  description: string
+  accepted: Effect[]
+  declined: Effect[]
+}
+
 export interface ActionDef {
   id: string
   name: string
@@ -132,6 +158,10 @@ export interface ActionDef {
   cost: number
   description: string
   target: ActionTarget
+  /** Only these countries may take the action. */
+  actor?: ActionActor
+  /** The action is an offer: its target accepts or declines, and the effects are in here. */
+  offer?: OfferDef
   /** A power that has cut trade with the actor refuses this action. */
   blockedByTradeCut?: boolean
   /** Aimed at the player, this needs the player's agreement, so computer rivals never choose it. */
@@ -290,6 +320,8 @@ export interface RivalRules {
   minimumUtility: number
   /** A rival won't take the same action, with the same target and option, again within this many turns. */
   repeatAfterTurns: number
+  /** Longer waits for particular actions, by action id. */
+  repeatAfterTurnsFor: Record<string, number>
   /** Turns of income an action's change in income is counted over. */
   incomeHorizon: number
   /** Money matters less the more a country has: this sets how fast. */
@@ -304,6 +336,13 @@ export interface RivalRules {
   statScale: number
   /** For a great power, moving Kessara counts this many times as much as moving another state. */
   playerBloc: number
+  /** A great power's bloc weight, used in place of its personality's so both powers want their bloc equally. */
+  greatPowerBloc: number
+  /**
+   * Rising tension: harm counts for its full weight on the last turn, and on
+   * earlier turns for the share of the game played raised to this power.
+   */
+  tensionCurve: number
   /** A project is valued as if built, times this. */
   projectDiscount: number
   /** Relations a great power loses per point the player's alignment moves away from it in a turn. */
@@ -341,12 +380,16 @@ export interface PlayerAction {
 
 export type DemandResponse = 'accept' | 'refuse'
 
+export type OfferResponse = 'accept' | 'decline'
+
 /** Everything the player decides for one turn, submitted together. */
 export interface PlayerTurn {
   /** Id of the chosen response to the pending crisis, or null when there is none. */
   crisisResponse: string | null
   /** The answer to a pending demand. Required when there is one. */
   demandResponse?: DemandResponse | null
+  /** The answer to a pending offer. Required when there is one. */
+  offerResponse?: OfferResponse | null
   actions: PlayerAction[]
 }
 
@@ -358,6 +401,14 @@ export interface PendingDemand {
   fromId: CountryId
 }
 
+/** An offer made to the player by a computer rival, answered with the next turn's choices. */
+export interface PendingOffer {
+  /** The country making the offer. */
+  fromId: CountryId
+  /** Id of the offer action in src/data/actions.json. */
+  actionId: string
+}
+
 /** A crisis card drawn ahead of its turn, so the player sees it before acting. */
 export interface PendingCrisis {
   /** Id of an event card defined in src/data. */
@@ -366,6 +417,18 @@ export interface PendingCrisis {
   responseIds: string[]
   /** The country the card is about, if any. */
   targetId: CountryId | null
+}
+
+/** A trade deal in force. See DESIGN.md, "Economy". */
+export interface TradeDeal {
+  signerId: CountryId
+  partnerId: CountryId
+  /** The deal expires at the end of this turn. */
+  endsOnTurn: number
+  /** The growth the deal added to the signer, after limits, taken away again when it expires. */
+  growth: number
+  /** The same for the partner. */
+  partnerGrowth: number
 }
 
 /** A follow-up card waiting to be drawn. */
@@ -419,10 +482,14 @@ export interface GameState {
   chains: PendingChain[]
   /** The turn each card was last drawn at random. */
   lastDrawn: Record<string, number>
+  /** Trade deals in force between any two countries. */
+  tradeDeals: TradeDeal[]
   /** For each rival, the turn it last took each action, keyed by action, target and option. */
   rivalHistory: Record<CountryId, Record<string, number>>
   /** A demand from the player's patron waiting for an answer. */
   demand: PendingDemand | null
+  /** An offer from a computer rival waiting for an answer. */
+  offer: PendingOffer | null
   /** Turns in a row the player's alignment has ended past the demand line. */
   demandTurns: number
   /** Demands the player has accepted from each great power. */

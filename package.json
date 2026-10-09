@@ -9,6 +9,7 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
+    "simulate": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/simulate.ts",
     "test:watch": "vitest"
   },
   "dependencies": {

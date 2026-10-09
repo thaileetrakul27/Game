@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { MAX_TURNS } from '../engine/index.ts'
+import { activeDeal, MAX_TURNS } from '../engine/index.ts'
 import { patchPlayer } from '../engine/testHelpers.ts'
 import { pointsLeft, unanswered, useGameStore } from './gameStore.ts'
 
@@ -7,9 +7,10 @@ const store = () => useGameStore.getState()
 
 /** Answer the crisis card and any demand, as a player must before ending the turn. */
 function answerPending(): void {
-  const { crisis, demand } = store().game
+  const { crisis, demand, offer } = store().game
   if (crisis) store().chooseCrisisResponse(crisis.responseIds[0])
   if (demand) store().chooseDemandResponse('refuse')
+  if (offer) store().chooseOfferResponse('decline')
 }
 
 describe('game store', () => {
@@ -20,8 +21,9 @@ describe('game store', () => {
       expect(store().game.status).toBe('playing')
       answerPending()
       expect(unanswered(store())).toEqual([])
-      const partner = turn % 2 === 1 ? 'halvard' : 'tsengai'
-      expect(store().planAction({ actionId: 'signTradeDeal', targetId: partner })).toBeNull()
+      // A trade deal with whichever power has none in force with Kessara, if either.
+      const partner = ['halvard', 'tsengai'].find((id) => !activeDeal(store().game, 'kessara', id))
+      if (partner) expect(store().planAction({ actionId: 'signTradeDeal', targetId: partner })).toBeNull()
       expect(store().planAction({ actionId: 'diplomaticSummit', targetId: 'valmora' })).toBeNull()
       store().endTurn()
     }

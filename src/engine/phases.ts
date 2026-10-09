@@ -9,7 +9,9 @@ import { getProject } from './data.ts'
 import { incomeBreakdown } from './economy.ts'
 import { applyEffects } from './effects.ts'
 import { answerDemand, checkVassal, resolveHedging } from './hedging.ts'
+import { answerOffer } from './offers.ts'
 import { rivalReactions, rivalTurn } from './rivals.ts'
+import { expireTradeDeals } from './trade.ts'
 import type { Rng } from './rng.ts'
 import { changeStat, quarterLabel, signed, withLog } from './state.ts'
 import { ACTION_POINTS_PER_TURN, DEFAULT_AFTER_DEFICIT_TURNS, MAX_TURNS } from './types.ts'
@@ -30,10 +32,11 @@ export function briefingPhase(state: GameState): GameState {
   ])
 }
 
-/** 2. Crisis: the card drawn last turn and any pending demand are answered with the player's choices. */
+/** 2. Crisis: the card drawn last turn, any pending demand and any pending offer are answered with the player's choices. */
 export function crisisPhase(state: GameState, playerTurn: PlayerTurn, rng: Rng): GameState {
   const afterCrisis = resolveCrisis(state, playerTurn.crisisResponse, rng)
-  return answerDemand(afterCrisis, playerTurn.demandResponse, rng)
+  const afterDemand = answerDemand(afterCrisis, playerTurn.demandResponse, rng)
+  return answerOffer(afterDemand, playerTurn.offerResponse, rng)
 }
 
 /** 3. Actions: the player spends action points on actions from src/data/actions.json. */
@@ -65,13 +68,14 @@ export function rivalsPhase(state: GameState, rng: Rng, alignmentAtStart: number
 }
 
 /**
- * 5. Resolution: finished projects pay out, the hedging rules run (drift,
+ * 5. Resolution: finished projects pay out, trade deals at the end of their
+ * term expire, the hedging rules run (drift,
  * courting, strait risks, demands and the broker bonus), and the game checks
  * for default, vassalage and its last turn.
  */
 export function resolutionPhase(state: GameState, rng: Rng, alignmentAtStart: number): GameState {
   // Stub: other win and loss checks arrive in milestone 7.
-  const hedging = resolveHedging(completeProjects(state, rng), rng, alignmentAtStart)
+  const hedging = resolveHedging(expireTradeDeals(completeProjects(state, rng)), rng, alignmentAtStart)
   let next = checkDefault(hedging.state)
   if (next.status === 'playing') next = checkVassal(next)
   if (next.status === 'ended') return next

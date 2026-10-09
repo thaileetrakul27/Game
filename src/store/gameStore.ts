@@ -3,7 +3,7 @@
 
 import { create } from 'zustand'
 import { actionsCost, advanceTurn, checkActions, checkPlannedAction, createGameState } from '../engine/index.ts'
-import type { CountryId, DemandResponse, GameState, PlayerAction } from '../engine/index.ts'
+import type { CountryId, DemandResponse, GameState, OfferResponse, PlayerAction } from '../engine/index.ts'
 
 export interface GameStore {
   game: GameState
@@ -13,6 +13,8 @@ export interface GameStore {
   crisisResponse: string | null
   /** The chosen answer to a pending demand, if there is one. */
   demandResponse: DemandResponse | null
+  /** The chosen answer to a pending offer, if there is one. */
+  offerResponse: OfferResponse | null
   /** The country picked on the map, whose stats and relations are shown. */
   selectedCountryId: CountryId | null
   /** Start a new game. Without a seed, one is taken from the clock. */
@@ -23,15 +25,26 @@ export interface GameStore {
   unplanAction: (index: number) => void
   chooseCrisisResponse: (responseId: string) => void
   chooseDemandResponse: (response: DemandResponse) => void
+  chooseOfferResponse: (response: OfferResponse) => void
   selectCountry: (id: CountryId | null) => void
   /** Take the planned actions and play the rest of the turn. */
   endTurn: () => void
 }
 
-type Fresh = Pick<GameStore, 'game' | 'planned' | 'crisisResponse' | 'demandResponse' | 'selectedCountryId'>
+type Fresh = Pick<
+  GameStore,
+  'game' | 'planned' | 'crisisResponse' | 'demandResponse' | 'offerResponse' | 'selectedCountryId'
+>
 
 function freshGame(seed: number): Fresh {
-  return { game: createGameState({ seed }), planned: [], crisisResponse: null, demandResponse: null, selectedCountryId: null }
+  return {
+    game: createGameState({ seed }),
+    planned: [],
+    crisisResponse: null,
+    demandResponse: null,
+    offerResponse: null,
+    selectedCountryId: null,
+  }
 }
 
 export const useGameStore = create<GameStore>()((set, get) => ({
@@ -59,23 +72,32 @@ export const useGameStore = create<GameStore>()((set, get) => ({
 
   chooseDemandResponse: (response) => set({ demandResponse: response }),
 
+  chooseOfferResponse: (response) => set({ offerResponse: response }),
+
   selectCountry: (id) => set({ selectedCountryId: id }),
 
   endTurn: () => {
-    const { game, planned, crisisResponse, demandResponse } = get()
+    const { game, planned, crisisResponse, demandResponse, offerResponse } = get()
     set({
-      game: advanceTurn(game, { crisisResponse, demandResponse, actions: planned }),
+      game: advanceTurn(game, { crisisResponse, demandResponse, offerResponse, actions: planned }),
       planned: [],
       crisisResponse: null,
       demandResponse: null,
+      offerResponse: null,
     })
   },
 }))
 
 /** What still needs answering before the turn can end, or an empty list when nothing does. */
-export function unanswered({ game, crisisResponse, demandResponse }: Pick<GameStore, 'game' | 'crisisResponse' | 'demandResponse'>): string[] {
+export function unanswered({
+  game,
+  crisisResponse,
+  demandResponse,
+  offerResponse,
+}: Pick<GameStore, 'game' | 'crisisResponse' | 'demandResponse' | 'offerResponse'>): string[] {
   const missing: string[] = []
   if (game.demand && !demandResponse) missing.push('the demand')
+  if (game.offer && !offerResponse) missing.push('the offer')
   if (game.crisis && !crisisResponse) missing.push('the crisis')
   return missing
 }

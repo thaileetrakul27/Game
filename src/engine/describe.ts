@@ -125,6 +125,10 @@ function describeEffect(state: GameState, actorId: CountryId, targetId: CountryI
     }
     case 'faction':
       return [`${getFaction(effect.faction).name} ${change(effect.amount)}`]
+    case 'tradeDeal': {
+      const turns = `for ${effect.turns} turns`
+      return [`Growth ${change(effect.growth, '%')} ${turns}`, `${target}: growth ${change(effect.partnerGrowth, '%')} ${turns}`]
+    }
     case 'straitAccess': {
       const strait = straitOwnedBy(actorId)
       const name = strait?.name ?? 'Your strait'
@@ -146,6 +150,32 @@ function describeEffect(state: GameState, actorId: CountryId, targetId: CountryI
       const outcome = lowerFirst(state, effect.text.replace(/\.$/, ''))
       return [`${Math.round(effect.probability * 100)}% chance ${outcome}: ${joined(effect.effects, targetId)}`]
     }
+  }
+}
+
+export interface OfferView {
+  fromId: CountryId
+  fromName: string
+  name: string
+  description: string
+  /** What accepting and declining would do, as the player sees it. */
+  accept: string[]
+  decline: string[]
+}
+
+/** The offer waiting for the player's answer, or null when there is none. */
+export function describeOffer(state: GameState): OfferView | null {
+  if (!state.offer) return null
+  const terms = getAction(state.offer.actionId).offer
+  if (!terms) return null
+  const { fromId } = state.offer
+  return {
+    fromId,
+    fromName: state.countries[fromId].name,
+    name: terms.name,
+    description: terms.description,
+    accept: describeEffects(state, state.playerId, fromId, terms.accepted),
+    decline: describeEffects(state, state.playerId, fromId, terms.declined),
   }
 }
 

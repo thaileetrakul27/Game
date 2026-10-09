@@ -3,13 +3,12 @@
     "id": "signTradeDeal",
     "name": "Sign trade deal",
     "cost": 1,
-    "description": "More income, shifts alignment toward that partner.",
+    "description": "More income for 8 turns, shifts alignment toward that partner. One deal per partner at a time.",
     "target": "any",
     "blockedByTradeCut": true,
     "playerMustAgree": true,
     "effects": [
-      { "kind": "stat", "who": "self", "stat": "growth", "amount": 0.5 },
-      { "kind": "stat", "who": "target", "stat": "growth", "amount": 0.25 },
+      { "kind": "tradeDeal", "turns": 8, "growth": 0.5, "partnerGrowth": 0.25 },
       { "kind": "relations", "with": "target", "amount": 5 },
       { "kind": "alignment", "amount": 5 },
       { "kind": "faction", "faction": "business", "amount": 4 },
@@ -160,5 +159,28 @@
         ]
       }
     ]
+  },
+  {
+    "id": "investmentPackage",
+    "name": "Offer investment package",
+    "cost": 1,
+    "description": "A Merchant great power's strength: money and investment for a smaller state, in return for goodwill and a lean toward it.",
+    "target": "minor",
+    "actor": { "kind": "greatPower", "personality": "merchant" },
+    "effects": [],
+    "offer": {
+      "name": "Investment package",
+      "description": "Cash now and investment in your industry, paid for by them, in return for goodwill and a lean toward them.",
+      "accepted": [
+        { "kind": "stat", "who": "self", "stat": "treasury", "amount": 80 },
+        { "kind": "economy", "who": "self", "field": "baseOutput", "amount": 3 },
+        { "kind": "stat", "who": "target", "stat": "treasury", "amount": -80 },
+        { "kind": "relations", "with": "target", "amount": 8 },
+        { "kind": "alignment", "amount": 8 },
+        { "kind": "faction", "faction": "business", "amount": 3 },
+        { "kind": "faction", "faction": "reformers", "amount": -2 }
+      ],
+      "declined": [{ "kind": "relations", "with": "target", "amount": -4 }]
+    }
   }
 ]

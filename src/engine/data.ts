@@ -109,6 +109,10 @@ function checkEffects(effects: readonly Effect[], where: string, target: ActionT
       case 'faction':
         check(refs.factionIds.has(effect.faction), where, `unknown faction "${effect.faction}"`)
         break
+      case 'tradeDeal':
+        check(hasTarget, where, 'a tradeDeal effect needs a target')
+        check(Number.isInteger(effect.turns) && effect.turns >= 1, where, 'a trade deal must last a whole number of turns')
+        break
       case 'startProject':
         check(refs.projectIds.has(effect.projectId), where, `unknown project "${effect.projectId}"`)
         break
@@ -157,14 +161,19 @@ function checkCondition(condition: Condition, where: string, refs: References): 
   }
 }
 
-/** Every action, or every option of an action that has them, pleases one faction and annoys another. */
+/**
+ * Every action, or every option of an action that has them, pleases one
+ * faction and annoys another. For an offer, accepting it does.
+ */
 function checkFactionReactions(action: ActionDef): void {
-  const choices = action.options?.map((option) => [option.id, option.effects] as const) ?? [['', []] as const]
+  const choices = action.offer
+    ? [['accepted', action.offer.accepted] as const]
+    : (action.options?.map((option) => [`option ${option.id}`, option.effects] as const) ?? [['', []] as const])
   for (const [optionId, optionEffects] of choices) {
     const amounts = [...action.effects, ...optionEffects].flatMap((effect) =>
       effect.kind === 'faction' ? [effect.amount] : [],
     )
-    const where = `actions.json (${action.id}${optionId ? `, option ${optionId}` : ''})`
+    const where = `actions.json (${action.id}${optionId ? `, ${optionId}` : ''})`
     check(amounts.some((amount) => amount > 0), where, 'must please a faction')
     check(amounts.some((amount) => amount < 0), where, 'must annoy a faction')
   }
@@ -215,6 +224,18 @@ export function validateGameData(data: GameData): GameData {
   for (const action of data.actions) {
     const where = `actions.json (${action.id})`
     check(TARGETS.includes(action.target), where, `unknown target "${action.target}"`)
+    if (action.actor?.kind !== undefined) check(KINDS.includes(action.actor.kind), where, `unknown actor kind "${action.actor.kind}"`)
+    if (action.actor?.personality !== undefined) {
+      check(PERSONALITIES.includes(action.actor.personality), where, `unknown actor personality "${action.actor.personality}"`)
+    }
+    if (action.offer) {
+      check(action.target !== 'none', where, 'an offer needs a target to make it to')
+      check(action.effects.length === 0 && !action.options, where, "an offer's effects go in offer.accepted and offer.declined")
+      // The receiver applies them, with the country making the offer as its target.
+      const offerer = action.actor?.kind === 'greatPower' ? 'greatPower' : 'any'
+      checkEffects(action.offer.accepted, `${where}, accepted`, offerer, refs)
+      checkEffects(action.offer.declined, `${where}, declined`, offerer, refs)
+    }
     check(Number.isInteger(action.cost) && action.cost >= 1, where, 'cost must be a whole number of action points')
     checkEffects(action.effects, where, action.target, refs)
     if (action.options) checkUniqueIds(action.options, where)
@@ -282,14 +303,14 @@ export function validateGameData(data: GameData): GameData {
   for (const personality of PERSONALITIES) {
     check(data.rivals.personalities[personality] !== undefined, 'rivals.json', `missing weights for "${personality}"`)
   }
+  check(data.rivals.tensionCurve >= 0, 'rivals.json', 'tensionCurve cannot be negative')
   for (const scale of ['treasuryScale', 'relationsScale', 'statScale'] as const) {
     check(data.rivals[scale] > 0, 'rivals.json', `${scale} must be above 0`)
   }
-  check(
-    Number.isInteger(data.rivals.repeatAfterTurns) && data.rivals.repeatAfterTurns >= 1,
-    'rivals.json',
-    'repeatAfterTurns must be a whole number of at least 1',
-  )
+  for (const [actionId, turns] of Object.entries({ any: data.rivals.repeatAfterTurns, ...data.rivals.repeatAfterTurnsFor })) {
+    if (actionId !== 'any') check(data.actions.some((action) => action.id === actionId), 'rivals.json', `unknown action "${actionId}"`)
+    check(Number.isInteger(turns) && turns >= 1, 'rivals.json', 'turns to wait before a repeat must be a whole number of at least 1')
+  }
 
   return data
 }

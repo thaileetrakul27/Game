@@ -3,7 +3,7 @@
 // and the warnings that apply right now. Every rule comes from the engine.
 
 import { isPast, inBrokerRange, patronOf, tradeCutBy } from './alignment.ts'
-import { GAME_DATA, getDemand, getEvent, getFaction } from './data.ts'
+import { GAME_DATA, getAction, getDemand, getEvent, getFaction } from './data.ts'
 import { accessOf, closureRisk, straitOwnedBy } from './straits.ts'
 import { ACTION_POINTS_PER_TURN, DEFAULT_AFTER_DEFICIT_TURNS } from './types.ts'
 import type { CountryId, FactionId, GameState } from './types.ts'
@@ -114,6 +114,16 @@ export function alerts(state: GameState): Alert[] {
       level: 'critical',
       title: `${name(state.demand.fromId)} demands: ${getDemand(state.demand.demandId).name}`,
       text: 'Accept or refuse before ending the turn.',
+    })
+  }
+
+  if (state.offer) {
+    const offer = getAction(state.offer.actionId).offer
+    list.push({
+      id: 'offer',
+      level: 'info',
+      title: `${name(state.offer.fromId)} offers: ${offer?.name ?? 'a deal'}`,
+      text: 'Accept or decline before ending the turn.',
     })
   }
 

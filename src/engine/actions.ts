@@ -1,14 +1,31 @@
 import { tradeCutBy } from './alignment.ts'
-import { getAction } from './data.ts'
+import { GAME_DATA, getAction } from './data.ts'
 import { applyEffects } from './effects.ts'
+import { checkNoOfferWaiting, makeOffer, offerOutcome, rivalAnswer } from './offers.ts'
 import type { Rng } from './rng.ts'
 import { withLog } from './state.ts'
 import type { ActionDef, ActionOption, Country, CountryId, GameState, Phase, PlayerAction } from './types.ts'
+
+/** Whether a country may take an action at all. Some are open only to one kind of country or personality. */
+export function canTake(state: GameState, actorId: CountryId, def: ActionDef): boolean {
+  const actor = state.countries[actorId]
+  const { kind, personality } = def.actor ?? {}
+  return (kind === undefined || kind === actor.kind) && (personality === undefined || personality === actor.personality)
+}
+
+/** The actions a country may take, in the order of the action data. */
+export function actionsFor(state: GameState, actorId: CountryId): ActionDef[] {
+  return GAME_DATA.actions.filter((def) => canTake(state, actorId, def))
+}
 
 /**
  * Take one action for a country: check its target and option against the
  * action's data, then apply the effects. The caller spends the action points.
  * The player and the computer rivals use the same rules.
+ *
+ * An offer to a computer country is answered at once. An offer to the player
+ * waits for the player's answer next turn, unless assumeAccepted is set, as a
+ * rival does when weighing whether to make it.
  */
 export function takeAction(
   state: GameState,
@@ -16,24 +33,34 @@ export function takeAction(
   action: PlayerAction,
   rng: Rng,
   phase: Phase = 'actions',
+  assumeAccepted = false,
 ): GameState {
   const def = getAction(action.actionId)
   const actor = state.countries[actorId]
+  if (!canTake(state, actorId, def)) throw new Error(`${def.name} is not open to ${actor.name}`)
   const target = resolveTarget(state, actor, def, action.targetId)
   const option = resolveOption(def, action.option)
   if (def.blockedByTradeCut && target && tradeCutBy(state, actorId) === target.id) {
     throw new Error(`${target.name} has cut trade with ${actor.name}`)
   }
 
+  const details = [option?.name, target?.name].filter(Boolean).join(', ')
+  const header = `${actor.name}: ${def.name}${details ? ` (${details})` : ''}.`
+
+  if (def.offer && target) {
+    if (target.id === state.playerId) checkNoOfferWaiting(state)
+    if (target.id === state.playerId && !assumeAccepted) {
+      return withLog(makeOffer(state, actorId, def.id), phase, [header, `${target.name} will answer next turn.`], actorId)
+    }
+    const response = target.id === state.playerId ? 'accept' : rivalAnswer(state, target.id, actorId, def)
+    const result = offerOutcome(state, target.id, actorId, def, response, rng)
+    const answer = `${target.name} ${response === 'accept' ? 'accepts' : 'declines'}.`
+    return withLog(result.state, phase, [header, answer, ...result.texts], actorId)
+  }
+
   const effects = [...def.effects, ...(option?.effects ?? [])]
   const result = applyEffects(state, effects, { actorId, targetId: target?.id ?? null, rng })
-  const details = [option?.name, target?.name].filter(Boolean).join(', ')
-  return withLog(
-    result.state,
-    phase,
-    [`${actor.name}: ${def.name}${details ? ` (${details})` : ''}.`, ...result.texts],
-    actorId,
-  )
+  return withLog(result.state, phase, [header, ...result.texts], actorId)
 }
 
 function resolveTarget(

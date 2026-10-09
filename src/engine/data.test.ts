@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { GAME_DATA, validateGameData } from './index.ts'
+import { actionsFor, createGameState, GAME_DATA, validateGameData } from './index.ts'
 import type { ActionDef } from './index.ts'
 
 describe('game data', () => {
@@ -37,8 +37,9 @@ describe('game data', () => {
     expect(GAME_DATA.demands.map((demand) => demand.id)).toEqual(['navalBase', 'disputedIsland', 'expelCompanies'])
   })
 
-  it('has the 9 actions at the costs in DESIGN.md', () => {
-    const costs = Object.fromEntries(GAME_DATA.actions.map((action) => [action.id, action.cost]))
+  it("gives the player the 9 actions at the costs in DESIGN.md, and Halvard its investment package", () => {
+    const state = createGameState({ seed: 1 })
+    const costs = Object.fromEntries(actionsFor(state, 'kessara').map((action) => [action.id, action.cost]))
     expect(costs).toEqual({
       signTradeDeal: 1,
       acceptLoan: 1,
@@ -50,6 +51,10 @@ describe('game data', () => {
       straitAccess: 1,
       covertOperation: 2,
     })
+    // The Merchant great power's strength. Tsengai, a Hardliner, doesn't have it.
+    expect(actionsFor(state, 'halvard').map((action) => action.id)).toContain('investmentPackage')
+    expect(actionsFor(state, 'tsengai').map((action) => action.id)).not.toContain('investmentPackage')
+    expect(actionsFor(state, 'sabu').map((action) => action.id)).not.toContain('investmentPackage')
   })
 
   it('has the 3 straits, with the Kessara Strait carrying 40% of trade', () => {

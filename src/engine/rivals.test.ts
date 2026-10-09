@@ -10,6 +10,8 @@ import {
   rivalReactions,
   rivalTurn,
   scoreAction,
+  tension,
+  utility,
   winningSide,
 } from './index.ts'
 import type { CountryId, GameState, PlayerAction, Stats } from './index.ts'
@@ -20,6 +22,8 @@ import { patchPlayer, quietGame, turnWith } from './testHelpers.ts'
 
 // The rivals are on and the event deck is off, so only actions change the state.
 const start = createGameState({ seed: 1, settings: { events: false } })
+/** The same world in the game's last years, when hostile rivals are at their boldest. */
+const lateGame: GameState = { ...start, turn: 36 }
 const rivals = Object.values(start.countries).filter((country) => country.id !== start.playerId)
 const key = (action: PlayerAction) => `${action.actionId}|${action.targetId ?? ''}|${action.option ?? ''}`
 const relationsOf = (state: GameState, a: CountryId, b: CountryId) => state.countries[a].relations[b]
@@ -71,10 +75,10 @@ describe('reactions to the player', () => {
     expect(relationsOf(withTsengai, 'kessara', 'halvard')).toBeLessThan(relationsOf(start, 'kessara', 'halvard'))
   })
 
-  it('turn into covert operations once a great power is hostile', () => {
-    // Mid-game: its projects are built and trade deals no longer raise its growth.
+  it('turn into covert operations once a great power is hostile, late in the game', () => {
+    // Late in the game: its projects are built and trade deals no longer raise its growth.
     const alienated = builtEverything(
-      patchStats(withRelations(start, 'tsengai', 'kessara', -70), 'tsengai', { treasury: 3000, growth: 8 }),
+      patchStats(withRelations(lateGame, 'tsengai', 'kessara', -70), 'tsengai', { treasury: 3000, growth: 8 }),
       'tsengai',
     )
     const { actions } = rivalTurn(alienated, 'tsengai', createRng(1), 0)
@@ -141,10 +145,25 @@ describe('a rival turn', () => {
   })
 })
 
+describe('rising tension', () => {
+  it('makes hostile rivals bolder as the game goes on, slowly at first', () => {
+    expect(tension({ ...start, turn: 1 })).toBe(0)
+    expect(tension({ ...start, turn: 14 })).toBeCloseTo(1 / 27)
+    expect(tension({ ...start, turn: 40 })).toBe(1)
+
+    // The same feud: Ostrel holds back early in the game and plots late.
+    const feud = (turn: number) =>
+      builtEverything(patchStats(withRelations({ ...start, turn }, 'ostrel', 'kessara', -90), 'ostrel', { treasury: 600 }), 'ostrel')
+    const covert = { actionId: 'covertOperation', targetId: 'kessara' }
+    expect(rivalTurn(feud(5), 'ostrel', createRng(1), 0).actions).not.toContainEqual(covert)
+    expect(rivalTurn(feud(36), 'ostrel', createRng(1), 0).actions).toContainEqual(covert)
+  })
+})
+
 describe('personalities', () => {
   it('make a Hardliner hurt a neighbour it is hostile to, where a Merchant would not', () => {
     const feud = (id: CountryId) =>
-      builtEverything(patchStats(withRelations(start, id, 'kessara', -90), id, { treasury: 600 }), id)
+      builtEverything(patchStats(withRelations(lateGame, id, 'kessara', -90), id, { treasury: 600 }), id)
     const covert = { actionId: 'covertOperation', targetId: 'kessara' }
     expect(rivalTurn(feud('ostrel'), 'ostrel', createRng(1), 0).actions).toContainEqual(covert)
     expect(rivalTurn(feud('sabu'), 'sabu', createRng(1), 0).actions).not.toContainEqual(covert)
@@ -162,6 +181,13 @@ describe('personalities', () => {
     for (const id of ['ostrel', 'sabu', 'daranth']) halvardWinning = patchStats(halvardWinning, id, { alignment: 50 })
     expect(winningSide(halvardWinning)).toBe(1)
     expect(loanFrom(halvardWinning, 'halvard')).toBeGreaterThan(loanFrom(halvardWinning, 'tsengai'))
+  })
+
+  it('leave both great powers wanting their bloc equally, though Halvard is a Merchant and Tsengai a Hardliner', () => {
+    const towardHalvard = patchStats(start, 'valmora', { alignment: start.countries.valmora.stats.alignment + 5 })
+    const towardTsengai = patchStats(start, 'valmora', { alignment: start.countries.valmora.stats.alignment - 5 })
+    expect(utility(start, towardHalvard, 'halvard')).toBe(utility(start, towardTsengai, 'tsengai'))
+    expect(utility(start, towardHalvard, 'halvard')).toBe(GAME_DATA.rivals.greatPowerBloc * 5)
   })
 
   it('make a Merchant value income and a Hardliner value defence', () => {

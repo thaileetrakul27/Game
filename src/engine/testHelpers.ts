@@ -18,12 +18,14 @@ export function turnWith(...actions: PlayerAction[]): PlayerTurn {
 
 /**
  * A turn with the given actions that also answers whatever is pending: the
- * first response to a crisis card, and a refusal of any demand.
+ * first response to a crisis card, a refusal of any demand and a refusal of
+ * any offer.
  */
 export function turnAnswering(state: GameState, ...actions: PlayerAction[]): PlayerTurn {
   return {
     crisisResponse: state.crisis?.responseIds[0] ?? null,
     demandResponse: state.demand ? 'refuse' : null,
+    offerResponse: state.offer ? 'decline' : null,
     actions,
   }
 }

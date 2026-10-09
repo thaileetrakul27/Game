@@ -174,8 +174,8 @@ describe('helpers for the interface', () => {
 
   it('describe exactly what an action will do with its target and option', () => {
     expect(describeAction(start, 'kessara', { actionId: 'signTradeDeal', targetId: 'halvard' })).toEqual([
-      'Growth +0.5%',
-      'Halvard Compact: growth +0.25%',
+      'Growth +0.5% for 8 turns',
+      'Halvard Compact: growth +0.25% for 8 turns',
       'Relations with Halvard Compact +5',
       'Alignment up to 5 toward Halvard Compact',
       'Tsengai Republic resents it: relations up to −3',

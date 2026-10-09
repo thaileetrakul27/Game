@@ -4,6 +4,7 @@ import { getProject } from './data.ts'
 import type { Rng } from './rng.ts'
 import { changeEconomy, changeFaction, changeRelations, changeStat, setStraitAccess, updateCountry } from './state.ts'
 import { accessOf, accessPhrase, straitOwnedBy } from './straits.ts'
+import { signTradeDeal } from './trade.ts'
 import type { CountryId, Effect, GameState, StraitAccess } from './types.ts'
 
 export interface EffectContext {
@@ -69,6 +70,8 @@ function applyEffect(state: GameState, effect: Effect, context: EffectContext): 
       return recallLoans(state, context.actorId, requireTarget(context))
     case 'forgiveDebt':
       return forgiveDebt(state, context.actorId, requireTarget(context), effect.amount)
+    case 'tradeDeal':
+      return { state: signTradeDeal(state, context.actorId, requireTarget(context), effect), texts: [] }
     case 'chance': {
       if (context.rng.next() >= effect.probability) return { state, texts: [] }
       const result = applyEffects(state, effect.effects, context)
