@@ -49,6 +49,17 @@ describe('advanceTurn', () => {
     expect(playFullGame(7).countries).not.toEqual(first.countries)
   })
 
+  it("runs each turn's briefing before the player chooses", () => {
+    const start = createGameState({ seed: 1, playerId: 'kessara', countries })
+    expect(start.log).toEqual([expect.objectContaining({ turn: 1, phase: 'briefing' })])
+
+    const next = advanceTurn(start, { crisisResponse: null, actions: [] })
+    expect(next.log.at(-1)).toMatchObject({ turn: 2, phase: 'briefing' })
+
+    // No briefing for a turn after the last one.
+    expect(playFullGame(1).log.at(-1)).toMatchObject({ turn: 40, phase: 'resolution' })
+  })
+
   describe('crisis responses', () => {
     const noCrisis = createGameState({ seed: 1, playerId: 'kessara', countries })
     // The event deck arrives in milestone 6, so place a card by hand.

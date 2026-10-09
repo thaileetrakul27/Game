@@ -24,7 +24,7 @@ function withLog(state: GameState, phase: Phase, texts: string[]): GameState {
   return { ...state, log: [...state.log, ...entries] }
 }
 
-/** 1. Briefing: income arrives, trade flows and the news ticker runs. */
+/** 1. Briefing: income arrives, trade flows and the news ticker runs. Called by startTurn. */
 export function briefingPhase(state: GameState): GameState {
   // Stub: income and strait trade arrive in milestone 2.
   const year = Math.ceil(state.turn / 4)
@@ -101,17 +101,23 @@ export function rivalsPhase(state: GameState, rng: Rng): GameState {
   return withLog({ ...state, countries }, 'rivals', texts)
 }
 
-/**
- * 5. Resolution: stats update, thresholds are checked, the game checks for its
- * end, and next turn's crisis card is drawn.
- */
-export function resolutionPhase(state: GameState, rng: Rng): GameState {
+/** 5. Resolution: stats update, thresholds are checked, the game checks for its end. */
+export function resolutionPhase(state: GameState): GameState {
   // Stub: thresholds and demands arrive in milestone 5, win and loss checks in milestone 7.
   if (state.turn >= MAX_TURNS) {
     return withLog({ ...state, status: 'ended' }, 'resolution', [
       `Turn ${MAX_TURNS} reached. The game is over.`,
     ])
   }
-  const next = { ...state, turn: state.turn + 1, actionPoints: ACTION_POINTS_PER_TURN }
-  return { ...next, crisis: drawCrisis(next, rng) }
+  return { ...state, turn: state.turn + 1, actionPoints: ACTION_POINTS_PER_TURN }
+}
+
+/**
+ * Open a turn for the player: run its briefing, then draw its crisis card.
+ * Runs when the game starts and straight after each resolution, so the player
+ * sees both before choosing anything.
+ */
+export function startTurn(state: GameState, rng: Rng): GameState {
+  const briefed = briefingPhase(state)
+  return { ...briefed, crisis: drawCrisis(briefed, rng) }
 }

@@ -1,4 +1,4 @@
-import { drawCrisis } from './crisis.ts'
+import { startTurn } from './phases.ts'
 import { createRng, normaliseSeed } from './rng.ts'
 import { ACTION_POINTS_PER_TURN } from './types.ts'
 import type { Country, CountryId, GameState } from './types.ts'
@@ -10,7 +10,7 @@ export interface NewGameOptions {
   countries: readonly Country[]
 }
 
-/** Build the state for turn 1 of a new game, including turn 1's crisis card. */
+/** Build the state for turn 1 of a new game, with turn 1's briefing and crisis card. */
 export function createGameState({ seed, playerId, countries }: NewGameOptions): GameState {
   if (!countries.some((country) => country.id === playerId)) {
     throw new Error(`Unknown player country: ${playerId}`)
@@ -29,6 +29,6 @@ export function createGameState({ seed, playerId, countries }: NewGameOptions): 
     countries: Object.fromEntries(countries.map((country) => [country.id, structuredClone(country)])),
     log: [],
   }
-  const crisis = drawCrisis(state, rng)
-  return { ...state, crisis, rngState: rng.state }
+  const opened = startTurn(state, rng)
+  return { ...opened, rngState: rng.state }
 }
