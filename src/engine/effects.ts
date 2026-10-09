@@ -48,6 +48,10 @@ function applyEffect(state: GameState, effect: Effect, context: EffectContext): 
     }
     case 'alignment':
       return { state: pullAlignment(state, context.actorId, requireTarget(context), effect.amount), texts: [] }
+    case 'borrow':
+      return { state: borrow(state, context.actorId, requireTarget(context), effect.amount), texts: [] }
+    case 'repayDebt':
+      return repayDebt(state, context.actorId, requireTarget(context), effect.amount)
     case 'startProject':
       return startProject(state, context.actorId, effect.projectId)
     case 'chance': {
@@ -78,16 +82,48 @@ function otherGreatPower(state: GameState, targetId: CountryId): CountryId | nul
 
 /**
  * Pull the smaller party's alignment toward the other's by up to amount,
- * never past it. Great powers anchor the scale and never move. Between two
- * minor states, the actor moves toward the target.
+ * never past it, or push it away for a negative amount. Great powers anchor
+ * the scale and never move. Between two minor states, the actor moves.
  */
 function pullAlignment(state: GameState, actorId: CountryId, targetId: CountryId, amount: number): GameState {
   const actor = state.countries[actorId]
   const target = state.countries[targetId]
   const [mover, anchor] = actor.kind === 'minor' ? [actor, target] : [target, actor]
   if (mover.kind !== 'minor') return state
+
   const gap = anchor.stats.alignment - mover.stats.alignment
-  return changeStat(state, mover.id, 'alignment', Math.sign(gap) * Math.min(Math.abs(gap), amount))
+  if (amount >= 0) {
+    return changeStat(state, mover.id, 'alignment', Math.sign(gap) * Math.min(Math.abs(gap), amount))
+  }
+  // Pushing away from a country you are level with moves you back toward the centre.
+  const toward = gap !== 0 ? Math.sign(gap) : Math.sign(anchor.stats.alignment)
+  return changeStat(state, mover.id, 'alignment', toward * amount)
+}
+
+/** Take cash now, owed to the lender. */
+function borrow(state: GameState, borrowerId: CountryId, lenderId: CountryId, amount: number): GameState {
+  const withCash = changeStat(changeStat(state, borrowerId, 'treasury', amount), borrowerId, 'debt', amount)
+  return updateCountry(withCash, borrowerId, (country) => ({
+    ...country,
+    creditors: { ...country.creditors, [lenderId]: (country.creditors[lenderId] ?? 0) + amount },
+  }))
+}
+
+/** Pay a creditor up to amount of what it is owed, from the treasury. */
+function repayDebt(state: GameState, debtorId: CountryId, creditorId: CountryId, amount: number): EffectResult {
+  const debtor = state.countries[debtorId]
+  const creditor = state.countries[creditorId]
+  const owed = debtor.creditors[creditorId] ?? 0
+  if (owed <= 0) throw new Error(`${debtor.name} owes nothing to ${creditor.name}`)
+
+  const paid = Math.min(amount, owed)
+  let next = changeStat(state, debtorId, 'treasury', -paid)
+  next = changeStat(next, debtorId, 'debt', -paid)
+  next = updateCountry(next, debtorId, (country) => ({
+    ...country,
+    creditors: { ...country.creditors, [creditorId]: owed - paid },
+  }))
+  return { state: next, texts: [`Repaid ${paid} to ${creditor.name}, leaving ${owed - paid} owed.`] }
 }
 
 /** Pay for a project and schedule its completion. Each project can be built once. */

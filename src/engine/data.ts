@@ -36,13 +36,16 @@ function checkUniqueIds(items: readonly { id: string }[], file: string): void {
 function checkEffects(
   effects: readonly Effect[],
   where: string,
-  hasTarget: boolean,
+  target: ActionTarget,
   projectIds: ReadonlySet<string>,
 ): void {
+  const hasTarget = target !== 'none'
   for (const effect of effects) {
     switch (effect.kind) {
       case 'stat':
         check(STATS.includes(effect.stat), where, `unknown stat "${effect.stat}"`)
+        // Debt is tracked by creditor, so it only changes through borrow and repayDebt.
+        check(effect.stat !== 'debt', where, 'change debt with a borrow or repayDebt effect')
         check(effect.who === 'self' || (effect.who === 'target' && hasTarget), where, `bad "who": ${effect.who}`)
         break
       case 'economy':
@@ -56,12 +59,17 @@ function checkEffects(
       case 'alignment':
         check(hasTarget, where, 'an alignment effect needs a target')
         break
+      case 'borrow':
+      case 'repayDebt':
+        check(target === 'greatPower', where, `a ${effect.kind} effect needs a great power as the target`)
+        check(effect.amount > 0, where, `a ${effect.kind} amount must be above zero`)
+        break
       case 'startProject':
         check(projectIds.has(effect.projectId), where, `unknown project "${effect.projectId}"`)
         break
       case 'chance':
         check(effect.probability >= 0 && effect.probability <= 1, where, 'probability must be 0 to 1')
-        checkEffects(effect.effects, where, hasTarget, projectIds)
+        checkEffects(effect.effects, where, target, projectIds)
         break
       default:
         check(false, where, `unknown effect kind "${(effect as { kind: unknown }).kind}"`)
@@ -94,17 +102,23 @@ export function validateGameData(data: GameData): GameData {
       if (other.id === country.id) continue
       check(typeof country.relations[other.id] === 'number', where, `missing relations with "${other.id}"`)
     }
+    for (const [creditorId, owed] of Object.entries(country.creditors)) {
+      const creditor = data.countries.find((candidate) => candidate.id === creditorId)
+      check(creditor?.kind === 'greatPower', where, `creditor "${creditorId}" is not a great power`)
+      check(owed >= 0, where, `debt to "${creditorId}" cannot be negative`)
+    }
+    const owedToPowers = Object.values(country.creditors).reduce((total, owed) => total + owed, 0)
+    check(owedToPowers <= country.stats.debt, where, 'debt to creditors adds up to more than its total debt')
   }
 
   for (const action of data.actions) {
     const where = `actions.json (${action.id})`
     check(TARGETS.includes(action.target), where, `unknown target "${action.target}"`)
     check(Number.isInteger(action.cost) && action.cost >= 1, where, 'cost must be a whole number of action points')
-    const hasTarget = action.target !== 'none'
-    checkEffects(action.effects, where, hasTarget, projectIds)
+    checkEffects(action.effects, where, action.target, projectIds)
     if (action.options) checkUniqueIds(action.options, where)
     for (const option of action.options ?? []) {
-      checkEffects(option.effects, `${where}, option ${option.id}`, hasTarget, projectIds)
+      checkEffects(option.effects, `${where}, option ${option.id}`, action.target, projectIds)
     }
   }
 
@@ -112,7 +126,7 @@ export function validateGameData(data: GameData): GameData {
     const where = `projects.json (${project.id})`
     check(Number.isInteger(project.turns) && project.turns >= 1, where, 'turns must be a whole number')
     // A finished project pays out to its builder alone, so it has no target.
-    checkEffects(project.effects, where, false, projectIds)
+    checkEffects(project.effects, where, 'none', projectIds)
   }
 
   return data

@@ -18,11 +18,12 @@ describe('game data', () => {
     })
   })
 
-  it('has the 8 actions at the costs in DESIGN.md', () => {
+  it('has the 9 actions at the costs in DESIGN.md', () => {
     const costs = Object.fromEntries(GAME_DATA.actions.map((action) => [action.id, action.cost]))
     expect(costs).toEqual({
       signTradeDeal: 1,
       acceptLoan: 1,
+      repayDebt: 1,
       buildInfrastructure: 2,
       diplomaticSummit: 1,
       domesticReform: 2,
@@ -46,5 +47,26 @@ describe('game data', () => {
     expect(withAction({ ...base, effects: [{ kind: 'relations', with: 'target', amount: 5 }] })).toThrow(
       /needs a target/,
     )
+  })
+
+  it('keeps debt and creditors consistent', () => {
+    const base: ActionDef = { id: 'test', name: 'Test', cost: 1, description: '', target: 'any', effects: [] }
+    const withAction = (action: ActionDef) => () =>
+      validateGameData({ ...GAME_DATA, actions: [...GAME_DATA.actions, action] })
+    // Debt only changes through borrow and repayDebt, which need a great power to deal with.
+    expect(withAction({ ...base, effects: [{ kind: 'stat', who: 'self', stat: 'debt', amount: 50 }] })).toThrow(
+      /borrow or repayDebt/,
+    )
+    expect(withAction({ ...base, effects: [{ kind: 'borrow', amount: 50 }] })).toThrow(/great power/)
+
+    const withKessara = (creditors: Record<string, number>) => () =>
+      validateGameData({
+        ...GAME_DATA,
+        countries: GAME_DATA.countries.map((country) =>
+          country.id === 'kessara' ? { ...country, creditors } : country,
+        ),
+      })
+    expect(withKessara({ valmora: 10 })).toThrow(/not a great power/)
+    expect(withKessara({ halvard: 10_000 })).toThrow(/more than its total debt/)
   })
 })

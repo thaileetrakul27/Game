@@ -15,6 +15,7 @@
       "alignment": 0
     },
     "economy": { "baseOutput": 100, "upkeep": 75, "straitTolls": 30 },
+    "creditors": { "halvard": 80, "tsengai": 70 },
     "relations": {
       "halvard": 15,
       "tsengai": 15,
@@ -40,6 +41,7 @@
       "alignment": 100
     },
     "economy": { "baseOutput": 600, "upkeep": 500, "straitTolls": 0 },
+    "creditors": {},
     "relations": {
       "kessara": 15,
       "tsengai": -40,
@@ -65,6 +67,7 @@
       "alignment": -100
     },
     "economy": { "baseOutput": 500, "upkeep": 430, "straitTolls": 0 },
+    "creditors": {},
     "relations": {
       "kessara": 15,
       "halvard": -40,
@@ -90,6 +93,7 @@
       "alignment": 10
     },
     "economy": { "baseOutput": 70, "upkeep": 55, "straitTolls": 0 },
+    "creditors": { "halvard": 50, "tsengai": 40 },
     "relations": {
       "kessara": 20,
       "halvard": 20,
@@ -115,6 +119,7 @@
       "alignment": -30
     },
     "economy": { "baseOutput": 60, "upkeep": 52, "straitTolls": 0 },
+    "creditors": { "tsengai": 120 },
     "relations": {
       "kessara": -35,
       "halvard": -10,
@@ -140,6 +145,7 @@
       "alignment": 30
     },
     "economy": { "baseOutput": 50, "upkeep": 50, "straitTolls": 20 },
+    "creditors": { "halvard": 60 },
     "relations": {
       "kessara": -10,
       "halvard": 35,
@@ -165,6 +171,7 @@
       "alignment": -60
     },
     "economy": { "baseOutput": 55, "upkeep": 40, "straitTolls": 0 },
+    "creditors": { "tsengai": 400 },
     "relations": {
       "kessara": 5,
       "halvard": -30,

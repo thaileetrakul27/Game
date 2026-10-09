@@ -19,9 +19,19 @@
     "description": "Big cash now, debt and alignment shift later.",
     "target": "greatPower",
     "effects": [
-      { "kind": "stat", "who": "self", "stat": "treasury", "amount": 150 },
-      { "kind": "stat", "who": "self", "stat": "debt", "amount": 150 },
+      { "kind": "borrow", "amount": 150 },
       { "kind": "alignment", "amount": 10 }
+    ]
+  },
+  {
+    "id": "repayDebt",
+    "name": "Repay debt",
+    "cost": 1,
+    "description": "Pay off part of the debt to one great power. You depend on them less, so alignment shifts slightly away from them.",
+    "target": "greatPower",
+    "effects": [
+      { "kind": "repayDebt", "amount": 100 },
+      { "kind": "alignment", "amount": -3 }
     ]
   },
   {

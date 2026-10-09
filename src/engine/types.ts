@@ -62,6 +62,11 @@ export interface Country {
   personality: Personality | null
   stats: Stats
   economy: Economy
+  /**
+   * The part of stats.debt owed to each great power. The rest is owed to
+   * lenders outside the region.
+   */
+  creditors: Record<CountryId, number>
   /** Relations with every other country, -100 to 100. */
   relations: Record<CountryId, number>
   projects: ProjectProgress[]
@@ -74,7 +79,7 @@ export type ActionTarget = 'none' | 'any' | 'greatPower' | 'minor'
 
 /** One change an action, option or project makes. */
 export type Effect =
-  /** Add to a stat of the acting country or the target. */
+  /** Add to a stat of the acting country or the target. Debt changes only through borrow and repayDebt. */
   | { kind: 'stat'; who: 'self' | 'target'; stat: StatKey; amount: number }
   /** Add to an economy field of the acting country or the target. */
   | { kind: 'economy'; who: 'self' | 'target'; field: EconomyField; amount: number }
@@ -83,8 +88,15 @@ export type Effect =
    * great power on the other side from the target.
    */
   | { kind: 'relations'; with: 'target' | 'otherGreatPower'; amount: number }
-  /** Pull the smaller party's alignment toward the other's by up to amount. */
+  /**
+   * Pull the smaller party's alignment toward the other's by up to amount.
+   * A negative amount pushes it away instead.
+   */
   | { kind: 'alignment'; amount: number }
+  /** Borrow from the target great power: cash now, owed to that power. */
+  | { kind: 'borrow'; amount: number }
+  /** Pay the target great power up to amount of what is owed to it, from the treasury. */
+  | { kind: 'repayDebt'; amount: number }
   /** Pay for and begin an infrastructure project. */
   | { kind: 'startProject'; projectId: string }
   /** With the given probability, log the text and apply the effects. */
