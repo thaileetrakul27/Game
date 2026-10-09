@@ -3,8 +3,10 @@ import {
   actionsCost,
   advanceTurn,
   checkActions,
+  checkPlannedAction,
   createGameState,
   debtInterest,
+  describeAction,
   getProject,
   projectTurnsLeft,
   quarterLabel,
@@ -158,6 +160,41 @@ describe('helpers for the interface', () => {
     const tooMuch = [{ actionId: 'domesticReform' }, { actionId: 'domesticReform' }, { actionId: 'militarySpending' }]
     expect(actionsCost(tooMuch)).toBe(5)
     expect(checkActions(start, tooMuch)).toMatch(/action points/)
+  })
+
+  it('explain why a planned action does not fit', () => {
+    const planned = [
+      { actionId: 'signTradeDeal', targetId: 'halvard' },
+      { actionId: 'diplomaticSummit', targetId: 'valmora' },
+      { actionId: 'militarySpending' },
+    ]
+    expect(checkPlannedAction(start, planned, { actionId: 'domesticReform' })).toBe('Needs 2 points, only 1 left')
+    expect(checkPlannedAction(start, planned.slice(0, 2), { actionId: 'domesticReform' })).toBeNull()
+    expect(checkPlannedAction(start, [], { actionId: 'acceptLoan', targetId: 'valmora' })).toMatch(/great power/)
+  })
+
+  it('describe exactly what an action will do with its target and option', () => {
+    expect(describeAction(start, 'kessara', { actionId: 'signTradeDeal', targetId: 'halvard' })).toEqual([
+      'Growth +0.5%',
+      'Halvard Compact: growth +0.25%',
+      'Relations with Halvard Compact +5',
+      'Alignment up to 5 toward Halvard Compact',
+    ])
+    expect(describeAction(start, 'kessara', { actionId: 'straitAccess', targetId: 'halvard', option: 'deny' })).toEqual([
+      'Relations with Halvard Compact −25',
+      'Relations with Tsengai Republic +15',
+    ])
+    expect(describeAction(start, 'kessara', { actionId: 'buildInfrastructure', option: 'powerGrid' })).toEqual([
+      'Costs 90, takes 3 turns, then growth +0.5%, legitimacy +4, upkeep +4 a turn',
+    ])
+    expect(describeAction(start, 'kessara', { actionId: 'covertOperation', targetId: 'ostrel' })).toEqual([
+      'Treasury −20',
+      'Ostrel: legitimacy −8',
+      '30% chance the operation is exposed: relations with Ostrel −25, legitimacy −5',
+    ])
+    expect(describeAction(start, 'kessara', { actionId: 'repayDebt', targetId: 'tsengai' })[0]).toBe(
+      'Repay up to 100 of the debt to Tsengai Republic (you owe 70), from the treasury',
+    )
   })
 
   it('label each turn with its year and quarter', () => {

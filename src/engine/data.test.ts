@@ -33,6 +33,16 @@ describe('game data', () => {
     })
   })
 
+  it('has the 3 straits, with the Kessara Strait carrying 40% of trade', () => {
+    expect(GAME_DATA.straits.map((strait) => [strait.id, strait.tradeShare])).toEqual([
+      ['kessaraStrait', 40],
+      ['sabuPassage', 35],
+      ['valmoraChannel', 25],
+    ])
+    const tooMuch = GAME_DATA.straits.map((strait) => ({ ...strait, tradeShare: 50 }))
+    expect(() => validateGameData({ ...GAME_DATA, straits: tooMuch })).toThrow(/more than 100%/)
+  })
+
   it('rejects content with unknown names or broken references', () => {
     const withAction = (action: ActionDef) => () =>
       validateGameData({ ...GAME_DATA, actions: [...GAME_DATA.actions, action] })
