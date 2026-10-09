@@ -2,8 +2,9 @@
 
 import { getProject } from './data.ts'
 import type { Rng } from './rng.ts'
-import { changeEconomy, changeRelations, changeStat, updateCountry } from './state.ts'
-import type { CountryId, Effect, GameState } from './types.ts'
+import { changeEconomy, changeFaction, changeRelations, changeStat, setStraitAccess, updateCountry } from './state.ts'
+import { accessOf, accessPhrase, straitOwnedBy } from './straits.ts'
+import type { CountryId, Effect, GameState, StraitAccess } from './types.ts'
 
 export interface EffectContext {
   actorId: CountryId
@@ -54,6 +55,14 @@ function applyEffect(state: GameState, effect: Effect, context: EffectContext): 
       return repayDebt(state, context.actorId, requireTarget(context), effect.amount)
     case 'startProject':
       return startProject(state, context.actorId, effect.projectId)
+    case 'faction':
+      // Only the player has factions. A computer rival's action leaves them alone.
+      if (context.actorId !== state.playerId) return { state, texts: [] }
+      return { state: changeFaction(state, effect.faction, effect.amount), texts: [] }
+    case 'straitAccess':
+      return setAccess(state, context.actorId, requireTarget(context), effect.access)
+    case 'recallLoans':
+      return recallLoans(state, context.actorId, requireTarget(context))
     case 'chance': {
       if (context.rng.next() >= effect.probability) return { state, texts: [] }
       const result = applyEffects(state, effect.effects, context)
@@ -85,7 +94,7 @@ export function otherGreatPower(state: GameState, targetId: CountryId): CountryI
  * never past it, or push it away for a negative amount. Great powers anchor
  * the scale and never move. Between two minor states, the actor moves.
  */
-function pullAlignment(state: GameState, actorId: CountryId, targetId: CountryId, amount: number): GameState {
+export function pullAlignment(state: GameState, actorId: CountryId, targetId: CountryId, amount: number): GameState {
   const actor = state.countries[actorId]
   const target = state.countries[targetId]
   const [mover, anchor] = actor.kind === 'minor' ? [actor, target] : [target, actor]
@@ -141,4 +150,29 @@ function startProject(state: GameState, builderId: CountryId, projectId: string)
   }))
   const turns = project.turns === 1 ? '1 turn' : `${project.turns} turns`
   return { state: next, texts: [`Work begins on ${project.name}. It will take ${turns}.`] }
+}
+
+/** Set a power's access to the strait the actor owns. */
+function setAccess(state: GameState, ownerId: CountryId, powerId: CountryId, access: StraitAccess): EffectResult {
+  const owner = state.countries[ownerId]
+  const power = state.countries[powerId]
+  const strait = straitOwnedBy(ownerId)
+  if (!strait) throw new Error(`${owner.name} has no strait to control`)
+  if (accessOf(state, strait.id, powerId) === access) {
+    throw new Error(`The ${strait.name} is already ${accessPhrase(access)} ${power.name}`)
+  }
+  return {
+    state: setStraitAccess(state, strait.id, powerId, access),
+    texts: [`The ${strait.name} is now ${accessPhrase(access)} ${power.name}.`],
+  }
+}
+
+/** The creditor demands back everything it is owed, paid from the treasury at once. */
+function recallLoans(state: GameState, debtorId: CountryId, creditorId: CountryId): EffectResult {
+  const owed = state.countries[debtorId].creditors[creditorId] ?? 0
+  if (owed <= 0) return { state, texts: [] }
+  let next = changeStat(state, debtorId, 'treasury', -owed)
+  next = changeStat(next, debtorId, 'debt', -owed)
+  next = updateCountry(next, debtorId, (country) => ({ ...country, creditors: { ...country.creditors, [creditorId]: 0 } }))
+  return { state: next, texts: [`${state.countries[creditorId].name} recalls its loans: ${owed} repaid at once.`] }
 }

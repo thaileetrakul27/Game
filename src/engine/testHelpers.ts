@@ -7,6 +7,18 @@ export function turnWith(...actions: PlayerAction[]): PlayerTurn {
   return { crisisResponse: null, actions }
 }
 
+/**
+ * A turn with the given actions that also answers whatever is pending: the
+ * first response to a crisis card, and a refusal of any demand.
+ */
+export function turnAnswering(state: GameState, ...actions: PlayerAction[]): PlayerTurn {
+  return {
+    crisisResponse: state.crisis?.responseIds[0] ?? null,
+    demandResponse: state.demand ? 'refuse' : null,
+    actions,
+  }
+}
+
 /** Overwrite some of the player's stats, economy or creditors, to set up a test. */
 export function patchPlayer(
   state: GameState,

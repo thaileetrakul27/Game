@@ -13,6 +13,12 @@ export type Personality = 'opportunist' | 'hardliner' | 'merchant'
 /** Great powers anchor the alignment scale: Halvard at +100, Tsengai at -100. */
 export type CountryKind = 'greatPower' | 'minor'
 
+/** The player's domestic factions. See DESIGN.md, "Domestic politics". */
+export type FactionId = 'generals' | 'business' | 'reformers'
+
+/** How a power's ships may use a strait. */
+export type StraitAccess = 'open' | 'taxed' | 'closed'
+
 /** The seven stats every country runs on, player and rivals alike. */
 export interface Stats {
   /** Money on hand. Below zero for 2 turns in a row means default. */
@@ -39,7 +45,7 @@ export interface Economy {
   baseOutput: number
   /** Running costs paid every turn. */
   upkeep: number
-  /** Toll income from strait traffic every turn. */
+  /** Extra toll income every turn from projects such as a port, on top of what the country's straits earn. */
   straitTolls: number
 }
 
@@ -99,6 +105,12 @@ export type Effect =
   | { kind: 'repayDebt'; amount: number }
   /** Pay for and begin an infrastructure project. */
   | { kind: 'startProject'; projectId: string }
+  /** Change the player's faction satisfaction. Has no effect when a computer rival acts. */
+  | { kind: 'faction'; faction: FactionId; amount: number }
+  /** Set the target great power's access to the strait the actor owns. */
+  | { kind: 'straitAccess'; access: StraitAccess }
+  /** The target great power demands back everything the actor owes it, at once. */
+  | { kind: 'recallLoans' }
   /** With the given probability, log the text and apply the effects. */
   | { kind: 'chance'; probability: number; text: string; effects: Effect[] }
 
@@ -115,6 +127,8 @@ export interface ActionDef {
   cost: number
   description: string
   target: ActionTarget
+  /** A power that has cut trade with the actor refuses this action. */
+  blockedByTradeCut?: boolean
   /** Applied every time the action is taken. */
   effects: Effect[]
   /** When present, the player picks one option and its effects apply too. */
@@ -145,8 +159,83 @@ export interface StraitDef {
   id: string
   name: string
   description: string
+  /** The country on its shore, which sets access and earns the tolls. */
+  controlledBy: CountryId
   /** Percent of regional trade passing through it at the start of the game. */
   tradeShare: number
+  /** Percent of the strait's traffic sent by each great power. Adds up to 100. */
+  traffic: Record<CountryId, number>
+}
+
+export interface StraitControlRules {
+  /** Toll earned each turn per percentage point of regional trade, at open access. */
+  tollPerTradeShare: number
+  /** Taxed traffic pays this many times the open toll. */
+  taxedTollMultiplier: number
+  /** Chance each turn that a power shut out of the strait strikes back, before defence. */
+  closureRiskBase: number
+  /** Each point of the owner's defence lowers that chance by this much. */
+  closureRiskLessPerDefence: number
+  /** What a shut-out power may do. The target of the effects is that power. */
+  closureEvents: { id: string; name: string; text: string; effects: Effect[] }[]
+}
+
+export interface HedgingRules {
+  driftPerTurn: number
+  tradeCutPast: number
+  /** Share of output lost while a power cuts trade. */
+  tradeCutOutputLoss: number
+  courtingRelations: number
+  courtingAlignment: number
+  demandPast: number
+  demandAfterTurns: number
+  vassalAfterDemands: number
+  brokerWithin: number
+  brokerEveryTurns: number
+  brokerBonusPoints: number
+  /** Effects of refusing a demand. The target is the patron. */
+  demandRefusal: Effect[]
+}
+
+/** A demand a patron can make. The target of its effects is the patron. */
+export interface DemandDef {
+  id: string
+  name: string
+  description: string
+  /** Effects of accepting. */
+  accept: Effect[]
+}
+
+export interface FactionDef {
+  id: FactionId
+  name: string
+  description: string
+  /** Satisfaction at the start of the game, 0 to 100. */
+  start: number
+  /** Event card the faction can trigger while in unrest. */
+  crisisCard: string
+}
+
+export interface FactionRules {
+  /** A faction below this satisfaction is in unrest. */
+  unrestBelow: number
+  /** Chance each turn that a faction in unrest triggers its crisis card. */
+  unrestCrisisChance: number
+  factions: FactionDef[]
+}
+
+export interface EventResponse {
+  id: string
+  name: string
+  effects: Effect[]
+}
+
+/** A crisis card. Its responses' effects apply to the player, with no target. */
+export interface EventCard {
+  id: string
+  name: string
+  description: string
+  responses: EventResponse[]
 }
 
 /** Country data as written in src/data/countries.json. */
@@ -158,6 +247,11 @@ export interface GameData {
   projects: ProjectDef[]
   straits: StraitDef[]
   economy: EconomyRules
+  straitControl: StraitControlRules
+  hedging: HedgingRules
+  demands: DemandDef[]
+  factions: FactionRules
+  events: EventCard[]
 }
 
 // ---- Turns and game state ----
@@ -170,11 +264,23 @@ export interface PlayerAction {
   option?: string
 }
 
+export type DemandResponse = 'accept' | 'refuse'
+
 /** Everything the player decides for one turn, submitted together. */
 export interface PlayerTurn {
   /** Id of the chosen response to the pending crisis, or null when there is none. */
   crisisResponse: string | null
+  /** The answer to a pending demand. Required when there is one. */
+  demandResponse?: DemandResponse | null
   actions: PlayerAction[]
+}
+
+/** A demand from the player's patron, answered with the next turn's choices. */
+export interface PendingDemand {
+  /** Id of a demand in src/data/demands.json. */
+  demandId: string
+  /** The great power making the demand. */
+  fromId: CountryId
 }
 
 /** A crisis card drawn ahead of its turn, so the player sees it before acting. */
@@ -196,7 +302,7 @@ export interface LogEntry {
 export type GameStatus = 'playing' | 'ended'
 
 /** Why the game ended. Endings and their scoring arrive in milestone 7. */
-export type EndReason = 'turnLimit' | 'default'
+export type EndReason = 'turnLimit' | 'default' | 'vassal'
 
 export interface GameState {
   /** The seed the game started from, so it can be replayed exactly. */
@@ -215,6 +321,18 @@ export interface GameState {
   deficitTurns: number
   /** The crisis card for this turn, drawn at the end of the previous one. */
   crisis: PendingCrisis | null
+  /** A demand from the player's patron waiting for an answer. */
+  demand: PendingDemand | null
+  /** Turns in a row the player's alignment has ended past the demand line. */
+  demandTurns: number
+  /** Demands the player has accepted from each great power. */
+  demandsAccepted: Record<CountryId, number>
+  /** Turns in a row the player's alignment has ended within the broker range, since the last bonus. */
+  brokerTurns: number
+  /** Satisfaction of the player's factions, 0 to 100. */
+  factions: Record<FactionId, number>
+  /** Each great power's access to each strait. */
+  straitAccess: Record<string, Record<CountryId, StraitAccess>>
   countries: Record<CountryId, Country>
   log: LogEntry[]
 }

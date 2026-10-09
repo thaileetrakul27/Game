@@ -1,9 +1,14 @@
+import { tradeCutBy } from './alignment.ts'
 import { GAME_DATA } from './data.ts'
-import type { Country, EconomyRules } from './types.ts'
+import { straitIncome } from './straits.ts'
+import type { CountryId, EconomyRules, GameData, GameState } from './types.ts'
 
 export interface IncomeBreakdown {
   /** Base output adjusted by growth. */
   output: number
+  /** Output lost while a great power cuts trade. */
+  tradeLoss: number
+  /** Tolls from the country's straits plus extra toll income from projects. */
   tolls: number
   interest: number
   upkeep: number
@@ -18,13 +23,15 @@ export function debtInterest(debt: number, rules: EconomyRules = GAME_DATA.econo
 
 /**
  * A country's income for one turn (DESIGN.md, "Economy"): base output times
- * growth, plus strait tolls, minus debt interest and upkeep. Growth is a
- * percentage, so 100 base output at 3% growth gives 103 output.
+ * growth, minus any trade cut, plus strait tolls, minus debt interest and
+ * upkeep. Growth is a percentage, so 100 base output at 3% growth gives 103.
  */
-export function incomeBreakdown(country: Country, rules: EconomyRules = GAME_DATA.economy): IncomeBreakdown {
+export function incomeBreakdown(state: GameState, countryId: CountryId, data: GameData = GAME_DATA): IncomeBreakdown {
+  const country = state.countries[countryId]
   const output = Math.round(country.economy.baseOutput * (1 + country.stats.growth / 100))
-  const tolls = country.economy.straitTolls
-  const interest = debtInterest(country.stats.debt, rules)
+  const tradeLoss = tradeCutBy(state, countryId) ? Math.round(output * data.hedging.tradeCutOutputLoss) : 0
+  const tolls = straitIncome(state, countryId, data) + country.economy.straitTolls
+  const interest = debtInterest(country.stats.debt, data.economy)
   const upkeep = country.economy.upkeep
-  return { output, tolls, interest, upkeep, net: output + tolls - interest - upkeep }
+  return { output, tradeLoss, tolls, interest, upkeep, net: output - tradeLoss + tolls - interest - upkeep }
 }

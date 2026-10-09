@@ -3,47 +3,36 @@
 // is marked with the milestone that replaces it.
 
 import { actionsCost, takeAction } from './actions.ts'
-import { drawCrisis } from './crisis.ts'
+import { drawCrisis, resolveCrisis } from './crisis.ts'
 import { getProject } from './data.ts'
 import { incomeBreakdown } from './economy.ts'
 import { applyEffects } from './effects.ts'
+import { answerDemand, checkVassal, resolveHedging } from './hedging.ts'
 import type { Rng } from './rng.ts'
 import { changeRelations, changeStat, quarterLabel, signed, withLog } from './state.ts'
 import { ACTION_POINTS_PER_TURN, DEFAULT_AFTER_DEFICIT_TURNS, MAX_TURNS } from './types.ts'
-import type { GameState, PlayerAction } from './types.ts'
+import type { GameState, PlayerAction, PlayerTurn } from './types.ts'
 
 /** 1. Briefing: income arrives in every country's treasury. Called by startTurn. */
 export function briefingPhase(state: GameState): GameState {
   let next = state
   for (const country of Object.values(state.countries)) {
-    next = changeStat(next, country.id, 'treasury', incomeBreakdown(country).net)
+    next = changeStat(next, country.id, 'treasury', incomeBreakdown(state, country.id).net)
   }
 
   // Stub: the news ticker arrives with the rivals in milestone 6.
-  const { output, tolls, interest, upkeep, net } = incomeBreakdown(state.countries[state.playerId])
+  const { output, tradeLoss, tolls, interest, upkeep, net } = incomeBreakdown(state, state.playerId)
+  const cut = tradeLoss > 0 ? `, trade cut -${tradeLoss}` : ''
   return withLog(next, 'briefing', [
     `${quarterLabel(state.turn)} briefing.`,
-    `Income ${signed(net)}: output ${output}, strait tolls ${tolls}, debt interest -${interest}, upkeep -${upkeep}.`,
+    `Income ${signed(net)}: output ${output}${cut}, strait tolls ${tolls}, debt interest -${interest}, upkeep -${upkeep}.`,
   ])
 }
 
-/** 2. Crisis: the card drawn last turn is resolved with the player's response. */
-export function crisisPhase(state: GameState, crisisResponse: string | null): GameState {
-  const { crisis } = state
-  if (crisis === null) {
-    if (crisisResponse !== null) throw new Error('There is no crisis to respond to')
-    return withLog(state, 'crisis', ['No crisis this quarter.'])
-  }
-  if (crisisResponse === null || !crisis.responseIds.includes(crisisResponse)) {
-    throw new Error(
-      `Crisis "${crisis.cardId}" needs one of these responses: ${crisis.responseIds.join(', ')}`,
-    )
-  }
-
-  // Stub: response effects arrive in milestone 6.
-  return withLog({ ...state, crisis: null }, 'crisis', [
-    `Crisis "${crisis.cardId}": chose "${crisisResponse}".`,
-  ])
+/** 2. Crisis: the card drawn last turn and any pending demand are answered with the player's choices. */
+export function crisisPhase(state: GameState, playerTurn: PlayerTurn, rng: Rng): GameState {
+  const afterCrisis = resolveCrisis(state, playerTurn.crisisResponse, rng)
+  return answerDemand(afterCrisis, playerTurn.demandResponse, rng)
 }
 
 /** 3. Actions: the player spends action points on actions from src/data/actions.json. */
@@ -77,13 +66,15 @@ export function rivalsPhase(state: GameState, rng: Rng): GameState {
 }
 
 /**
- * 5. Resolution: finished projects pay out, and the game checks for the
- * player's default and for its last turn.
+ * 5. Resolution: finished projects pay out, the hedging rules run (drift,
+ * courting, strait risks, demands and the broker bonus), and the game checks
+ * for default, vassalage and its last turn.
  */
-export function resolutionPhase(state: GameState, rng: Rng): GameState {
-  // Stub: thresholds and demands arrive in milestone 5, other win and loss checks in milestone 7.
-  let next = completeProjects(state, rng)
-  next = checkDefault(next)
+export function resolutionPhase(state: GameState, rng: Rng, alignmentAtStart: number): GameState {
+  // Stub: other win and loss checks arrive in milestone 7.
+  const hedging = resolveHedging(completeProjects(state, rng), rng, alignmentAtStart)
+  let next = checkDefault(hedging.state)
+  if (next.status === 'playing') next = checkVassal(next)
   if (next.status === 'ended') return next
 
   if (next.turn >= MAX_TURNS) {
@@ -91,7 +82,7 @@ export function resolutionPhase(state: GameState, rng: Rng): GameState {
       `Turn ${MAX_TURNS} reached. The game is over.`,
     ])
   }
-  return { ...next, turn: next.turn + 1, actionPoints: ACTION_POINTS_PER_TURN }
+  return { ...next, turn: next.turn + 1, actionPoints: ACTION_POINTS_PER_TURN + hedging.bonusPoints }
 }
 
 /** Apply the payout of every project that finishes this turn. */

@@ -1,3 +1,4 @@
+import { tradeCutBy } from './alignment.ts'
 import { getAction } from './data.ts'
 import { applyEffects } from './effects.ts'
 import type { Rng } from './rng.ts'
@@ -14,6 +15,9 @@ export function takeAction(state: GameState, actorId: CountryId, action: PlayerA
   const actor = state.countries[actorId]
   const target = resolveTarget(state, actor, def, action.targetId)
   const option = resolveOption(def, action.option)
+  if (def.blockedByTradeCut && target && tradeCutBy(state, actorId) === target.id) {
+    throw new Error(`${target.name} has cut trade with ${actor.name}`)
+  }
 
   const effects = [...def.effects, ...(option?.effects ?? [])]
   const result = applyEffects(state, effects, { actorId, targetId: target?.id ?? null, rng })

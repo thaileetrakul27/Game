@@ -1,6 +1,7 @@
 import { MAX_TURNS, quarterLabel } from '../engine/index.ts'
 import { useGameStore } from '../store/gameStore.ts'
 import { ActionMenu } from './ActionMenu.tsx'
+import { AlertsBar } from './AlertsBar.tsx'
 import { GameOver } from './GameOver.tsx'
 import { CountryDetails } from './map/CountryDetails.tsx'
 import { MapPanel } from './map/MapPanel.tsx'
@@ -30,6 +31,7 @@ export default function App() {
         </button>
       </header>
 
+      <AlertsBar />
       {game.status === 'ended' && <GameOver />}
 
       {/* Phone order: map, country details, actions, stats, log. Wider screens place them in columns. */}

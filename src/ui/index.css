@@ -706,3 +706,197 @@ select {
   gap: 1rem;
   padding: 0.2rem 0;
 }
+
+/* Status colours, always paired with an icon and a label */
+
+:root {
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+  --status-info: var(--accent);
+}
+
+.small {
+  font-size: 0.8rem;
+}
+
+/* Warnings bar */
+
+.alerts {
+  margin-bottom: 1rem;
+}
+
+.alerts ul {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.alert {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  padding: 0.5rem 0.75rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--alert-colour);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.alert-critical {
+  --alert-colour: var(--status-critical);
+}
+.alert-serious {
+  --alert-colour: var(--status-serious);
+}
+.alert-warning {
+  --alert-colour: var(--status-warning);
+}
+.alert-info {
+  --alert-colour: var(--status-info);
+}
+
+.alert-icon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 50%;
+  background: var(--alert-colour);
+  color: #1d1d1b;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.alert-level {
+  color: var(--muted);
+}
+
+/* Demands and crisis cards */
+
+.decisions {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.decision {
+  margin: 0;
+  padding: 0.6rem 0.8rem 0.75rem;
+  border: 2px solid var(--status-serious);
+  border-radius: 6px;
+}
+
+.decision.demand {
+  border-color: var(--status-critical);
+}
+
+.decision legend {
+  padding: 0 0.3rem;
+  font-weight: 700;
+}
+
+.decision > p {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+}
+
+.choice {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  padding: 0.3rem 0;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.choice input {
+  margin-top: 0.2rem;
+}
+
+/* Factions */
+
+.factions {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.faction-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+
+.faction .bar {
+  position: relative;
+  height: 8px;
+  margin-top: 0.2rem;
+  border-radius: 4px;
+  background: var(--border);
+}
+
+.faction .bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--accent);
+}
+
+.faction.unrest .bar-fill {
+  background: var(--status-serious);
+}
+
+.faction .bar-line {
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: 14px;
+  background: var(--text);
+}
+
+.unrest-tag {
+  color: var(--bad);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.factions + p {
+  margin: 0.3rem 0 0;
+}
+
+/* Alignment thresholds and hedging status */
+
+.alignment h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.alignment-tick {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 10px;
+  background: var(--text);
+  opacity: 0.45;
+}
+
+.alignment p {
+  margin: 0.2rem 0 0.4rem;
+}
+
+.hedging-status li {
+  padding: 0.15rem 0;
+  font-size: 0.85rem;
+}
+
+.map .strait.restricted line {
+  stroke: var(--status-critical);
+  stroke-dasharray: none;
+  stroke-width: 3;
+}
+
+.plan .problem {
+  margin: 0 0 0.5rem;
+  color: var(--bad);
+  font-size: 0.9rem;
+}

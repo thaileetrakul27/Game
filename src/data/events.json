@@ -1,0 +1,75 @@
+[
+  {
+    "id": "massProtests",
+    "name": "Mass protests",
+    "description": "The Reformers fill the capital's squares, demanding change.",
+    "responses": [
+      {
+        "id": "promiseReforms",
+        "name": "Promise reforms",
+        "effects": [
+          { "kind": "faction", "faction": "reformers", "amount": 15 },
+          { "kind": "faction", "faction": "business", "amount": -5 },
+          { "kind": "stat", "who": "self", "stat": "treasury", "amount": -20 }
+        ]
+      },
+      {
+        "id": "clearSquares",
+        "name": "Clear the squares",
+        "effects": [
+          { "kind": "faction", "faction": "reformers", "amount": -10 },
+          { "kind": "faction", "faction": "generals", "amount": 5 },
+          { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": -8 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "generalStrike",
+    "name": "General strike",
+    "description": "Business owners and dockworkers shut the port.",
+    "responses": [
+      {
+        "id": "meetDemands",
+        "name": "Meet their demands",
+        "effects": [
+          { "kind": "faction", "faction": "business", "amount": 15 },
+          { "kind": "stat", "who": "self", "stat": "treasury", "amount": -40 }
+        ]
+      },
+      {
+        "id": "breakStrike",
+        "name": "Break the strike",
+        "effects": [
+          { "kind": "faction", "faction": "business", "amount": -10 },
+          { "kind": "faction", "faction": "generals", "amount": 5 },
+          { "kind": "stat", "who": "self", "stat": "growth", "amount": -0.5 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "coupAttempt",
+    "name": "Coup attempt",
+    "description": "Disgruntled officers move troops toward the capital.",
+    "responses": [
+      {
+        "id": "buyOff",
+        "name": "Buy them off",
+        "effects": [
+          { "kind": "faction", "faction": "generals", "amount": 20 },
+          { "kind": "stat", "who": "self", "stat": "treasury", "amount": -60 }
+        ]
+      },
+      {
+        "id": "purge",
+        "name": "Purge the plotters",
+        "effects": [
+          { "kind": "faction", "faction": "generals", "amount": -10 },
+          { "kind": "stat", "who": "self", "stat": "militaryLoyalty", "amount": -10 },
+          { "kind": "stat", "who": "self", "stat": "legitimacy", "amount": 5 }
+        ]
+      }
+    ]
+  }
+]

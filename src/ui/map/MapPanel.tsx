@@ -1,5 +1,5 @@
 import type { KeyboardEvent } from 'react'
-import { GAME_DATA } from '../../engine/index.ts'
+import { accessPhrase, GAME_DATA } from '../../engine/index.ts'
 import type { Country, CountryId } from '../../engine/index.ts'
 import { useGameStore } from '../../store/gameStore.ts'
 import { signed } from '../format.ts'
@@ -78,9 +78,13 @@ export function MapPanel() {
         {GAME_DATA.straits.map((strait) => {
           const shape = STRAIT_SHAPES[strait.id]
           if (!shape) return null
+          const access = Object.entries(game.straitAccess[strait.id] ?? {})
+            .map(([powerId, setting]) => `${accessPhrase(setting)} ${game.countries[powerId].name}`)
+            .join(', ')
+          const restricted = Object.values(game.straitAccess[strait.id] ?? {}).some((setting) => setting !== 'open')
           return (
-            <g key={strait.id} className="strait">
-              <title>{`${strait.name}: ${strait.tradeShare}% of regional trade. ${strait.description}`}</title>
+            <g key={strait.id} className={restricted ? 'strait restricted' : 'strait'}>
+              <title>{`${strait.name}: ${strait.tradeShare}% of regional trade, ${access}. ${strait.description}`}</title>
               <line x1={shape.from.x} y1={shape.from.y} x2={shape.to.x} y2={shape.to.y} />
               <text className="strait-name" x={shape.label.x} y={shape.label.y}>
                 {strait.name}

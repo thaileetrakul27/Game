@@ -99,20 +99,36 @@ Five systems drive the game, and the hedging system is the one that makes it fee
 
 - The great powers anchor the alignment scale. The Halvard Compact sits at plus 100 and the Tsengai Republic at minus 100, and neither ever moves.
 - When a deal shifts alignment, the smaller party moves toward the other party's alignment, never past it. Between two smaller states, the one acting moves toward the other. Repaying debt moves you away from that power instead.
-- Alignment drifts back toward zero by 2 points a turn if you do nothing.
-- Past plus or minus 40, the opposite power cuts trade and starts courting your neighbours against you.
+- Alignment drifts back toward zero by 2 points a turn if you do nothing. "Doing nothing" means nothing moved your alignment that turn.
+- Past plus or minus 40, the opposite power cuts trade and starts courting your neighbours against you. A trade cut lowers your output by 15% and blocks trade deals with that power. Courting lowers each neighbour's relations with you by 2 and pulls its alignment 2 toward that power, every turn.
 - Past plus or minus 70 for 4 turns in a row, your patron issues a **demand** (host a naval base, recognise a disputed island, expel a rival's companies). Refusing costs a big relations hit and can trigger loan recall. Accepting pushes alignment further.
-- Staying between minus 20 and plus 20 earns a **broker bonus**, an extra action point every 3 turns, because both sides keep bidding for you.
+  - You answer a demand together with your next turn's choices, like a crisis card.
+  - Refusing costs 25 relations with your patron and has a 50% chance of loan recall: you repay everything you owe that power at once.
+  - Accepting moves your alignment 10 further toward your patron, plus the demand's own effects. Accepting 3 demands from the same power makes you its vassal and ends the game.
+- Staying between minus 20 and plus 20 earns a **broker bonus**, an extra action point every 3 turns, because both sides keep bidding for you. Every third turn in a row that ends within that range gives one extra action point the next turn.
+- "Past" a threshold means beyond it, so 40 itself is not past 40. "Between minus 20 and plus 20" includes both ends.
 
 **3. Strait control.** Each turn you set access for each power to open, taxed or closed. Taxing pays well. Closing to one side wins huge favour with the other but risks a blockade or a staged incident.
 
+- Each strait belongs to the country on its shore: the Kessara Strait to Kessara, the Sabu Passage to the Sabu Islands and the Valmora Channel to Valmora.
+- **Tolls depend on each strait's trade share and each power's access setting.** Every percentage point of regional trade through a strait earns its owner 0.75 a turn, split between the two powers by their share of the strait's traffic. Taxed traffic pays 1.6 times as much, and closed traffic pays nothing.
+- Tsengai sends 60% of the Kessara Strait's traffic, since the strait is its only way out of the gulf. Halvard sends 60% of the Sabu Passage's traffic, and the Valmora Channel's traffic is split evenly.
+- You change a power's access with the Grant or deny strait access action, choosing open, taxed or closed. Opening pleases that power, taxing annoys it, and closing angers it and wins favour with the other power.
+- While the strait is closed to a power, each turn that power has a 30% chance, minus 1 point for every 4 points of your defence, of staging a blockade or an incident.
+
 **4. Domestic politics.** Three factions (Generals, Business, Reformers) each have a satisfaction score. Every action pleases one and annoys another. If any faction drops below 15, it can trigger a crisis card such as protests, a strike or a coup attempt.
+
+- Satisfaction runs from 0 to 100. Kessara starts with the Generals at 45, Business at 55 and the Reformers at 40.
+- Each action's data names the faction it pleases and the one it annoys.
+- Each turn a faction ends below 15, there is a 50% chance its crisis card is drawn for the next turn: protests by the Reformers, a strike by Business, or a coup attempt by the Generals.
+
+The numbers in these systems are starting values. They live in the data files so they can be rebalanced.
 
 **5. Crises and events.** A deck of 60 or more event cards, weighted by game state. A coup card only enters the deck if loyalty is low. A debt-trap card only appears if debt is high. Some cards chain across turns, so a naval standoff can escalate into a blockade if handled badly.
 
 **Computer rivals.** Each rival scores every legal action with a simple utility function (gain in its own stats, weighted by personality, plus a bit of randomness), then picks the top ones. No machine learning needed, and it stays readable when you debug it.
 
-**Not yet in effect.** Some action effects depend on systems built in later milestones. Until milestone 5 adds factions and strait control, Domestic reform angers no faction, and Grant or deny strait access changes relations only, with no access settings or tolls. The Diplomatic summit's leverage gain has no effect until leverage is defined.
+**Not yet in effect.** The Diplomatic summit's leverage gain has no effect until leverage is defined. A coup attempt cannot succeed and end the game until milestone 7 adds the win and loss checks.
 
 ## Win and lose conditions
 
