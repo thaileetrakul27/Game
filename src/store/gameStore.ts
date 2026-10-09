@@ -2,8 +2,8 @@
 // player's choices back. Every rule runs in the engine.
 
 import { create } from 'zustand'
-import { actionsCost, advanceTurn, checkActions, createGameState } from '../engine/index.ts'
-import type { GameState, PlayerAction } from '../engine/index.ts'
+import { actionsCost, advanceTurn, checkActions, checkPlannedAction, createGameState } from '../engine/index.ts'
+import type { CountryId, GameState, PlayerAction } from '../engine/index.ts'
 
 export interface GameStore {
   game: GameState
@@ -11,6 +11,8 @@ export interface GameStore {
   planned: PlayerAction[]
   /** The chosen response to this turn's crisis card, if there is one. */
   crisisResponse: string | null
+  /** The country picked on the map, whose stats and relations are shown. */
+  selectedCountryId: CountryId | null
   /** Start a new game. Without a seed, one is taken from the clock. */
   newGame: (seed?: number) => void
   /** Add an action to this turn's plan. Returns why it can't be added, or null if it was. */
@@ -18,12 +20,13 @@ export interface GameStore {
   /** Remove a planned action, and any later ones that no longer work without it. */
   unplanAction: (index: number) => void
   chooseCrisisResponse: (responseId: string) => void
+  selectCountry: (id: CountryId | null) => void
   /** Take the planned actions and play the rest of the turn. */
   endTurn: () => void
 }
 
-function freshGame(seed: number): Pick<GameStore, 'game' | 'planned' | 'crisisResponse'> {
-  return { game: createGameState({ seed }), planned: [], crisisResponse: null }
+function freshGame(seed: number): Pick<GameStore, 'game' | 'planned' | 'crisisResponse' | 'selectedCountryId'> {
+  return { game: createGameState({ seed }), planned: [], crisisResponse: null, selectedCountryId: null }
 }
 
 export const useGameStore = create<GameStore>()((set, get) => ({
@@ -33,7 +36,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
 
   planAction: (action) => {
     const { game, planned } = get()
-    const problem = checkActions(game, [...planned, action])
+    const problem = checkPlannedAction(game, planned, action)
     if (problem === null) set({ planned: [...planned, action] })
     return problem
   },
@@ -48,6 +51,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   },
 
   chooseCrisisResponse: (responseId) => set({ crisisResponse: responseId }),
+
+  selectCountry: (id) => set({ selectedCountryId: id }),
 
   endTurn: () => {
     const { game, planned, crisisResponse } = get()

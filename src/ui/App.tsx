@@ -2,6 +2,8 @@ import { MAX_TURNS, quarterLabel } from '../engine/index.ts'
 import { useGameStore } from '../store/gameStore.ts'
 import { ActionMenu } from './ActionMenu.tsx'
 import { GameOver } from './GameOver.tsx'
+import { CountryDetails } from './map/CountryDetails.tsx'
+import { MapPanel } from './map/MapPanel.tsx'
 import { StatsPanel } from './StatsPanel.tsx'
 import { TurnLog } from './TurnLog.tsx'
 
@@ -30,10 +32,15 @@ export default function App() {
 
       {game.status === 'ended' && <GameOver />}
 
-      <main className={game.status === 'ended' ? 'layout ended' : 'layout'}>
-        <StatsPanel />
+      {/* Phone order: map, country details, actions, stats, log. Wider screens place them in columns. */}
+      <main className="layout">
+        <MapPanel />
         {game.status === 'playing' && <ActionMenu />}
-        <TurnLog />
+        <StatsPanel />
+        <div className="side">
+          <CountryDetails />
+          <TurnLog />
+        </div>
       </main>
     </div>
   )

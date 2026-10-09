@@ -18,15 +18,44 @@ export function TurnLog() {
           <h3>
             {quarterLabel(turn)} <span className="muted">· turn {turn}</span>
           </h3>
-          <ul className="plain">
-            {entries.map((entry, index) => (
-              <li key={index} className={`log-${entry.phase}`}>
-                {entry.text}
-              </li>
-            ))}
-          </ul>
+          <TurnEntries entries={entries} />
         </section>
       ))}
     </section>
+  )
+}
+
+/** A turn's entries, with the rivals' relation changes folded into one collapsible line. */
+function TurnEntries({ entries }: { entries: LogEntry[] }) {
+  const rivals = entries.filter((entry) => entry.phase === 'rivals')
+  const firstRival = entries.findIndex((entry) => entry.phase === 'rivals')
+
+  return (
+    <ul className="plain">
+      {entries.map((entry, index) => {
+        if (entry.phase !== 'rivals') {
+          return (
+            <li key={index} className={`log-${entry.phase}`}>
+              {entry.text}
+            </li>
+          )
+        }
+        if (index !== firstRival) return null
+        return (
+          <li key={index} className="log-rivals">
+            <details>
+              <summary>
+                Rival relations: {rivals.length} {rivals.length === 1 ? 'change' : 'changes'}
+              </summary>
+              <ul className="plain">
+                {rivals.map((rival, rivalIndex) => (
+                  <li key={rivalIndex}>{rival.text}</li>
+                ))}
+              </ul>
+            </details>
+          </li>
+        )
+      })}
+    </ul>
   )
 }

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   DEFAULT_AFTER_DEFICIT_TURNS,
   getProject,
@@ -15,106 +16,124 @@ export function StatsPanel() {
   const income = incomeBreakdown(player)
   const owedToPowers = Object.values(player.creditors).reduce((total, owed) => total + owed, 0)
   const others = Object.values(game.countries).filter((country) => country.id !== player.id)
+  // Only phones can collapse the panel. Wider screens always show it in full.
+  const [open, setOpen] = useState(false)
 
   return (
-    <section className="panel" aria-labelledby="stats-heading">
-      <h2 id="stats-heading">{player.name}</h2>
+    <section className={open ? 'panel stats-panel open' : 'panel stats-panel'} aria-labelledby="stats-heading">
+      <div className="panel-head">
+        <h2 id="stats-heading">{player.name}</h2>
+        <button
+          type="button"
+          className="collapse-toggle"
+          aria-expanded={open}
+          aria-controls="stats-body"
+          onClick={() => setOpen(!open)}
+        >
+          {open ? 'Hide stats' : 'Show stats'}
+        </button>
+      </div>
+      <p className="stats-summary muted">
+        Treasury {money(stats.treasury)} · Debt {money(stats.debt)} · Growth {percent(stats.growth)}
+      </p>
 
-      <dl className="stats">
-        <dt>Treasury</dt>
-        <dd className={stats.treasury < 0 ? 'bad' : undefined}>{money(stats.treasury)}</dd>
-        <dt>Debt</dt>
-        <dd>{money(stats.debt)}</dd>
-        <dt>Growth</dt>
-        <dd>{percent(stats.growth)}</dd>
-        <Gauge label="Legitimacy" value={stats.legitimacy} />
-        <Gauge label="Military loyalty" value={stats.militaryLoyalty} />
-        <Gauge label="Defence" value={stats.defence} />
-      </dl>
+      <div id="stats-body" className="collapsible-body">
+        <dl className="stats">
+          <dt>Treasury</dt>
+          <dd className={stats.treasury < 0 ? 'bad' : undefined}>{money(stats.treasury)}</dd>
+          <dt>Debt</dt>
+          <dd>{money(stats.debt)}</dd>
+          <dt>Growth</dt>
+          <dd>{percent(stats.growth)}</dd>
+          <Gauge label="Legitimacy" value={stats.legitimacy} />
+          <Gauge label="Military loyalty" value={stats.militaryLoyalty} />
+          <Gauge label="Defence" value={stats.defence} />
+        </dl>
 
-      {stats.treasury < 0 && (
-        <p className="warning">
-          The treasury is below zero. Ending {DEFAULT_AFTER_DEFICIT_TURNS} turns in a row below zero means
-          default. Turns so far: {game.deficitTurns}.
-        </p>
-      )}
+        {stats.treasury < 0 && (
+          <p className="warning">
+            The treasury is below zero. Ending {DEFAULT_AFTER_DEFICIT_TURNS} turns in a row below zero means
+            default. Turns so far: {game.deficitTurns}.
+          </p>
+        )}
 
-      <AlignmentMeter value={stats.alignment} />
+        <AlignmentMeter value={stats.alignment} />
 
-      <h3>Income per turn</h3>
-      <table className="figures">
-        <tbody>
-          <tr>
-            <th scope="row">Output</th>
-            <td>{money(income.output)}</td>
-          </tr>
-          <tr>
-            <th scope="row">Strait tolls</th>
-            <td>{money(income.tolls)}</td>
-          </tr>
-          <tr>
-            <th scope="row">Debt interest</th>
-            <td>−{money(income.interest)}</td>
-          </tr>
-          <tr>
-            <th scope="row">Upkeep</th>
-            <td>−{money(income.upkeep)}</td>
-          </tr>
-          <tr className="total">
-            <th scope="row">Net</th>
-            <td>{signed(income.net)}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h3>Debt owed to</h3>
-      <table className="figures">
-        <tbody>
-          {Object.entries(player.creditors).map(([id, owed]) => (
-            <tr key={id}>
-              <th scope="row">{game.countries[id].name}</th>
-              <td>{money(owed)}</td>
+        <h3>Income per turn</h3>
+        <table className="figures">
+          <tbody>
+            <tr>
+              <th scope="row">Output</th>
+              <td>{money(income.output)}</td>
             </tr>
-          ))}
-          <tr>
-            <th scope="row">Other lenders</th>
-            <td>{money(stats.debt - owedToPowers)}</td>
-          </tr>
-        </tbody>
-      </table>
+            <tr>
+              <th scope="row">Strait tolls</th>
+              <td>{money(income.tolls)}</td>
+            </tr>
+            <tr>
+              <th scope="row">Debt interest</th>
+              <td>−{money(income.interest)}</td>
+            </tr>
+            <tr>
+              <th scope="row">Upkeep</th>
+              <td>−{money(income.upkeep)}</td>
+            </tr>
+            <tr className="total">
+              <th scope="row">Net</th>
+              <td>{signed(income.net)}</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <h3>Infrastructure</h3>
-      {player.projects.length === 0 ? (
-        <p className="muted">Nothing built or under way.</p>
-      ) : (
-        <ul className="plain">
-          {player.projects.map((progress) => {
-            const left = projectTurnsLeft(game, progress)
-            return (
-              <li key={progress.projectId}>
-                {getProject(progress.projectId).name}:{' '}
-                {left === 0 ? 'built' : `${left} ${left === 1 ? 'turn' : 'turns'} to go`}
-              </li>
-            )
-          })}
-        </ul>
-      )}
+        <h3>Debt owed to</h3>
+        <table className="figures">
+          <tbody>
+            {Object.entries(player.creditors).map(([id, owed]) => (
+              <tr key={id}>
+                <th scope="row">{game.countries[id].name}</th>
+                <td>{money(owed)}</td>
+              </tr>
+            ))}
+            <tr>
+              <th scope="row">Other lenders</th>
+              <td>{money(stats.debt - owedToPowers)}</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <h3>Relations</h3>
-      <table className="figures relations">
-        <thead>
-          <tr>
-            <th scope="col">Country</th>
-            <th scope="col">Relations</th>
-            <th scope="col">Alignment</th>
-          </tr>
-        </thead>
-        <tbody>
-          {others.map((country) => (
-            <RelationsRow key={country.id} country={country} relations={player.relations[country.id] ?? 0} />
-          ))}
-        </tbody>
-      </table>
+        <h3>Infrastructure</h3>
+        {player.projects.length === 0 ? (
+          <p className="muted">Nothing built or under way.</p>
+        ) : (
+          <ul className="plain">
+            {player.projects.map((progress) => {
+              const left = projectTurnsLeft(game, progress)
+              return (
+                <li key={progress.projectId}>
+                  {getProject(progress.projectId).name}:{' '}
+                  {left === 0 ? 'built' : `${left} ${left === 1 ? 'turn' : 'turns'} to go`}
+                </li>
+              )
+            })}
+          </ul>
+        )}
+
+        <h3>Relations</h3>
+        <table className="figures relations">
+          <thead>
+            <tr>
+              <th scope="col">Country</th>
+              <th scope="col">Relations</th>
+              <th scope="col">Alignment</th>
+            </tr>
+          </thead>
+          <tbody>
+            {others.map((country) => (
+              <RelationsRow key={country.id} country={country} relations={player.relations[country.id] ?? 0} />
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   )
 }
