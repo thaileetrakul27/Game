@@ -142,12 +142,13 @@ The numbers in these systems are starting values. They live in the data files so
 **Computer rivals.** Each rival scores every legal action with a simple utility function (gain in its own stats, weighted by personality, plus a bit of randomness), then picks the top ones. No machine learning needed, and it stays readable when you debug it.
 
 - **Choosing.** Each rival has 4 action points, like you. It keeps picking its highest-scoring action until its points run out or nothing is expected to score above a small minimum. The randomness only changes the order of actions worth taking; it never makes a worthless action worth taking.
-- **No repeats.** A rival doesn't take the same action on the same target again within 3 turns, so it never takes it twice in a turn and its moves vary from turn to turn.
+- **No repeats.** A rival doesn't take the same action on the same target again within 3 turns, so it never takes it twice in a turn and its moves vary from turn to turn. An investment package takes longer: a power waits 8 turns before offering the same country another, because the money takes time to spend.
 - **The utility** of an action adds up its change to the rival's own treasury (worth less to a rich country), income over the next 8 turns, legitimacy, military loyalty, defence, relations (great powers count double), and its bloc, plus the damage done to countries it is hostile to.
+- **Rising tension.** Hostile rivals start the game cautious and grow bolder. The weight a rival puts on harming a country it is hostile to rises from nothing on the first turn to its full value on the last, slowly at first: it grows with the cube of the share of the game played, so it reaches an eighth of its full value halfway through. A Hardliner's full harm weight is 4. Covert operations against you therefore come late: a bitter enemy starts plotting around turn 23, a country only mildly hostile to you in the last eight turns.
 - **Diminishing returns.** Legitimacy, military loyalty, defence, relations and how far a rival leans count for less the higher they already are, so rivals stop chasing scores that are already high instead of pushing everything to 100.
 - **Great powers.** The Halvard Compact and the Tsengai Republic are rivals for the region and never sign deals or hold summits with each other.
 - **Bloc** means something different for each kind of rival:
-  - A great power wants smaller states, Kessara above all, moving toward its end of the scale.
+  - A great power wants smaller states, Kessara above all, moving toward its end of the scale. Both great powers weigh this the same, whatever their personality; they differ in how they pursue it.
   - A Hardliner wants to move further toward the side it already leans to.
   - An Opportunist wants to move toward the winning side, the end of the scale that the smaller states lean toward overall.
   - A Merchant wants to stay balanced.
@@ -157,7 +158,7 @@ The numbers in these systems are starting values. They live in the data files so
   - Opportunists sit in between.
 - **Chance effects** are scored at their expected value, so a rival can't see the outcome in advance.
 - **Consent.** A rival can't sign a trade deal with you on your behalf. Deals with you only happen when you choose them.
-- **Investment packages, the Merchant power's strength.** A great power with the Merchant personality, the Halvard Compact, can spend 1 action point to offer a smaller state an investment package. The receiver gets 80 in cash and 3 more base output a turn from the power's treasury, relations with the power rise by 8, and the receiver's alignment moves up to 6 toward the power. Declining costs 4 relations with it.
+- **Investment packages, the Merchant power's strength.** A great power with the Merchant personality, the Halvard Compact, can spend 1 action point to offer a smaller state an investment package. The receiver gets 80 in cash and 3 more base output a turn from the power's treasury, relations with the power rise by 8, and the receiver's alignment moves up to 8 toward the power. Declining costs 4 relations with it.
   - A computer neighbour accepts only if it is better off by its own utility, so the power only offers where it will be accepted.
   - An offer to you arrives like a demand: you accept or decline it with your next turn's choices. Only one offer can wait for you at a time. Accepting pleases Business and annoys the Reformers.
   - A rival scores an offer to you as if you will accept it.
@@ -225,7 +226,7 @@ Because the engine is pure functions with a seeded random generator, you can hav
 - **Balance targets.** The pure hedger should win about 35% of the time, the one-side bots about 20%, the random bot under 5%. If one strategy dominates, change the data files, not the code.
 - **Rival balance targets.** Measured over 100 seeded games with a passive player, who takes no actions, picks crisis responses at random and declines every offer and demand:
   - The four neighbours end the game roughly evenly split between the two powers, with about as many leaning toward Halvard as toward Tsengai.
-  - Passive play is still punished, but the passive player's legitimacy never falls below 20 before turn 30.
+  - Passive play is still punished, but the rivals never push the passive player's legitimacy below 20 before turn 30. Unlucky crisis answers alone can still do it in the odd game, which the simulation reports separately.
   - `npm run simulate` plays these 100 games and prints both measures.
 - **Playtesting.** Get two or three friends to play one full game each and note the turn where they first got bored or confused.
 
