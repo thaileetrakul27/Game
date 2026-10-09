@@ -83,6 +83,15 @@ Each country also has a **relations score** with every other country (minus 100 
 | The Sabu Islands | Small trading archipelago | Merchant | Rival port competing for strait traffic |
 | Daranth | Landlocked | Hardliner | Heavily in debt to Tsengai |
 
+**Variety between games.** The seed varies the four neighbours at the start of each game, so no two games begin alike and the region doesn't always end up split the same way. For each neighbour:
+
+- its alignment moves by up to 20 either way;
+- its relations with every other country move by up to 10 either way, by the same amount on both sides;
+- its legitimacy, military loyalty and defence move by up to 8, its treasury by up to a quarter, and its growth by up to 0.5%, in steps of 0.25%;
+- one game in five, it gets one of the other two personalities instead of its usual one from the table above. The log says so at the start of the game.
+
+Debt stays as written, so Daranth always starts heavily in debt to Tsengai. The great powers and Kessara never vary. The ranges live in src/data/variety.json.
+
 All of this lives in plain JSON data files (countries, events, actions, projects), so you can rebalance or add content without touching the engine.
 
 ## Systems
@@ -225,9 +234,9 @@ Because the engine is pure functions with a seeded random generator, you can hav
 - **Simulation script.** Ask Claude Code for a script that runs 1,000 games with bot players (random, always-Halvard, always-Tsengai, pure hedger) and prints win rates and the most common cause of loss for each.
 - **Balance targets.** The pure hedger should win about 35% of the time, the one-side bots about 20%, the random bot under 5%. If one strategy dominates, change the data files, not the code.
 - **Rival balance targets.** Measured over 100 seeded games with a passive player, who takes no actions, picks crisis responses at random and declines every offer and demand:
-  - The four neighbours end the game roughly evenly split between the two powers, with about as many leaning toward Halvard as toward Tsengai.
+  - Over the 100 games, the four neighbours end roughly evenly split between the two powers, with about as many leaning toward Halvard as toward Tsengai. Individual games end with different splits, thanks to the variety between games.
   - Passive play is still punished, but the rivals never push the passive player's legitimacy below 20 before turn 30. Unlucky crisis answers alone can still do it in the odd game, which the simulation reports separately.
-  - `npm run simulate` plays these 100 games and prints both measures.
+  - `npm run simulate` plays these 100 games and prints both measures, including how often each neighbour ends on each side and how many games end with each split.
 - **Playtesting.** Get two or three friends to play one full game each and note the turn where they first got bored or confused.
 
 **Stretch ideas** once it works: a second playable country, a hot-seat two-player mode where each player is a great power competing for Kessara, and a live news feed of your decisions styled like a Geopolitics Journal front page.
