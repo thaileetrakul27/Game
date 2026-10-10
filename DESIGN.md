@@ -192,6 +192,26 @@ You win by reaching turn 40 still in power, and the ending you get depends on ho
 
 The game ends with a score screen and a short written epilogue generated from your key decisions, so every run tells its own story.
 
+## Interface
+
+The chart of the Meridian Sea is the main screen. Everything else is either a slim readout around it or paperwork brought to it.
+
+- **Briefing.** Each turn opens with a full-screen briefing, styled as a classified cabinet paper. It shows the quarter's income and treasury, what happened last quarter, what the other countries did, and the crisis card with any demand or offer to answer. Then it goes to the map. You can reopen it from the orders tray until the turn ends.
+- **The map.** A nautical chart fills most of the screen, with countries coloured by alignment: Halvard blue, Tsengai orange. Tapping a country opens its file: its position, its relations with Kessara and the orders you can give that target it, each with its exact effects. Tapping Kessara opens the Home file, with domestic reform, military spending and infrastructure.
+- **Top bar.** A slim bar shows treasury, action points left, legitimacy, military loyalty and alignment. Tapping it opens Kessara's full stats.
+- **Orders tray.** The planned actions and the End turn button sit in a compact tray at the bottom of the map, and each planned order can be removed there. While the crisis, a demand or an offer is unanswered, the tray says so and opens the briefing instead of ending the turn.
+- **Tabs and side panels.** On phones, a bottom tab bar switches between Map, Economy, Factions, News and Log. On wide screens, Economy and Factions sit in a column to the left of the map, and News and Log to the right.
+  - Economy: income, debt by creditor, active trade deals with the turns each has left, strait access and tolls, infrastructure, and economic warnings such as a deficit, a trade cut or a closed strait.
+  - Factions: faction satisfaction, legitimacy and loyalty, the alignment scale with its lines, and political warnings such as unrest, a patron losing patience or demands accepted.
+  - News: what each country did last turn.
+  - Log: every turn's events.
+  - A tab with a warning shows a marker in the tab bar.
+- **Style.** A classified intelligence briefing.
+  - Dark mode is a navy chart room. Light mode is a daylight chart table. The top bar, tray and tabs stay navy in both.
+  - The map is drawn as a nautical chart, with depth bands along the coasts, grid lines and a compass rose.
+  - Headings are typewritten. Crisis, demand and offer cards are paper dossiers, and urgent demands carry a red stamp.
+  - Red is kept for urgent things. Magenta, the colour navigators plot courses in, marks your own orders and the selected country on the map.
+
 ## Technical stack and architecture
 
 Build it as a browser game in TypeScript, with all the game rules in a separate engine that has no interface code, so it can be tested and simulated on its own.
