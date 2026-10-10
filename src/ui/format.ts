@@ -11,5 +11,9 @@ export function percent(value: number): string {
 }
 
 export function signed(value: number): string {
-  return value > 0 ? `+${value}` : `${value}`
+  return value > 0 ? `+${value}` : value < 0 ? `−${Math.abs(value)}` : '0'
+}
+
+export function capitalised(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1)
 }
