@@ -22,7 +22,7 @@ export const COUNTRY_SHAPES: Record<string, CountryShape> = {
     path:
       'M0,0 L560,0 L548,32 L522,44 L505,52 L480,58 L458,66 L436,70 L412,78 L390,88 L368,96 L348,104 ' +
       'L330,118 L292,134 L262,142 L232,148 L196,146 L160,150 L126,144 L92,140 L46,148 L0,152 Z',
-    label: { x: 250, y: 74 },
+    label: { x: 280, y: 96 },
   },
   halvard: {
     path:
