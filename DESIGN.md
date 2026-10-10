@@ -225,6 +225,7 @@ The interface only sends player actions to the store and draws whatever state co
 - **Randomness.** A seeded generator (for example, mulberry32), so any game can be replayed exactly from its seed.
 - **Testing.** Vitest for unit tests and the simulation script.
 - **Hosting.** Free on GitHub Pages at thaileetrakul27.github.io/Game/, so friends can play from a link. GitHub Actions builds and deploys the game on every push to main.
+- **Offline copy.** `npm run build:single` builds the whole game into one self-contained file, game.html, with the fonts embedded, which plays when opened straight from a computer with no server and no internet. Every run of the deploy workflow also uploads it as a download named faultlines-game. The GitHub Pages build stays as it is, loading its fonts from Google Fonts.
 
 Suggested folders are src/engine, src/data, src/ui, src/store and scripts/simulate.ts.
 
