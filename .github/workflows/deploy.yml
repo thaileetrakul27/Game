@@ -32,6 +32,26 @@ jobs:
         with:
           path: dist
 
+  # The whole game as one self-contained game.html, playable offline, to download from each run.
+  # A job of its own, so it never holds up the deployment.
+  single-file:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build:single
+      - uses: actions/upload-artifact@v7
+        with:
+          name: faultlines-game
+          path: dist-single/game.html
+          if-no-files-found: error
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
