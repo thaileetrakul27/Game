@@ -132,7 +132,7 @@ function Coach({
         style={layout ? { top: layout.card.top, left: layout.card.left } : { visibility: 'hidden' }}
       >
         <p className="coach-count">
-          Tutorial · turn {turn} of 3 · {count.number} of {count.of}
+          Tutorial, turn {turn} of 3: step {count.number} of {count.of}
         </p>
         <h2 id="coach-title" className="coach-title">
           {step.title}

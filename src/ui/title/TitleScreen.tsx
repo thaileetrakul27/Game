@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { listSaves, readSave, tutorialSeen } from '../../store/saves.ts'
 import type { SaveRecord, SaveSlot } from '../../store/saves.ts'
-import { COUNTRY_SHAPES, MAP_HEIGHT, MAP_WIDTH } from '../map/geometry.ts'
-import { RadarSweep } from '../map/RadarSweep.tsx'
+import { MAP_HEIGHT, MAP_WIDTH } from '../map/geometry.ts'
+import { TerrainGlyph } from '../map/Glyphs.tsx'
+import { OUTLINES, TERRAIN } from '../map/terrain.ts'
 import { prefersReducedMotion } from '../motion.ts'
 import { SaveDetails } from '../SaveDetails.tsx'
 import { resumeGame, startNewGame } from '../session.ts'
@@ -61,7 +62,7 @@ export function TitleScreen() {
     <div className={intro ? 'title-screen intro' : 'title-screen'}>
       <TitleChart />
       <main className="title-content">
-        <p className="title-classification">Top secret · Cabinet eyes only</p>
+        <p className="title-classification">Secret // Cabinet eyes only</p>
         <h1 className="title-name">
           <span className="title-letters">Faultlines</span>
         </h1>
@@ -209,7 +210,7 @@ function ConfirmNew({ record, tutorial, onBack }: { record: SaveRecord; tutorial
   )
 }
 
-/** The chart behind the title: the coastlines drawing themselves in, under a turning radar sweep. */
+/** The chart behind the title, inking itself in on the table: coastlines first, then the land. */
 function TitleChart() {
   const tint: Record<string, string> = { halvard: 'halvard', tsengai: 'tsengai', kessara: 'home' }
   return (
@@ -225,17 +226,24 @@ function TitleChart() {
         </pattern>
       </defs>
       <rect width={MAP_WIDTH} height={MAP_HEIGHT} fill="url(#title-grid)" />
-      <RadarSweep x={404} y={192} radius={700} className="title-sweep" />
-      {Object.entries(COUNTRY_SHAPES).map(([id, shape], index) => (
+      {Object.entries(OUTLINES).map(([id, outline], index) => (
         <path
           key={id}
           className={`title-coast ${tint[id] ?? ''}`}
-          d={shape.path}
+          d={outline.path}
           pathLength={1}
           style={{ animationDelay: `${index * 120}ms, ${900 + index * 120}ms` }}
         />
       ))}
-      <circle className="title-ping" cx={404} cy={192} r={6} />
+      <g className="title-terrain">
+        {Object.entries(TERRAIN).flatMap(([id, symbols]) =>
+          symbols.map((symbol) => (
+            <g key={`${id}-${symbol.x},${symbol.y}`} transform={`translate(${symbol.x} ${symbol.y}) scale(${symbol.scale})`}>
+              <TerrainGlyph kind={symbol.kind} />
+            </g>
+          )),
+        )}
+      </g>
     </svg>
   )
 }
