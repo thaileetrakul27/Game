@@ -196,7 +196,7 @@ The game ends with a score screen and a short written epilogue generated from yo
 
 The chart of the Meridian Sea is the main screen. Everything else is either a slim readout around it or paperwork brought to it.
 
-- **Title screen.** The game opens on a title screen: the chart draws itself in while the quarter's cables decrypt, then a menu offers Continue, New game, Load game and How to play. Continue picks up the last game played. Clicking or pressing a key skips the intro.
+- **Title screen.** The game opens on a title screen: the chart draws itself in while the quarter's cables decrypt, then a menu offers Continue, New game, Load game and How to play. Continue picks up the last game played. Clicking or pressing a key skips the intro, which plays only when the game is first opened, not on every return to the title.
 
 - **Briefing.** Each turn opens with a full-screen briefing, styled as a classified cabinet paper. It shows the quarter's income and treasury, what happened last quarter, what the other countries did, and the crisis card with any demand or offer to answer. Then it goes to the map. You can reopen it from the orders tray until the turn ends.
 - **The map.** A nautical chart fills most of the screen, with countries coloured by alignment: Halvard blue, Tsengai orange. Tapping a country opens its file: its position, its relations with Kessara and the orders you can give that target it, each with its exact effects. Tapping Kessara opens the Home file, with domestic reform, military spending and infrastructure.
@@ -208,7 +208,7 @@ The chart of the Meridian Sea is the main screen. Everything else is either a sl
   - News: what each country did last turn.
   - Log: every turn's events.
   - A tab with a warning shows a marker in the tab bar.
-- **Saving.** The game saves itself at the start of every turn, which is what Continue picks up. From the in-game menu you can also save to one of three slots, load a slot, replay the tutorial, start a new game or go back to the title screen. A slot keeps the orders and answers planned so far that turn. Saves live in the browser's local storage, so they stay on that device and in that browser. A save that no longer fits the current version of the game shows as unusable instead of loading.
+- **Saving.** The game saves itself at the start of every turn, and as you go back to the title screen with the orders planned so far, which is what Continue picks up. From the in-game menu you can also save to one of three slots, load a slot, replay the tutorial, start a new game or go back to the title screen. A slot keeps the orders and answers planned so far that turn. Saves live in the browser's local storage, so they stay on that device and in that browser. A save that no longer fits the current version of the game shows as unusable instead of loading.
 - **Tutorial.** A new player's first game comes with a guided tutorial over the first three turns. It points out each part of the screen in turn and waits for you to try it.
   - Turn 1: the briefing and its crisis card, the readouts, the chart, a country's file, adding an order, the tray, the home file and ending the turn.
   - Turn 2: the intelligence in the briefing, and the Economy and Factions panels.
