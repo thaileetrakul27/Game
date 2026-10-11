@@ -4,6 +4,8 @@
 import { create } from 'zustand'
 import { actionsCost, advanceTurn, checkActions, checkPlannedAction, createGameState } from '../engine/index.ts'
 import type { CountryId, DemandResponse, GameState, OfferResponse, PlayerAction } from '../engine/index.ts'
+import { writeSave } from './saves.ts'
+import type { Plan } from './saves.ts'
 
 export interface GameStore {
   game: GameState
@@ -19,6 +21,8 @@ export interface GameStore {
   selectedCountryId: CountryId | null
   /** Start a new game. Without a seed, one is taken from the clock. */
   newGame: (seed?: number) => void
+  /** Pick up a saved game, with the orders and answers planned that turn if the save kept them. */
+  loadGame: (game: GameState, plan?: Plan) => void
   /** Add an action to this turn's plan. Returns why it can't be added, or null if it was. */
   planAction: (action: PlayerAction) => string | null
   /** Remove a planned action, and any later ones that no longer work without it. */
@@ -51,6 +55,16 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   ...freshGame(Date.now()),
 
   newGame: (seed = Date.now()) => set(freshGame(seed)),
+
+  loadGame: (game, plan) =>
+    set({
+      game,
+      planned: plan?.planned ?? [],
+      crisisResponse: plan?.crisisResponse ?? null,
+      demandResponse: plan?.demandResponse ?? null,
+      offerResponse: plan?.offerResponse ?? null,
+      selectedCountryId: null,
+    }),
 
   planAction: (action) => {
     const { game, planned } = get()
@@ -87,6 +101,22 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     })
   },
 }))
+
+// The game saves itself whenever a new game starts, one is loaded or a turn
+// begins. Continue on the title screen picks this up.
+useGameStore.subscribe((store, previous) => {
+  if (store.game !== previous.game) writeSave('auto', store.game)
+})
+
+/** The orders and answers planned so far this turn, as a save keeps them. */
+export function currentPlan({
+  planned,
+  crisisResponse,
+  demandResponse,
+  offerResponse,
+}: Pick<GameStore, 'planned' | 'crisisResponse' | 'demandResponse' | 'offerResponse'>): Plan {
+  return { planned, crisisResponse, demandResponse, offerResponse }
+}
 
 /** What still needs answering before the turn can end, or an empty list when nothing does. */
 export function unanswered({
