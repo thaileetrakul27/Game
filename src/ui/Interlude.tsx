@@ -32,7 +32,6 @@ export function Interlude() {
 
   return (
     <div className="interlude" role="status">
-      <div className="interlude-sweep" aria-hidden="true" />
       <div className="interlude-text">
         <p className="interlude-closed">{quarterLabel(closed)} closes</p>
         <p className="interlude-date">{ended ? 'Final report' : quarterLabel(game.turn)}</p>

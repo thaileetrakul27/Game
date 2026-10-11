@@ -5,6 +5,7 @@ import { GameOver } from './GameOver.tsx'
 import { Interlude } from './Interlude.tsx'
 import { Chart } from './map/Chart.tsx'
 import { CountryFile } from './map/CountryFile.tsx'
+import { MapKey } from './map/MapKey.tsx'
 import { MenuSheet } from './MenuSheet.tsx'
 import { EconomyPanel } from './panels/EconomyPanel.tsx'
 import { FactionsPanel } from './panels/FactionsPanel.tsx'
@@ -47,6 +48,7 @@ function GameScreen() {
     <main className="stage" aria-label="The Meridian Sea">
       <div className="chart-area" data-tour="chart">
         <Chart />
+        <MapKey />
         <CountryFile />
       </div>
       {game.status === 'playing' ? (

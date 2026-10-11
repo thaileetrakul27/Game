@@ -123,8 +123,8 @@ export const STEPS: TourStep[] = [
     targets: [tour('chart')],
     title: 'The Meridian Sea',
     text: () =>
-      'Countries leaning toward the Halvard Compact are blue, and toward the Tsengai Republic orange. ' +
-      'The dashed lines are straits, which carry the region’s trade.',
+      'Countries leaning toward the Halvard Compact are washed blue, and toward the Tsengai Republic sienna. ' +
+      'Marks show what is happening in each, such as smoke over unrest: the Key in the corner explains them.',
     task: 'Tap a country other than your own.',
     done: (context) => context.selectedCountryId !== null && context.selectedCountryId !== context.game.playerId,
   },

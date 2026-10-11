@@ -1,61 +1,85 @@
 /*
- * Faultlines: a classified intelligence briefing on a nautical chart.
+ * Faultlines: a government map room. A classified briefing laid out on a
+ * war-room map table.
  *
- * Three materials, each with its own job:
- * - the navy chrome (top bar, tray, tab bar) holds live readouts and stays navy in both modes;
- * - the chart room (map and panels) is a navy chart room in dark mode and a daylight chart table in light mode;
- * - paper (the briefing, dossiers and country files) is where things are read and decided, and stays paper in both.
- * Red means urgent. Magenta, the colour navigators plot courses in, marks the player's own orders.
+ * Four materials, each with its own job:
+ * - the table (top bar, tray, tab bar): green baize with brass fittings, the same in both modes. Brass marks what is active;
+ * - the chart: an old hand-tinted chart of buff land, grey-green sea and sepia ink, under a night lamp in dark mode;
+ * - paper: the briefing is a carbon flimsy, decisions come in manila folders, and a country's file is an index card;
+ * - pencil: the player's own marks on the chart, the selected outline and the order pins, are graphite.
+ * Red is kept for urgent things. Nothing glows: colour comes from ink, paint and paper.
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap');
 
 :root {
   color-scheme: light dark;
 
   --type: 'Courier Prime', 'Courier New', Courier, monospace;
   --sans: 'Public Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
+  /* Engraved lettering, for the chart and the title. */
+  --engraved: 'IM Fell English', 'Iowan Old Style', Georgia, serif;
+  --engraved-caps: 'IM Fell English SC', 'IM Fell English', Georgia, serif;
 
-  /* Navy chrome, the same in both modes. */
-  --chrome: #0c1c30;
-  --chrome-raised: #15304f;
-  --chrome-line: #2a4a6e;
-  --chrome-text: #e8eef6;
-  --chrome-muted: #a7b9cf;
-  --course: #e05aac;
-  --course-fill: #b42a7c;
-  --course-text: #ffffff;
+  /* The map table: baize and brass, the same in both modes. */
+  --chrome: #1d3127;
+  --chrome-raised: #284133;
+  --chrome-line: #3c5848;
+  --chrome-text: #ece6d3;
+  --chrome-muted: #b3bca8;
+  --brass: #c9a35b;
+  --brass-light: #e0c27e;
+  --brass-ink: #1d1608;
+  --course: var(--brass);
+  --course-fill: var(--brass);
+  --course-text: var(--brass-ink);
 
-  /* Paper, the same in both modes. */
-  --paper: #efe7d4;
-  --paper-deep: #e4d6b6;
-  --paper-edge: #c9b994;
-  --paper-ink: #231f18;
-  --paper-muted: #574f3f;
-  --stamp: #b3221a;
-  --good-ink: #23662f;
-  --paper-course: #a1236e;
+  /* Paper, the same in both modes: a carbon flimsy, a manila folder and an index card. */
+  --paper: #e4e8da;
+  --paper-deep: #d9c48f;
+  --paper-edge: #a9ae9a;
+  --manila-edge: #b0985a;
+  --card: #f7f6f0;
+  --card-rule: #c4473d;
+  --card-line: #b7cbdd;
+  --paper-ink: #1b2019;
+  --paper-muted: #4a5246;
+  --stamp: #ad2a20;
+  --good-ink: #2a6443;
+  --paper-course: #1d3127;
 
-  /* Chart room, daylight. */
-  --page: #dbe5ee;
-  --surface: #f3f7fa;
-  --surface-line: #bccbd9;
-  --ink: #12233a;
-  --muted: #485d75;
-  --bad: #b3221a;
-  --serious: #a8500a;
-  --warn: #8a6100;
-  --sea: #edf3f8;
-  --shallow: #c9deee;
-  --grid: rgba(18, 52, 92, 0.13);
-  --land: #e6dabd;
-  --coast: #5f5644;
-  --halvard: #2a6bb4;
-  --tsengai: #c96b12;
-  --label: #172539;
-  --label-halo: rgba(250, 252, 254, 0.9);
-  --course-on-chart: #b0287c;
-  --sweep: #2a6bb4;
+  /* The table under daylight, and the chart on it. */
+  --page: #c9cfc3;
+  --surface: #eef0e8;
+  --surface-line: #c2c8ba;
+  --ink: #1d241e;
+  --muted: #515b52;
+  --bad: #a8291f;
+  --serious: #95520f;
+  --warn: #7a5d00;
+  --focus: var(--ink);
+  --sea: #dbe5e1;
+  --shallow: #c3d6d4;
+  --water-line: rgba(52, 86, 92, 0.38);
+  --grid: rgba(52, 80, 82, 0.12);
+  --land: #e7d9b5;
+  --coast: #4b3f30;
+  --terrain: #6f5b42;
+  --wood: #bfc79c;
+  --river: #4d7d93;
+  --halvard: #2c587f;
+  --tsengai: #9a582b;
+  /* The watercolour washes the land takes as it leans: paler, so the ink on it stays readable. */
+  --halvard-wash: #a3bcd4;
+  --tsengai-wash: #dcb08a;
+  --label: #2a2219;
+  --label-halo: rgba(239, 234, 216, 0.88);
+  --course-on-chart: #2a241d;
+  --pencil-text: #f3eee2;
+  --gilt: #b4822a;
+  --smoke: #4f4a44;
+  --flame: #c2531d;
+  --trade: #7b5b26;
 
   font-family: var(--sans);
   font-size: 16px;
@@ -67,26 +91,36 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Chart room, at night. */
-    --page: #07121e;
-    --surface: #0d1d30;
-    --surface-line: #23405f;
-    --ink: #e2e9f1;
-    --muted: #a2b4c9;
-    --bad: #ff8073;
-    --serious: #f79a4d;
-    --warn: #f0c060;
-    --sea: #0c2036;
-    --shallow: #163758;
-    --grid: rgba(160, 198, 232, 0.11);
-    --land: #46473f;
-    --coast: #b7c3cf;
-    --halvard: #4d93e2;
-    --tsengai: #e5852c;
-    --label: #f4f7fa;
-    --label-halo: rgba(6, 16, 27, 0.88);
-    --course-on-chart: #ea6bb9;
-    --sweep: #7fbfff;
+    /* The table at night, and the chart under a lamp: dark land on a dark sea, in pale ink. */
+    --page: #101713;
+    --surface: #17201b;
+    --surface-line: #2c3a31;
+    --ink: #e2e4d9;
+    --muted: #a3ada1;
+    --bad: #ef8a7c;
+    --serious: #e3a064;
+    --warn: #d9bd67;
+    --sea: #182423;
+    --shallow: #20322f;
+    --water-line: rgba(160, 196, 190, 0.26);
+    --grid: rgba(180, 210, 200, 0.07);
+    --land: #47402f;
+    --coast: #cdbd97;
+    --terrain: #bba985;
+    --wood: #55603f;
+    --river: #82b2c6;
+    --halvard: #7ba8d2;
+    --tsengai: #d68f58;
+    --halvard-wash: #3d5470;
+    --tsengai-wash: #6e4b31;
+    --label: #f0e9d7;
+    --label-halo: rgba(14, 20, 17, 0.86);
+    --course-on-chart: #f1ebdc;
+    --pencil-text: #1b1a16;
+    --gilt: #e2bd68;
+    --smoke: #b4ada3;
+    --flame: #e2793f;
+    --trade: #d6b46c;
   }
 }
 
@@ -134,8 +168,26 @@ button:disabled {
 }
 
 :focus-visible {
-  outline: 3px solid var(--course);
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
+}
+
+/* On the baize, the focus ring is brass; on paper, it is ink. */
+.topbar,
+.tray,
+.tabbar,
+.coach,
+.title-screen,
+.interlude,
+.key-button {
+  --focus: var(--brass-light);
+}
+
+.paper,
+.sheet,
+.dossier,
+.key-card {
+  --focus: var(--paper-ink);
 }
 
 /* Headings that take focus when a dialog or file opens, so reading starts at the top. */
@@ -423,7 +475,7 @@ button:disabled {
 }
 
 .readout.bad .readout-value {
-  color: #ff8a7e;
+  color: #f29b8f;
 }
 
 /*
@@ -439,8 +491,8 @@ button:disabled {
 }
 
 .alignment-readout {
-  --flash-up: #8cc0ff;
-  --flash-down: #ffb070;
+  --flash-up: #a9c8e6;
+  --flash-down: #e3ae80;
 }
 
 /* Action points as dots: filled for each point left, hollow for each spent. */
@@ -498,15 +550,13 @@ button:disabled {
 
 @keyframes gauge-up {
   from {
-    background: #8fe3b5;
-    box-shadow: 0 0 8px #8fe3b5;
+    background: #a9dcb4;
   }
 }
 
 @keyframes gauge-down {
   from {
-    background: #ff9d92;
-    box-shadow: 0 0 8px #ff9d92;
+    background: #f2a79d;
   }
 }
 
@@ -517,24 +567,22 @@ button:disabled {
 }
 
 .standing-word.halvard {
-  color: #8cc0ff;
+  color: #a9c8e6;
 }
 
 .standing-word.tsengai {
-  color: #ffb070;
+  color: #e3ae80;
 }
 
 @keyframes flash-up {
   from {
-    color: var(--flash-up, #8fe3b5);
-    text-shadow: 0 0 12px currentColor;
+    color: var(--flash-up, #a9dcb4);
   }
 }
 
 @keyframes flash-down {
   from {
-    color: var(--flash-down, #ff9d92);
-    text-shadow: 0 0 12px currentColor;
+    color: var(--flash-down, #f2a79d);
   }
 }
 
@@ -544,7 +592,7 @@ button:disabled {
   height: 4px;
   margin: 2px 0 1px;
   border-radius: 2px;
-  background: linear-gradient(to right, var(--tsengai), #8a96a3 50%, var(--halvard));
+  background: linear-gradient(to right, #d99a68, #8f978a 50%, #8fb6dc);
 }
 
 .mini-marker {
@@ -617,60 +665,325 @@ button:disabled {
 }
 
 .chart .sea-label {
-  font: italic 15px var(--type);
-  fill: var(--muted);
-  letter-spacing: 0.35em;
+  font: italic 19px var(--engraved);
+  fill: var(--terrain);
+  letter-spacing: 0.32em;
   text-anchor: middle;
 }
 
+/* Engraved water-lines: thin rings drawn further and further out from every coast. */
+.chart .water-line,
+.chart .water-gap,
 .chart .shallows {
   fill: none;
+  stroke-linejoin: round;
+}
+
+.chart .water-line {
+  stroke: var(--water-line);
+}
+
+.chart .water-gap {
+  stroke: var(--sea);
+}
+
+.chart .shallows {
   stroke: var(--shallow);
-  stroke-linejoin: round;
+  stroke-width: 6;
 }
 
-.chart .shallows.outer {
-  stroke-width: 28;
-  opacity: 0.45;
-}
-
-.chart .shallows.inner {
-  stroke-width: 12;
-}
-
+/* The land: a wash of buff, tinted toward the power a country leans to. It fades to its new colour as it leans. */
 .chart .land {
-  stroke: var(--coast);
-  stroke-width: 1.1;
-  stroke-linejoin: round;
+  stroke: none;
   cursor: pointer;
-  /* A country fades to its new colour as it leans. */
   transition:
     fill 900ms ease,
     filter 150ms ease;
 }
 
 .chart .land:hover {
-  filter: brightness(1.08);
+  filter: brightness(1.05) saturate(1.1);
 }
 
 .chart .land:focus-visible {
   outline: none;
   stroke: var(--course-on-chart);
-  stroke-width: 3.5;
+  stroke-width: 4;
 }
 
-.chart .land.home {
-  stroke-width: 2;
+.chart .land-art,
+.chart .coasts {
+  pointer-events: none;
 }
 
+/* The watercolour band inside each border, strongest at the edge. */
+.chart .band {
+  fill: none;
+  stroke-linejoin: round;
+  transition:
+    stroke 900ms ease,
+    stroke-opacity 900ms ease;
+}
+
+.chart .hatch {
+  stroke-width: 1.6;
+}
+
+.chart .hatch-halvard {
+  stroke: var(--halvard);
+}
+
+.chart .hatch-tsengai {
+  stroke: var(--tsengai);
+}
+
+.chart .client {
+  opacity: 0.55;
+}
+
+.chart .battlements {
+  fill: none;
+  stroke: var(--coast);
+  stroke-width: 6;
+  stroke-dasharray: 2.4 2.4;
+  opacity: 0.75;
+}
+
+/* Your own country, ringed in pencil just inside its border. */
+.chart .home-edge {
+  fill: none;
+  stroke: var(--course-on-chart);
+  stroke-width: 3;
+  stroke-dasharray: 1 3;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+
+.chart .coasts path {
+  fill: none;
+  stroke: var(--coast);
+  stroke-width: 1.15;
+  stroke-linejoin: round;
+}
+
+/* Terrain, in sepia ink. */
+.chart .terrain,
+.chart-ink {
+  fill: none;
+  stroke: var(--terrain);
+  stroke-width: 0.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chart .terrain .shade,
+.chart-ink .shade {
+  stroke-width: 0.6;
+}
+
+.glyph-forest circle {
+  fill: var(--wood);
+}
+
+.glyph-steppe circle {
+  fill: var(--terrain);
+  stroke: none;
+}
+
+.chart .river {
+  fill: none;
+  stroke: var(--river);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+}
+
+.glyph-capital circle {
+  fill: var(--land);
+  stroke: var(--coast);
+  stroke-width: 1.1;
+}
+
+.glyph-capital .dot,
+.glyph-town {
+  fill: var(--coast);
+  stroke: none;
+}
+
+/* Finished projects. */
+.glyph-anchor {
+  fill: none;
+  stroke: var(--coast);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+}
+
+.built-rail path {
+  fill: none;
+  stroke: var(--coast);
+  stroke-width: 1.1;
+}
+
+.built-rail .ties {
+  stroke-width: 4.2;
+  stroke-dasharray: 0.9 3.4;
+}
+
+.built-canal path {
+  fill: none;
+  stroke: var(--river);
+  stroke-width: 2.8;
+  stroke-linecap: round;
+}
+
+.built-canal .water {
+  stroke: var(--sea);
+  stroke-width: 0.9;
+}
+
+.built-grid path {
+  fill: none;
+  stroke: var(--coast);
+  stroke-width: 0.7;
+}
+
+.built-grid .pylon {
+  stroke-width: 0.9;
+}
+
+/* The marks for what is happening in a country. */
+.glyph-smoke .puff {
+  fill: var(--smoke);
+  opacity: 0.6;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: smoke 3s ease-out infinite;
+}
+
+.glyph-smoke .puff-2 {
+  animation-delay: 1s;
+}
+
+.glyph-smoke .puff-3 {
+  animation-delay: 2s;
+}
+
+@keyframes smoke {
+  0% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.6);
+  }
+  30% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-6px) scale(1.3);
+  }
+}
+
+.glyph-smoke .flame {
+  fill: var(--flame);
+  stroke: var(--coast);
+  stroke-width: 0.5;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: flicker 900ms ease-in-out infinite alternate;
+}
+
+@keyframes flicker {
+  to {
+    transform: scale(0.82, 1.12);
+  }
+}
+
+.glyph-swords {
+  fill: none;
+  stroke: var(--bad);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.glyph-swords circle {
+  fill: var(--bad);
+  stroke: none;
+}
+
+.glyph-crane {
+  fill: none;
+  stroke: var(--coast);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+.glyph-crane rect {
+  fill: var(--land);
+}
+
+.glyph-glint {
+  fill: var(--gilt);
+  stroke: var(--coast);
+  stroke-width: 0.4;
+}
+
+.chart .glint {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: glint 2.4s ease-in-out infinite;
+}
+
+@keyframes glint {
+  50% {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+}
+
+.glyph-crisis circle {
+  fill: none;
+  stroke: var(--bad);
+  stroke-width: 1.8;
+}
+
+.glyph-crisis .pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: crisis-pulse 1.8s ease-out infinite;
+}
+
+@keyframes crisis-pulse {
+  from {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+}
+
+.trade-route path {
+  fill: none;
+  stroke: var(--trade);
+  stroke-width: 1.6;
+  stroke-dasharray: 0.1 4.5;
+  stroke-linecap: round;
+}
+
+.trade-route .trader {
+  fill: var(--trade);
+  stroke: var(--land);
+  stroke-width: 1;
+}
+
+/* Your marks, in pencil: the selected country's outline marches round it. */
 .chart .selection {
   fill: none;
   stroke: var(--course-on-chart);
-  stroke-width: 3.5;
-  stroke-dasharray: 9 5;
+  stroke-width: 2.6;
+  stroke-dasharray: 7 4;
   stroke-linejoin: round;
+  stroke-linecap: round;
   pointer-events: none;
-  /* The selected country's outline marches round it. */
   animation:
     fade-in 200ms ease both,
     march 900ms linear infinite;
@@ -678,16 +991,16 @@ button:disabled {
 
 @keyframes march {
   to {
-    stroke-dashoffset: -14;
+    stroke-dashoffset: -11;
   }
 }
 
 /* Trade flows along an open strait, slows when it is taxed and stops when it is closed. */
 .chart .strait line {
-  stroke: var(--ink);
-  stroke-width: 2;
+  stroke: var(--coast);
+  stroke-width: 1.8;
   stroke-dasharray: 5 4;
-  opacity: 0.7;
+  opacity: 0.75;
   animation: flow 1200ms linear infinite;
 }
 
@@ -710,35 +1023,9 @@ button:disabled {
   }
 }
 
-/* The radar sweep, turning slowly over the sea under the land. */
-.sweep {
-  transform-box: view-box;
-  animation: sweep 18s linear infinite;
-  pointer-events: none;
-}
-
-.sweep path {
-  fill: var(--sweep);
-}
-
-.sweep-edge {
-  stroke: var(--sweep);
-  stroke-width: 1.5;
-}
-
-.chart .chart-sweep {
-  opacity: 0.13;
-}
-
-@keyframes sweep {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .chart .strait-name {
-  font: italic 700 11px var(--type);
-  fill: var(--ink);
+  font: italic 13px var(--engraved);
+  fill: var(--label);
   text-anchor: middle;
   paint-order: stroke;
   stroke: var(--label-halo);
@@ -746,9 +1033,7 @@ button:disabled {
 }
 
 .chart .strait-state {
-  font: 700 9.5px var(--sans);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font: italic 12px var(--engraved);
   text-anchor: middle;
   paint-order: stroke;
   stroke: var(--label-halo);
@@ -765,13 +1050,12 @@ button:disabled {
 
 .chart .compass circle {
   fill: none;
-  stroke: var(--muted);
+  stroke: var(--terrain);
   stroke-width: 0.8;
-  opacity: 0.8;
 }
 
 .chart .compass .needle {
-  fill: var(--muted);
+  fill: var(--terrain);
   opacity: 0.85;
 }
 
@@ -780,8 +1064,8 @@ button:disabled {
 }
 
 .chart .compass text {
-  font: 700 11px var(--type);
-  fill: var(--muted);
+  font: 13px var(--engraved-caps);
+  fill: var(--terrain);
   text-anchor: middle;
 }
 
@@ -791,7 +1075,8 @@ button:disabled {
 }
 
 .chart .land-label {
-  font: 700 13px var(--type);
+  font: 16px var(--engraved-caps);
+  letter-spacing: 0.04em;
   fill: var(--label);
   text-anchor: middle;
   paint-order: stroke;
@@ -802,8 +1087,7 @@ button:disabled {
 }
 
 .chart .land-label.home {
-  font-size: 15px;
-  text-decoration: underline;
+  font-size: 18.5px;
 }
 
 .chart .order-pin {
@@ -831,41 +1115,161 @@ button:disabled {
 }
 
 .chart .order-pin text {
-  font: 700 11px var(--sans);
-  fill: #ffffff;
+  font: 700 10.5px var(--sans);
+  fill: var(--pencil-text);
   text-anchor: middle;
 }
 
-/* The chart's title block, on land in the top corner */
-
-.chart .cartouche rect:first-child {
-  fill: var(--surface);
+/* The chart's title block, on land in the top corner, ruled twice as charts are. */
+.chart .cartouche-paper {
+  fill: var(--land);
   stroke: var(--coast);
   stroke-width: 1;
-  opacity: 0.94;
+}
+
+.chart .cartouche-rule {
+  fill: none;
+  stroke: var(--coast);
+  stroke-width: 0.5;
 }
 
 .chart .cartouche-title {
-  font: 700 13px var(--type);
-  fill: var(--ink);
+  font: italic 16px var(--engraved);
+  fill: var(--label);
+  text-anchor: middle;
 }
 
-.chart .cartouche-scale {
+.chart .cartouche-swatch {
   stroke: var(--coast);
-  stroke-width: 0.6;
+  stroke-width: 0.5;
+}
+
+.chart .cartouche-swatch.tsengai {
+  fill: var(--tsengai);
+}
+
+.chart .cartouche-swatch.halvard {
+  fill: var(--halvard);
 }
 
 .chart .cartouche-text {
-  font: 9.5px var(--sans);
-  fill: var(--muted);
+  font: 10.5px var(--engraved);
+  fill: var(--label);
 }
 
-.chart .cartouche-text.end {
-  text-anchor: end;
-}
-
-.chart .cartouche-course {
+.chart .cartouche-pencil {
   fill: var(--course-on-chart);
+}
+
+/* The key, in a corner of the chart. */
+.map-key {
+  position: absolute;
+  left: 0.6rem;
+  bottom: 0.6rem;
+  z-index: 2;
+  max-width: calc(100% - 1.2rem);
+}
+
+.chart-area:has(.sheet) .map-key {
+  display: none;
+}
+
+.key-button {
+  min-height: 40px;
+  padding: 0 1rem;
+  border: 1px solid var(--chrome-line);
+  border-radius: 4px;
+  background: var(--chrome);
+  color: var(--chrome-text);
+  font-weight: 600;
+}
+
+.key-button[aria-expanded='true'] {
+  border-color: var(--brass);
+}
+
+.key-card {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 0.4rem);
+  width: min(21rem, calc(100cqw - 1.2rem));
+  max-height: calc(100cqh - 4rem);
+  overflow-y: auto;
+  padding: 0.8rem 0.9rem 0.6rem;
+  border-top: 3px solid var(--card-rule);
+  border-radius: 2px;
+  background: var(--card);
+  color: var(--paper-ink);
+  box-shadow: 0 10px 30px rgba(10, 20, 14, 0.35);
+  animation: rise 180ms ease-out;
+  /* The key's symbols are drawn as on the chart in daylight. */
+  --terrain: #6f5b42;
+  --coast: #4b3f30;
+  --land: #e7d9b5;
+  --wood: #bfc79c;
+  --river: #4d7d93;
+  --sea: #dbe5e1;
+  --gilt: #b4822a;
+  --smoke: #4f4a44;
+  --flame: #c2531d;
+  --trade: #7b5b26;
+  --bad: #a8291f;
+  --halvard: #2c587f;
+}
+
+.key-heading {
+  margin-bottom: 0.4rem;
+  font-size: 1rem;
+}
+
+.key-heading.small {
+  margin-top: 0.7rem;
+  font-size: 0.9rem;
+}
+
+.key-list {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.key-land {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.key-entry {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  font-family: var(--sans);
+  font-size: 0.84rem;
+  line-height: 1.3;
+}
+
+.key-glyph {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  overflow: visible;
+}
+
+.key-text {
+  color: var(--paper-muted);
+}
+
+.key-hatch rect {
+  fill: var(--land);
+  stroke: none;
+}
+
+.key-hatch path {
+  stroke: var(--halvard);
+  stroke-width: 1.6;
+}
+
+.key-battlements {
+  stroke: var(--coast);
+  stroke-width: 5;
+  stroke-dasharray: 2.4 2.4;
 }
 
 /* Paper: the country file, dossiers and the briefing */
@@ -881,13 +1285,17 @@ button:disabled {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  background: var(--paper);
+  background: var(--card);
   color: var(--paper-ink);
-  border: 1px solid var(--paper-edge);
+  border: 1px solid var(--card-line);
   border-bottom: 0;
-  border-radius: 10px 10px 0 0;
-  box-shadow: 0 -10px 30px rgba(3, 10, 20, 0.35);
+  border-radius: 3px 3px 0 0;
+  box-shadow: 0 -8px 26px rgba(12, 22, 16, 0.35);
   animation: rise 180ms ease-out;
+}
+
+.sheet .file-head {
+  border-bottom: 2px solid var(--card-rule);
 }
 
 @keyframes rise {
@@ -1004,6 +1412,35 @@ button:disabled {
   font-size: 0.9rem;
 }
 
+/* What the chart marks on a country, in words. */
+.conditions {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0.5rem 0 0.2rem;
+}
+
+.condition {
+  padding: 0.35rem 0.6rem;
+  border-left: 3px solid var(--terrain-on-card, #6f5b42);
+  background: color-mix(in srgb, var(--paper-ink) 5%, transparent);
+  font-size: 0.86rem;
+}
+
+.condition-crisis,
+.condition-unrest,
+.condition-hostile {
+  border-left-color: var(--stamp);
+}
+
+.condition-client {
+  border-left-color: #2c587f;
+}
+
+.condition-booming,
+.condition-trading {
+  border-left-color: #b4822a;
+}
+
 /* How a country stands, in words, at the top of its file. */
 .standing-line {
   margin: 0.25rem 0 0.4rem;
@@ -1087,7 +1524,7 @@ button:disabled {
   padding: 0 0.5rem;
   border: 1px solid var(--paper-edge);
   border-radius: 6px;
-  background: #fbf7ec;
+  background: var(--card);
   color: var(--paper-ink);
 }
 
@@ -1140,14 +1577,11 @@ button:disabled {
 }
 
 .briefing-dialog::backdrop {
-  background:
-    linear-gradient(rgba(160, 198, 232, 0.06) 1px, transparent 1px) 0 0 / 48px 48px,
-    linear-gradient(90deg, rgba(160, 198, 232, 0.06) 1px, transparent 1px) 0 0 / 48px 48px,
-    #07121ef2;
+  background: rgba(22, 38, 30, 0.96);
 }
 
 .sheet-dialog::backdrop {
-  background: rgba(4, 11, 20, 0.7);
+  background: rgba(14, 24, 19, 0.72);
 }
 
 .paper {
@@ -1325,8 +1759,8 @@ dialog[open]::backdrop {
   position: relative;
   margin: 1.1rem 0 0;
   padding: 1rem 1rem 0.75rem;
-  border: 1px solid var(--paper-edge);
-  border-radius: 0 6px 6px 6px;
+  border: 1px solid var(--manila-edge);
+  border-radius: 0 4px 4px 4px;
   background: var(--paper-deep);
   min-width: 0;
   animation: rise 360ms ease-out 450ms both;
@@ -1382,9 +1816,9 @@ dialog[open]::backdrop {
   gap: 0.65rem;
   align-items: flex-start;
   padding: 0.55rem 0.6rem;
-  border: 1px solid var(--paper-edge);
-  border-radius: 6px;
-  background: var(--paper);
+  border: 1px solid var(--manila-edge);
+  border-radius: 3px;
+  background: var(--card);
   cursor: pointer;
   transition:
     border-color 150ms ease,
@@ -1475,7 +1909,7 @@ dialog[open]::backdrop {
 }
 
 .stamp.approved {
-  color: #1f5f8b;
+  color: #2c587f;
 }
 
 @keyframes stamp {
@@ -1813,7 +2247,7 @@ dialog[open]::backdrop {
 
 .country-file .alignment-track,
 .dossier .alignment-track {
-  background: linear-gradient(to right, #c96b12, #e6dabd 50%, #2a6bb4);
+  background: linear-gradient(to right, #9a582b, #e7d9b5 50%, #2c587f);
 }
 
 .alignment-tick {
@@ -2018,7 +2452,7 @@ dialog[open]::backdrop {
   text-align: left;
 }
 
-/* The title screen: a chart drawing itself in, and the menu */
+/* The title screen: the chart inking itself in on the map table, and the menu on manila cards */
 
 .title-screen {
   position: relative;
@@ -2027,7 +2461,8 @@ dialog[open]::backdrop {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
   overflow: hidden auto;
-  background: radial-gradient(ellipse at 50% 38%, #12294a 0%, #0a1a2e 55%, #050d18 100%);
+  /* Baize under a lamp: lighter in the middle of the table. */
+  background: radial-gradient(ellipse at 50% 42%, #253d31 0%, #1d3127 55%, #14231b 100%);
   color: var(--chrome-text);
 }
 
@@ -2040,14 +2475,14 @@ dialog[open]::backdrop {
 
 .title-grid {
   fill: none;
-  stroke: rgba(160, 198, 232, 0.07);
+  stroke: rgba(236, 230, 211, 0.06);
   stroke-width: 1;
 }
 
 .title-coast {
-  fill: rgba(150, 175, 205, 0.09);
-  stroke: #6788b0;
-  stroke-width: 1.2;
+  fill: rgba(236, 230, 211, 0.05);
+  stroke: rgba(236, 230, 211, 0.55);
+  stroke-width: 1.1;
   stroke-linejoin: round;
   stroke-dasharray: 1;
   animation:
@@ -2056,17 +2491,16 @@ dialog[open]::backdrop {
 }
 
 .title-coast.halvard {
-  fill: rgba(77, 147, 226, 0.16);
+  fill: rgba(143, 182, 220, 0.16);
 }
 
 .title-coast.tsengai {
-  fill: rgba(229, 133, 44, 0.14);
+  fill: rgba(217, 154, 104, 0.15);
 }
 
 .title-coast.home {
-  stroke: var(--course);
-  stroke-opacity: 0.75;
-  stroke-width: 1.6;
+  stroke: var(--brass);
+  stroke-width: 1.5;
 }
 
 @keyframes draw {
@@ -2081,43 +2515,23 @@ dialog[open]::backdrop {
   }
 }
 
-/* Skipping the intro finishes drawing the chart and typing the title at once. */
-.title-screen:not(.intro) :is(.title-coast, .title-letters, .title-tagline, .title-classification) {
-  animation: none;
-}
-
-.title-sweep {
-  opacity: 0.2;
-}
-
-.title-sweep path,
-.title-sweep .sweep-edge {
-  fill: #7fbfff;
-  stroke: #7fbfff;
-}
-
-.title-sweep path {
-  stroke: none;
-}
-
-.title-ping {
+.title-terrain {
   fill: none;
-  stroke: var(--course);
-  stroke-width: 2;
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: ping 2400ms ease-out 1200ms infinite both;
+  stroke: rgba(236, 230, 211, 0.3);
+  stroke-width: 0.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: fade-in 900ms ease 1300ms both;
 }
 
-@keyframes ping {
-  from {
-    transform: scale(0.6);
-    opacity: 1;
-  }
-  to {
-    transform: scale(5);
-    opacity: 0;
-  }
+.title-terrain .glyph-forest circle,
+.title-terrain .glyph-steppe circle {
+  fill: rgba(236, 230, 211, 0.18);
+}
+
+/* Skipping the intro finishes drawing the chart and lettering the title at once. */
+.title-screen:not(.intro) :is(.title-coast, .title-terrain, .title-letters, .title-tagline, .title-classification) {
+  animation: none;
 }
 
 .title-content {
@@ -2131,65 +2545,68 @@ dialog[open]::backdrop {
   padding: 2.5rem 0 1.5rem;
 }
 
-/* A soft shade behind the words, so the chart never gets in the way of reading them. */
+/* A shade of baize behind the words, so the chart never gets in the way of reading them. */
 .title-content::before {
   content: '';
   position: absolute;
   inset: -2rem -3rem;
   z-index: -1;
-  background: radial-gradient(closest-side, rgba(5, 13, 24, 0.75), rgba(5, 13, 24, 0));
+  background: radial-gradient(closest-side, rgba(22, 38, 30, 0.85), rgba(22, 38, 30, 0));
   pointer-events: none;
 }
 
 .title-classification {
   align-self: flex-start;
-  margin: 0 0 1rem;
-  padding: 0.15rem 0;
-  border-top: 2px solid #ff7b70;
-  border-bottom: 2px solid #ff7b70;
+  margin: 0 0 1.1rem;
+  padding: 0.1rem 0.4rem;
+  border: 2px solid #e07f72;
   font-family: var(--type);
   font-weight: 700;
-  font-size: 0.78rem;
-  letter-spacing: 0.22em;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #ff8a7e;
+  color: #e88c80;
+  transform: rotate(-1.5deg);
   animation: fade-in 500ms ease both;
 }
 
+/* The name in engraved capitals, inked in from the left, over a double rule as a chart's title has. */
 .title-name {
-  font-size: clamp(2.6rem, 12vw, 4.75rem);
-  letter-spacing: 0.08em;
-  line-height: 1;
-  text-transform: uppercase;
-  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+  font-family: var(--engraved-caps);
+  font-weight: 400;
+  font-size: clamp(3.1rem, 15vw, 5.6rem);
+  letter-spacing: 0.03em;
+  line-height: 0.95;
 }
 
-/* Typed out a letter at a time: the font is a typewriter's, so every letter is the same width. */
 .title-letters {
   display: inline-block;
   clip-path: inset(0);
-  animation: type-in 900ms steps(10) 200ms both;
+  animation: ink-in 1200ms cubic-bezier(0.4, 0, 0.2, 1) 200ms both;
 }
 
 .title-name::after {
   content: '';
-  display: inline-block;
-  width: 0.45em;
-  height: 0.8em;
-  margin-left: 0.08em;
-  background: var(--course);
-  animation: blink 900ms steps(1) infinite;
+  display: block;
+  height: 4px;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--brass);
+  border-bottom: 1px solid var(--brass);
+  transform-origin: left;
+  animation: grow 900ms ease 700ms both;
 }
 
-@keyframes type-in {
+@keyframes ink-in {
   from {
     clip-path: inset(0 100% 0 0);
   }
 }
 
 .title-tagline {
-  margin: 0.75rem 0 1.75rem;
-  font-size: 1.05rem;
+  margin: 0.8rem 0 1.75rem;
+  font-family: var(--engraved);
+  font-style: italic;
+  font-size: 1.2rem;
   color: var(--chrome-muted);
   animation: rise 600ms ease 900ms both;
 }
@@ -2205,17 +2622,16 @@ dialog[open]::backdrop {
 }
 
 .decrypting-bar {
-  height: 4px;
+  height: 3px;
   margin: 0.55rem 0 0.9rem;
   overflow: hidden;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(236, 230, 211, 0.12);
 }
 
 .decrypting-bar span {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, var(--course-fill), var(--course), #ffb3df);
+  background: var(--brass);
   transform-origin: left;
   animation: load 2100ms cubic-bezier(0.45, 0, 0.2, 1) both;
 }
@@ -2253,9 +2669,10 @@ dialog[open]::backdrop {
   opacity: 0.7;
 }
 
+/* The menu: manila cards laid on the table. */
 .title-menu {
   display: grid;
-  gap: 0.55rem;
+  gap: 0.6rem;
 }
 
 .title-option {
@@ -2263,19 +2680,17 @@ dialog[open]::backdrop {
   flex-direction: column;
   align-items: flex-start;
   min-height: 44px;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--chrome-line);
-  border-left: 4px solid var(--chrome-line);
-  border-radius: 6px;
-  background: rgba(12, 28, 48, 0.82);
-  backdrop-filter: blur(3px);
-  color: var(--chrome-text);
+  padding: 0.7rem 1rem 0.75rem;
+  border: 1px solid var(--manila-edge);
+  border-radius: 2px;
+  background: var(--paper-deep);
+  color: var(--paper-ink);
   text-align: left;
+  box-shadow: 0 2px 0 rgba(8, 16, 11, 0.35);
   animation: rise 400ms ease-out both;
   transition:
-    border-color 150ms ease,
-    background 150ms ease,
-    transform 150ms ease;
+    transform 150ms ease,
+    box-shadow 150ms ease;
 }
 
 .title-option:nth-child(2) {
@@ -2291,14 +2706,13 @@ dialog[open]::backdrop {
 }
 
 .title-option.lead {
-  border-left-color: var(--course);
+  border-left: 6px solid var(--brass);
 }
 
 .title-option:hover,
 .title-option:focus-visible {
-  border-left-color: var(--course);
-  background: rgba(21, 48, 79, 0.92);
-  transform: translateX(4px);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 rgba(8, 16, 11, 0.35);
 }
 
 .option-name {
@@ -2308,17 +2722,20 @@ dialog[open]::backdrop {
 }
 
 .option-note {
-  font-size: 0.85rem;
-  color: var(--chrome-muted);
+  font-size: 0.86rem;
+  color: var(--paper-muted);
 }
 
+/* Saved games and confirmations: an index card on the table. */
 .title-panel {
   padding: 1rem 1.1rem 1.1rem;
-  border: 1px solid var(--chrome-line);
-  border-radius: 8px;
-  background: rgba(12, 28, 48, 0.9);
-  backdrop-filter: blur(3px);
+  border-top: 3px solid var(--card-rule);
+  border-radius: 2px;
+  background: var(--card);
+  color: var(--paper-ink);
+  box-shadow: 0 3px 0 rgba(8, 16, 11, 0.35);
   animation: rise 300ms ease-out both;
+  --focus: var(--paper-ink);
 }
 
 .title-panel h2 {
@@ -2334,6 +2751,15 @@ dialog[open]::backdrop {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.title-panel .title-back {
+  border-color: var(--paper-edge);
+  color: var(--paper-ink);
+}
+
+.title-panel .title-back:hover {
+  background: color-mix(in srgb, var(--paper-ink) 8%, transparent);
 }
 
 .title-back {
@@ -2367,7 +2793,7 @@ dialog[open]::backdrop {
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: rgba(5, 13, 24, 0.94);
+  background: rgba(22, 38, 30, 0.97);
   color: var(--chrome-text);
   cursor: pointer;
   animation: interlude 1700ms ease both;
@@ -2386,23 +2812,6 @@ dialog[open]::backdrop {
   }
 }
 
-.interlude-sweep {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 40%;
-  background: linear-gradient(90deg, transparent, rgba(224, 90, 172, 0.2), transparent);
-  animation: wipe 1300ms ease-in-out both;
-}
-
-@keyframes wipe {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(250%);
-  }
-}
-
 .interlude-text {
   position: relative;
   padding: 0 1rem;
@@ -2415,20 +2824,18 @@ dialog[open]::backdrop {
 }
 
 .interlude-closed {
-  font-size: 0.82rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
+  font-size: 0.95rem;
   color: var(--chrome-muted);
   animation: rise 400ms ease 100ms both;
 }
 
 .interlude-date {
   margin: 0.35rem 0 !important;
-  font-size: clamp(2.2rem, 9vw, 3.6rem);
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-family: var(--engraved-caps);
+  font-size: clamp(2.4rem, 10vw, 3.9rem);
+  letter-spacing: 0.03em;
   clip-path: inset(0);
-  animation: type-in 600ms steps(12) 350ms both;
+  animation: ink-in 700ms cubic-bezier(0.4, 0, 0.2, 1) 300ms both;
 }
 
 .interlude-turn {
@@ -2440,9 +2847,10 @@ dialog[open]::backdrop {
   content: '';
   display: block;
   width: 9rem;
-  height: 2px;
+  height: 4px;
   margin: 0.8rem auto 0;
-  background: var(--course);
+  border-top: 1px solid var(--brass);
+  border-bottom: 1px solid var(--brass);
   transform-origin: center;
   animation: grow 700ms ease 400ms both;
 }
@@ -2465,8 +2873,8 @@ dialog[open]::backdrop {
 .coach-ring {
   position: fixed;
   border-radius: 10px;
-  outline: 3px solid var(--course);
-  box-shadow: 0 0 0 200vmax rgba(3, 9, 18, 0.5);
+  outline: 3px solid var(--brass);
+  box-shadow: 0 0 0 200vmax rgba(14, 24, 18, 0.5);
   animation: fade-in 250ms ease both;
 }
 
@@ -2475,7 +2883,7 @@ dialog[open]::backdrop {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  outline: 3px solid var(--course);
+  outline: 3px solid var(--brass);
   animation: ring-pulse 1600ms ease-out infinite;
 }
 
@@ -2489,7 +2897,7 @@ dialog[open]::backdrop {
 .coach-dim {
   position: fixed;
   inset: 0;
-  background: rgba(3, 9, 18, 0.45);
+  background: rgba(14, 24, 18, 0.45);
   animation: fade-in 250ms ease both;
 }
 
@@ -2498,8 +2906,8 @@ dialog[open]::backdrop {
   width: min(22rem, calc(100vw - 24px));
   padding: 0.8rem 1rem 0.75rem;
   border: 1px solid var(--chrome-line);
-  border-top: 4px solid var(--course);
-  border-radius: 8px;
+  border-top: 3px solid var(--brass);
+  border-radius: 3px;
   background: var(--chrome);
   color: var(--chrome-text);
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
@@ -2516,10 +2924,7 @@ dialog[open]::backdrop {
 
 .coach-count {
   margin: 0 0 0.2rem;
-  font-family: var(--type);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.78rem;
   color: var(--chrome-muted);
 }
 
@@ -2545,7 +2950,7 @@ dialog[open]::backdrop {
   margin: 0;
   font-weight: 700;
   font-size: 0.9rem;
-  color: #ffa6da;
+  color: var(--brass-light);
 }
 
 .coach-task::before {
@@ -2618,8 +3023,6 @@ dialog[open]::backdrop {
     transition: none !important;
   }
 
-  .sweep,
-  .title-ping,
   .typed-caret {
     display: none;
   }

@@ -82,3 +82,86 @@ export const STRAIT_SHAPES: Record<string, StraitShape> = {
 
 /** Where to write "Meridian Sea". */
 export const SEA_LABEL: Point = { x: 440, y: 316 }
+
+/** A country's capital, its port, and a few towns, where the map draws them and hangs its marks. */
+export interface Settlements {
+  capital: Point
+  port: Point
+  towns: Point[]
+}
+
+export const SETTLEMENTS: Record<string, Settlements> = {
+  tsengai: { capital: { x: 362, y: 40 }, port: { x: 446, y: 63 }, towns: [{ x: 252, y: 42 }, { x: 512, y: 22 }, { x: 92, y: 118 }] },
+  halvard: { capital: { x: 712, y: 112 }, port: { x: 607, y: 256 }, towns: [{ x: 756, y: 300 }, { x: 668, y: 404 }, { x: 640, y: 58 }] },
+  kessara: { capital: { x: 400, y: 166 }, port: { x: 501, y: 195 }, towns: [{ x: 318, y: 198 }, { x: 462, y: 205 }] },
+  ostrel: { capital: { x: 222, y: 182 }, port: { x: 268, y: 266 }, towns: [{ x: 190, y: 262 }, { x: 272, y: 152 }] },
+  daranth: { capital: { x: 70, y: 190 }, port: { x: 10, y: 246 }, towns: [{ x: 132, y: 170 }, { x: 112, y: 272 }, { x: 30, y: 272 }] },
+  valmora: { capital: { x: 180, y: 348 }, port: { x: 302, y: 404 }, towns: [{ x: 60, y: 330 }, { x: 232, y: 402 }, { x: 84, y: 452 }] },
+  sabu: { capital: { x: 470, y: 398 }, port: { x: 494, y: 412 }, towns: [{ x: 546, y: 430 }, { x: 412, y: 440 }] },
+}
+
+export type TerrainKind = 'mountains' | 'hills' | 'forest' | 'marsh' | 'steppe'
+
+/** Where each kind of terrain lies: symbols are scattered within the circle, on the country's land. */
+export interface TerrainZone {
+  kind: TerrainKind
+  x: number
+  y: number
+  radius: number
+  count: number
+}
+
+const zone = (kind: TerrainKind, x: number, y: number, radius: number, count: number): TerrainZone => ({ kind, x, y, radius, count })
+
+export const TERRAIN_ZONES: Record<string, TerrainZone[]> = {
+  tsengai: [
+    zone('mountains', 300, 26, 44, 9),
+    zone('mountains', 430, 28, 36, 6),
+    zone('mountains', 522, 14, 18, 2),
+    zone('hills', 380, 72, 26, 3),
+    zone('steppe', 486, 44, 20, 3),
+    zone('forest', 112, 116, 30, 5),
+    zone('forest', 196, 120, 20, 3),
+  ],
+  halvard: [
+    zone('mountains', 762, 60, 36, 7),
+    zone('mountains', 774, 196, 26, 5),
+    zone('forest', 640, 150, 40, 8),
+    zone('forest', 700, 320, 44, 8),
+    zone('hills', 664, 84, 24, 3),
+    zone('hills', 712, 422, 30, 4),
+    zone('marsh', 650, 446, 14, 2),
+  ],
+  kessara: [
+    zone('hills', 322, 168, 20, 3),
+    zone('forest', 358, 214, 14, 2),
+    zone('hills', 474, 186, 12, 1),
+  ],
+  ostrel: [
+    zone('mountains', 256, 204, 26, 5),
+    zone('mountains', 188, 166, 18, 3),
+    zone('forest', 226, 284, 18, 3),
+  ],
+  daranth: [
+    zone('steppe', 104, 196, 34, 6),
+    zone('hills', 34, 196, 22, 3),
+    zone('marsh', 132, 266, 16, 2),
+  ],
+  valmora: [
+    zone('forest', 50, 360, 34, 6),
+    zone('forest', 170, 444, 34, 6),
+    zone('hills', 232, 350, 24, 4),
+    zone('marsh', 270, 410, 12, 2),
+    zone('steppe', 104, 306, 18, 3),
+  ],
+  sabu: [zone('hills', 466, 390, 9, 1), zone('hills', 546, 426, 6, 1)],
+}
+
+/** Rivers, from source to sea, as points the map draws a smooth line through. */
+export const RIVERS: Point[][] = [
+  [{ x: 326, y: 20 }, { x: 352, y: 42 }, { x: 396, y: 50 }, { x: 420, y: 64 }, { x: 436, y: 72 }],
+  [{ x: 784, y: 140 }, { x: 742, y: 176 }, { x: 704, y: 238 }, { x: 664, y: 280 }, { x: 634, y: 304 }],
+  [{ x: 338, y: 148 }, { x: 348, y: 186 }, { x: 362, y: 210 }, { x: 374, y: 228 }],
+  [{ x: 204, y: 160 }, { x: 214, y: 214 }, { x: 236, y: 256 }, { x: 250, y: 288 }],
+  [{ x: 92, y: 318 }, { x: 140, y: 356 }, { x: 196, y: 404 }, { x: 238, y: 418 }],
+]

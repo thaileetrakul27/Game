@@ -4,6 +4,7 @@ import {
   accessOf,
   actionsFor,
   alignmentView,
+  countryConditions,
   GAME_DATA,
   getProject,
   projectTurnsLeft,
@@ -71,6 +72,7 @@ export function CountryFile() {
 
       <div className="file-body">
         {home ? <HomeFacts game={game} /> : <ForeignFacts game={game} country={country} />}
+        <Conditions game={game} country={country} />
 
         <h3 className="orders-heading">Orders</h3>
         {orders.length === 0 ? (
@@ -229,5 +231,20 @@ function HomeFacts({ game }: { game: GameState }) {
         </dl>
       </details>
     </>
+  )
+}
+
+/** What the chart marks on this country, in words, so the marks can be read. */
+function Conditions({ game, country }: { game: GameState; country: Country }) {
+  const conditions = countryConditions(game, country.id)
+  if (conditions.length === 0) return null
+  return (
+    <ul className="plain conditions" aria-label="On the chart">
+      {conditions.map((condition) => (
+        <li key={condition.id} className={`condition condition-${condition.id}`}>
+          <strong>{condition.name}.</strong> {condition.text}
+        </li>
+      ))}
+    </ul>
   )
 }
