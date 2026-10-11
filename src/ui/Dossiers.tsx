@@ -1,11 +1,12 @@
-import { describeCrisis, describeEffects, describeOffer, GAME_DATA, getDemand } from '../engine/index.ts'
-import type { DemandResponse, OfferResponse } from '../engine/index.ts'
+import { describeCrisis, describeEffectLines, describeOffer, GAME_DATA, getDemand } from '../engine/index.ts'
+import type { DemandResponse, EffectLine, OfferResponse } from '../engine/index.ts'
 import { useGameStore } from '../store/gameStore.ts'
+import { EffectList } from './EffectList.tsx'
 
 interface Choice<T extends string> {
   id: T
   name: string
-  effects: string[]
+  effects: EffectLine[]
 }
 
 /** A paper dossier with a decision to tick. Urgent ones carry a red stamp. */
@@ -53,13 +54,7 @@ function DossierChoice<T extends string>({
             />
             <span className="choice-body">
               <span className="choice-name">{choice.name}</span>
-              {choice.effects.length > 0 && (
-                <span className="choice-effects">
-                  {choice.effects.map((line) => (
-                    <span key={line}>{line}</span>
-                  ))}
-                </span>
-              )}
+              <EffectList lines={choice.effects} className="choice-effects" inLabel />
             </span>
           </label>
         ))}
@@ -76,11 +71,11 @@ export function DemandDossier() {
   const demand = getDemand(game.demand.demandId)
   const patron = game.countries[game.demand.fromId]
   const choices: Choice<DemandResponse>[] = [
-    { id: 'accept', name: 'Accept', effects: describeEffects(game, game.playerId, patron.id, demand.accept) },
+    { id: 'accept', name: 'Accept', effects: describeEffectLines(game, game.playerId, patron.id, demand.accept) },
     {
       id: 'refuse',
       name: 'Refuse',
-      effects: describeEffects(game, game.playerId, patron.id, GAME_DATA.hedging.demandRefusal),
+      effects: describeEffectLines(game, game.playerId, patron.id, GAME_DATA.hedging.demandRefusal),
     },
   ]
   return (
@@ -104,8 +99,8 @@ export function OfferDossier() {
   const offer = describeOffer(game)
   if (!offer) return null
   const choices: Choice<OfferResponse>[] = [
-    { id: 'accept', name: 'Accept', effects: offer.accept },
-    { id: 'decline', name: 'Decline', effects: offer.decline },
+    { id: 'accept', name: 'Accept', effects: offer.acceptLines },
+    { id: 'decline', name: 'Decline', effects: offer.declineLines },
   ]
   return (
     <DossierChoice
@@ -132,7 +127,7 @@ export function CrisisDossier() {
       name="crisis-response"
       title={card.name}
       description={card.description}
-      choices={card.responses}
+      choices={card.responses.map((response) => ({ id: response.id, name: response.name, effects: response.lines }))}
       chosen={crisisResponse}
       onChoose={chooseCrisisResponse}
     />

@@ -5,9 +5,9 @@ import { signed } from './format.ts'
 /**
  * The alignment scale from Tsengai at -100 to Halvard at +100, marked with
  * the lines that matter to Kessara: the broker range, the trade cut and the
- * demand line.
+ * demand line. Its head gives the figure, or a word in its place.
  */
-export function AlignmentScale({ alignment, label }: { alignment: number; label: string }) {
+export function AlignmentScale({ alignment, label, value }: { alignment: number; label: string; value?: string }) {
   const game = useGameStore((store) => store.game)
   const status = hedgingStatus(game)
   const lines = [status.brokerWithin, status.tradeCutPast, status.demandPast]
@@ -16,7 +16,7 @@ export function AlignmentScale({ alignment, label }: { alignment: number; label:
     <div className="alignment">
       <div className="alignment-head">
         <span>{label}</span>
-        <strong>{signed(alignment)}</strong>
+        <strong>{value ?? signed(alignment)}</strong>
       </div>
       <div
         className="alignment-track"

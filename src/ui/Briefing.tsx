@@ -26,7 +26,13 @@ function BriefingPaper({ onClose }: { onClose: () => void }) {
   const player = game.countries[game.playerId]
   const income = incomeBreakdown(game, player.id)
   const missing = unanswered({ game, crisisResponse, demandResponse, offerResponse })
-  const hasNews = latestNews(game).length > 0
+  // The intelligence that concerns the player first; the rest of the other countries' moves fold away.
+  const news = latestNews(game)
+  const mentionsUs = (line: string) => line.includes(player.name)
+  const aboutUs = news.flatMap((story) => story.lines.filter(mentionsUs).map((line) => ({ name: story.name, line })))
+  const elsewhere = news
+    .map((story) => ({ ...story, lines: story.lines.filter((line) => !mentionsUs(line)) }))
+    .filter((story) => story.lines.length > 0)
   const lastQuarter = game.log.filter(
     (entry) =>
       (entry.turn === game.turn - 1 && (entry.phase === 'crisis' || entry.phase === 'resolution')) ||
@@ -61,15 +67,19 @@ function BriefingPaper({ onClose }: { onClose: () => void }) {
       <section className="briefing-section" data-tour="treasury">
         <h2>Treasury</h2>
         <p>
-          Income this quarter <strong>{signed(income.net)}</strong>: output {money(income.output)}
-          {income.tradeLoss > 0 ? `, minus ${money(income.tradeLoss)} lost to a trade cut` : ''}, strait tolls{' '}
-          {money(income.tolls)}, debt interest −{money(income.interest)}, upkeep −{money(income.upkeep)}.
+          Income this quarter <strong>{signed(income.net)}</strong>, leaving{' '}
+          <strong className={player.stats.treasury < 0 ? 'bad' : undefined}>{money(player.stats.treasury)}</strong> in
+          the treasury.
         </p>
-        <p>
-          The treasury stands at{' '}
-          <strong className={player.stats.treasury < 0 ? 'bad' : undefined}>{money(player.stats.treasury)}</strong>,
-          with debts of {money(player.stats.debt)}.
-        </p>
+        <details className="fold">
+          <summary>Where the money came from</summary>
+          <p>
+            Output {money(income.output)}
+            {income.tradeLoss > 0 ? `, minus ${money(income.tradeLoss)} lost to a trade cut` : ''}, strait tolls{' '}
+            {money(income.tolls)}, debt interest −{money(income.interest)}, upkeep −{money(income.upkeep)}. Debts
+            stand at {money(player.stats.debt)} in all.
+          </p>
+        </details>
       </section>
 
       {lastQuarter.length > 0 && (
@@ -83,10 +93,31 @@ function BriefingPaper({ onClose }: { onClose: () => void }) {
         </section>
       )}
 
-      {hasNews && (
+      {news.length > 0 && (
         <section className="briefing-section" data-tour="intelligence">
           <h2>Intelligence</h2>
-          <NewsStories />
+          {aboutUs.length > 0 ? (
+            <ul className="plain report">
+              {aboutUs.map(({ name, line }, index) =>
+                // A line that already starts with the country's name needs no label in front.
+                line.startsWith(name) ? (
+                  <li key={index}>{line}</li>
+                ) : (
+                  <li key={index}>
+                    <strong>{name}:</strong> {line}
+                  </li>
+                ),
+              )}
+            </ul>
+          ) : (
+            <p>Nothing the other countries did last quarter was aimed at {player.name}.</p>
+          )}
+          {elsewhere.length > 0 && (
+            <details className="fold">
+              <summary>Everything else they did</summary>
+              <NewsStories stories={elsewhere} />
+            </details>
+          )}
         </section>
       )}
 

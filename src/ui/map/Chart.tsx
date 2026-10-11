@@ -20,24 +20,6 @@ function alignmentFill(alignment: number): string {
 /** Where the compass rose sits, in open water south of Kessara. */
 const COMPASS = { x: 350, y: 300, r: 30 }
 
-/** Depth soundings scattered over open water, as a chart prints them. */
-const SOUNDINGS: [number, number, string][] = [
-  [318, 262, '9'],
-  [430, 252, '14'],
-  [530, 226, '6'],
-  [556, 292, '21'],
-  [600, 360, '27'],
-  [520, 352, '18'],
-  [410, 352, '23'],
-  [300, 330, '11'],
-  [372, 386, '19'],
-  [560, 474, '32'],
-  [650, 486, '40'],
-  [470, 492, '35'],
-  [360, 478, '28'],
-  [270, 452, '16'],
-]
-
 /** Sixteen bearings from the compass rose, drawn under the land like the rhumb lines on an old chart. */
 const RHUMBS = Array.from({ length: 16 }, (_, index) => {
   const angle = (index * Math.PI) / 8
@@ -110,11 +92,6 @@ export function Chart() {
             <line key={index} className="rhumb" x1={COMPASS.x} y1={COMPASS.y} x2={end.x} y2={end.y} />
           ))}
           <rect width={MAP_WIDTH} height={MAP_HEIGHT} fill="url(#graticule)" />
-          {SOUNDINGS.map(([x, y, depth]) => (
-            <text key={`${x},${y}`} className="sounding" x={x} y={y}>
-              {depth}
-            </text>
-          ))}
           <text className="sea-label" x={SEA_LABEL.x + 40} y={SEA_LABEL.y + 6}>
             Meridian Sea
           </text>
@@ -165,9 +142,12 @@ export function Chart() {
               <text className="strait-name" x={shape.label.x} y={shape.label.y}>
                 {strait.name}
               </text>
-              <text className="strait-share" x={shape.label.x} y={shape.label.y + 13}>
-                {strait.tradeShare}% of trade{state === 'open' ? '' : `, ${state}`}
-              </text>
+              {/* The chart names a strait, and says so only when it is not open. Its share of trade is in the Economy panel. */}
+              {state !== 'open' && (
+                <text className={`strait-state ${state}`} x={shape.label.x} y={shape.label.y + 13}>
+                  {state}
+                </text>
+              )}
             </g>
           )
         })}
@@ -192,10 +172,10 @@ export function Chart() {
               </text>
               {orders > 0 && (
                 <g className="order-pin" transform={`translate(${label.x} ${label.y - 24})`}>
-                  {/* Keyed by the count, so the pin drops in again each time an order is added. */}
+                  {/* Keyed by the count, so the pin drops in again each time an order is added. A second order adds a count. */}
                   <g key={orders} className="pin-drop">
-                    <circle r={10} />
-                    <text y={4}>{orders}</text>
+                    <circle r={orders > 1 ? 10 : 7} />
+                    {orders > 1 && <text y={4}>{orders}</text>}
                   </g>
                 </g>
               )}
