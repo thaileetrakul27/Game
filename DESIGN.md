@@ -205,7 +205,19 @@ The chart of the Meridian Sea is the main screen. Everything else is either a sl
 - **Briefing.** Each turn opens with a full-screen briefing, styled as a classified cabinet paper. It shows the quarter's income and treasury, what happened last quarter, what the other countries did, and the crisis card with any demand or offer to answer. Then it goes to the map. You can reopen it from the orders tray until the turn ends.
   - The money is one line, what came in and what the treasury holds, with the breakdown folded away.
   - The intelligence leads with whatever the other countries did that concerns Kessara, with the rest of their moves folded away.
-- **The map.** A nautical chart fills most of the screen, with countries coloured by alignment: Halvard blue, Tsengai orange. It carries names and colours, not figures: no depth soundings, and each strait is labelled with its name, adding taxed or closed when it is not open. Its share of trade is in the Economy panel and the strait's own tooltip.
+- **The map.** A hand-tinted nautical chart fills most of the screen. Each country is tinted by alignment in a watercolour band along its borders, as old atlases did it: Prussian blue toward Halvard, burnt sienna toward Tsengai, deepening the further it leans. It carries names, colours and marks, not figures: no depth soundings, and each strait is labelled with its name, adding taxed or closed when it is not open. Its share of trade is in the Economy panel and the strait's own tooltip.
+  - **Terrain.** The land is drawn as on an engraved chart, in sepia ink: hand-drawn coastlines with water-lines around them, mountain ranges, hills, forests, marsh, rivers, and each country's capital and towns. The terrain is fixed: it is the same in every game.
+  - **The map reacts.** Marks on a country show what is happening there, from the same state the rules use:
+    - In unrest, legitimacy below 35, or for Kessara a faction in unrest: smoke rises over its capital.
+    - Fortified, defence 65 or more: a line of battlements along its borders.
+    - Booming, growth of 5% or more: its towns are lit.
+    - A client, alignment past ±70 for a neighbour: hatched over in its patron's colour, as a protectorate is on an old map. Kessara past the demand line is hatched the same way.
+    - Hostile to Kessara, relations −40 or worse: crossed swords over its capital.
+    - Trading with Kessara, a trade deal in force: a trade route between the two capitals, with a trader moving along it.
+    - This quarter's crisis: a ring pulses over the country it concerns, or over Kessara when it concerns no one else.
+    - Building: scaffolding by the capital while a project is under way. Finished projects stay on the map: an anchor at the port, a railway, a canal or a line of pylons.
+    - A Key on the chart explains every mark, and a country's file lists the ones that apply to it, in words.
+  - The thresholds live in src/data/conditions.json, and the engine says which apply to each country, so the map, the file and the key always agree.
   - Tapping a country opens its file. It opens with a line in words on how the country leans and how it feels about Kessara, then any trade deal, strait access and debt between you, and the orders you can give that target it, each with its exact effects. Its treasury, growth, legitimacy, defence and relations with everyone are folded away under Figures.
   - Tapping Kessara opens the Home file, with domestic reform, military spending and infrastructure, and any projects being built.
 - **Top bar.** A slim bar shows the treasury as a number, action points left as dots, legitimacy and military loyalty as short bars, and alignment as a small scale with the word for where Kessara stands. Tapping it opens Kessara's full stats, with every figure.
@@ -226,13 +238,15 @@ The chart of the Meridian Sea is the main screen. Everything else is either a sl
   - Each quarter ends with a short interlude showing the new date, before the briefing slides in, typed out.
   - Numbers in the top bar roll to their new values and flash as they rise or fall.
   - Countries fade to their new colour as they lean, and the selected country's outline marches. Order pins drop onto the chart, and on a phone the chart pans to the country you tap.
-  - Trade flows along the strait lines while a strait is open, slows when it is taxed and stops when it is closed. A slow radar sweep turns over the sea.
+  - Trade flows along the strait lines while a strait is open, slows when it is taxed and stops when it is closed.
+  - On the map, smoke drifts up from a country in unrest, a booming country's towns flicker, traders move along trade routes and the crisis ring pulses. These are the only things that move by themselves.
   - Tabs, files and dossiers slide in, and stamps land.
-- **Style.** A classified intelligence briefing.
-  - Dark mode is a navy chart room. Light mode is a daylight chart table. The top bar, tray and tabs stay navy in both.
-  - The map is drawn as a nautical chart, with depth bands along the coasts, grid lines and a compass rose.
-  - Headings are typewritten. Crisis, demand and offer cards are paper dossiers, and urgent demands carry a red stamp.
-  - Red is kept for urgent things. Magenta, the colour navigators plot courses in, marks your own orders and the selected country on the map.
+- **Style.** A government map room: a classified briefing laid out on a war-room map table.
+  - The top bar, tray and tabs are the table: dark green baize with brass fittings. Brass marks what is active: the main button, the open tab, the focus.
+  - The chart is an old hand-tinted chart: buff land, grey-green sea, sepia ink and engraved lettering for the names. In dark mode it is the same chart under a night lamp, dark land on a dark sea with pale ink.
+  - Each paper is a real kind of paper: the briefing is a carbon flimsy, crisis, demand and offer cards are manila folders, and a country's file is an index card with a red rule across the top. Headings are typewritten, and urgent demands carry a red stamp.
+  - Your own marks on the chart, the selected country's outline and your order pins, are in graphite, as if pencilled on.
+  - Red is kept for urgent things. Nothing glows: colour comes from ink, paint and paper.
 
 ## Technical stack and architecture
 
@@ -243,7 +257,7 @@ Build it as a browser game in TypeScript, with all the game rules in a separate 
 The interface only sends player actions to the store and draws whatever state comes back. Every rule lives in the engine.
 
 - **Language and tooling.** TypeScript, Vite for the dev server, React for the interface, Zustand for the game store.
-- **Map.** A single SVG with one shape per country, styled by state. The shapes live in src/ui/map/geometry.ts, so each country can be coloured and clicked directly. No game engine or canvas library needed.
+- **Map.** A single SVG with one shape per country, styled by state. The shapes, the terrain and each country's capital, port and towns live in src/ui/map/geometry.ts, so each country can be coloured and clicked directly. No game engine or canvas library needed.
 - **Randomness.** A seeded generator (for example, mulberry32), so any game can be replayed exactly from its seed.
 - **Testing.** Vitest for unit tests and the simulation script.
 - **Hosting.** Free on GitHub Pages at thaileetrakul27.github.io/Game/, so friends can play from a link. GitHub Actions builds and deploys the game on every push to main.
