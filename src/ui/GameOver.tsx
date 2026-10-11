@@ -2,6 +2,7 @@ import { MAX_TURNS, quarterLabel } from '../engine/index.ts'
 import { useGameStore } from '../store/gameStore.ts'
 import { Dialog } from './Dialog.tsx'
 import { money, percent, signed } from './format.ts'
+import { leaveToTitle, startNewGame } from './session.ts'
 
 /** The final report when the game ends. */
 export function GameOver({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -14,7 +15,6 @@ export function GameOver({ open, onClose }: { open: boolean; onClose: () => void
 
 function FinalReport({ onClose }: { onClose: () => void }) {
   const game = useGameStore((store) => store.game)
-  const newGame = useGameStore((store) => store.newGame)
   const player = game.countries[game.playerId]
   const { stats } = player
   const verdict =
@@ -63,10 +63,13 @@ function FinalReport({ onClose }: { onClose: () => void }) {
         </dl>
       </section>
       <footer className="briefing-foot">
+        <button type="button" className="ghost-dark" onClick={leaveToTitle}>
+          Title screen
+        </button>
         <button type="button" className="ghost-dark" onClick={onClose}>
           Look at the map
         </button>
-        <button type="button" className="primary" onClick={() => newGame()}>
+        <button type="button" className="primary" onClick={() => startNewGame()}>
           Start a new game
         </button>
       </footer>

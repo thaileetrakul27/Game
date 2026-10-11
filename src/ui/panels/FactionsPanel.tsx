@@ -13,7 +13,7 @@ export function FactionsPanel() {
   const name = (id: string) => game.countries[id].name
 
   return (
-    <section className="panel" aria-labelledby="factions-heading">
+    <section className="panel" aria-labelledby="factions-heading" data-tour="factions">
       <h2 id="factions-heading">Factions</h2>
       <Warnings game={game} tab="factions" />
 
@@ -41,12 +41,14 @@ export function FactionsPanel() {
         </li>
       </ul>
 
-      <h3>Alignment</h3>
-      <AlignmentScale alignment={status.alignment} label="Kessara" />
-      <p className="muted small">
-        Lines at ±{status.brokerWithin} (broker bonus), ±{status.tradeCutPast} (trade cut) and ±{status.demandPast}{' '}
-        (demands).
-      </p>
+      <div data-tour="alignment">
+        <h3>Alignment</h3>
+        <AlignmentScale alignment={status.alignment} label="Kessara" />
+        <p className="muted small">
+          Lines at ±{status.brokerWithin} (broker bonus), ±{status.tradeCutPast} (trade cut) and ±{status.demandPast}{' '}
+          (demands).
+        </p>
+      </div>
       <ul className="plain status-list">
         <li>
           {status.inBrokerRange

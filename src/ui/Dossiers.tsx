@@ -29,7 +29,7 @@ function DossierChoice<T extends string>({
   name: string
 }) {
   return (
-    <fieldset className={`dossier dossier-${kind}`}>
+    <fieldset className={`dossier dossier-${kind}`} data-tour={kind}>
       {stamp && (
         <span className="stamp" aria-hidden="true">
           {stamp}

@@ -1,10 +1,12 @@
-import { useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { KeyboardEvent } from 'react'
 import { accessOf, GAME_DATA } from '../../engine/index.ts'
 import type { Country, CountryId } from '../../engine/index.ts'
 import { useGameStore } from '../../store/gameStore.ts'
 import { capitalised, signed } from '../format.ts'
+import { prefersReducedMotion } from '../motion.ts'
 import { COUNTRY_SHAPES, MAP_HEIGHT, MAP_WIDTH, SEA_LABEL, STRAIT_SHAPES } from './geometry.ts'
+import { RadarSweep } from './RadarSweep.tsx'
 
 /**
  * Land colour for an alignment: the chart's neutral land colour at 0, mixed
@@ -57,6 +59,18 @@ export function Chart() {
     if (element) element.scrollLeft = (element.scrollWidth - element.clientWidth) / 2
   }, [])
 
+  // And when a country is picked there, pan the chart to bring it to the middle.
+  useEffect(() => {
+    const element = frame.current
+    const shape = selectedId ? COUNTRY_SHAPES[selectedId] : undefined
+    if (!element || !shape || element.scrollWidth <= element.clientWidth) return
+    const scale = element.scrollWidth / MAP_WIDTH
+    element.scrollTo({
+      left: shape.label.x * scale - element.clientWidth / 2,
+      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+    })
+  }, [selectedId])
+
   // Orders planned against each country. Orders with no target are for home.
   const ordersAt: Record<CountryId, number> = {}
   for (const action of planned) {
@@ -104,6 +118,7 @@ export function Chart() {
           <text className="sea-label" x={SEA_LABEL.x + 40} y={SEA_LABEL.y + 6}>
             Meridian Sea
           </text>
+          <RadarSweep x={COMPASS.x} y={COMPASS.y} radius={900} className="chart-sweep" />
           {/* Shallow water along every coast, drawn as wide strokes under the land. */}
           {countries.map((country) => (
             <path key={`deep-${country.id}`} className="shallows outer" d={COUNTRY_SHAPES[country.id].path} />
@@ -125,13 +140,14 @@ export function Chart() {
             aria-pressed={country.id === selectedId}
             onClick={() => selectCountry(country.id)}
             onKeyDown={(event) => selectWithKeys(event, country.id)}
+            data-tour={country.id === player.id ? 'home' : undefined}
           >
             <title>{describe(country)}</title>
           </path>
         ))}
 
         {selectedId && COUNTRY_SHAPES[selectedId] && (
-          <path className="selection" d={COUNTRY_SHAPES[selectedId].path} aria-hidden="true" />
+          <path key={selectedId} className="selection" d={COUNTRY_SHAPES[selectedId].path} aria-hidden="true" />
         )}
 
         {GAME_DATA.straits.map((strait) => {
@@ -176,8 +192,11 @@ export function Chart() {
               </text>
               {orders > 0 && (
                 <g className="order-pin" transform={`translate(${label.x} ${label.y - 24})`}>
-                  <circle r={10} />
-                  <text y={4}>{orders}</text>
+                  {/* Keyed by the count, so the pin drops in again each time an order is added. */}
+                  <g key={orders} className="pin-drop">
+                    <circle r={10} />
+                    <text y={4}>{orders}</text>
+                  </g>
                 </g>
               )}
             </g>

@@ -51,6 +51,7 @@ export function TabBar() {
             className={entry.id === tab ? 'tab active' : 'tab'}
             aria-current={entry.id === tab ? 'page' : undefined}
             onClick={() => setTab(entry.id)}
+            data-tour={`tab-${entry.id}`}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               {entry.icon}

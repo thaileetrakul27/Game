@@ -22,7 +22,7 @@ export function EconomyPanel() {
   const tolls = strait ? straitTolls(game, strait) : {}
 
   return (
-    <section className="panel" aria-labelledby="economy-heading">
+    <section className="panel" aria-labelledby="economy-heading" data-tour="economy">
       <h2 id="economy-heading">Economy</h2>
       <Warnings game={game} tab="economy" />
 
