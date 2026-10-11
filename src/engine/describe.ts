@@ -1,6 +1,7 @@
 // Plain-language descriptions built from the same effect data the engine
 // applies, so the interface shows exactly what an action will do.
 
+import { greatPowerOnSide } from './alignment.ts'
 import { GAME_DATA, getAction, getEvent, getFaction, getProject } from './data.ts'
 import { otherGreatPower } from './effects.ts'
 import { accessOf, accessPhrase, closureRisk, straitOwnedBy } from './straits.ts'
@@ -73,6 +74,118 @@ export function describeEffects(
   effects: readonly Effect[],
 ): string[] {
   return effects.flatMap((effect) => describeEffect(state, actorId, targetId, effect))
+}
+
+/** Whether an effect helps the country taking it, hurts it, or neither, such as a shift in alignment. */
+export type Tone = 'good' | 'bad' | 'neutral'
+
+/** One line describing an effect, and whether it helps or hurts. */
+export interface EffectLine {
+  text: string
+  tone: Tone
+}
+
+/** The same lines as describeEffects, each marked as helping or hurting the actor. */
+export function describeEffectLines(
+  state: GameState,
+  actorId: CountryId,
+  targetId: CountryId | null,
+  effects: readonly Effect[],
+): EffectLine[] {
+  return effects.flatMap((effect) => {
+    const lines = describeEffect(state, actorId, targetId, effect)
+    const tones = tonesOf(state, actorId, targetId, effect)
+    return lines.map((text, index) => ({ text, tone: tones[index] ?? 'neutral' }))
+  })
+}
+
+/** What an action does, line by line, each marked as helping or hurting the actor. */
+export function describeActionLines(state: GameState, actorId: CountryId, action: PlayerAction): EffectLine[] {
+  const def = getAction(action.actionId)
+  const option = def.options?.find((candidate) => candidate.id === action.option)
+  return describeEffectLines(state, actorId, action.targetId ?? null, [...def.effects, ...(option?.effects ?? [])])
+}
+
+const toneOfChange = (amount: number): Tone => (amount > 0 ? 'good' : amount < 0 ? 'bad' : 'neutral')
+
+/**
+ * The tone of each line describeEffect writes for an effect, in the same
+ * order. More money, growth, standing at home and friends help; more debt
+ * and upkeep hurt. Effects on other countries, and alignment, which is the
+ * player's own choice of direction, are neither.
+ */
+function tonesOf(state: GameState, actorId: CountryId, targetId: CountryId | null, effect: Effect): Tone[] {
+  switch (effect.kind) {
+    case 'stat':
+      if (effect.who !== 'self' || effect.stat === 'alignment') return ['neutral']
+      return [toneOfChange(effect.stat === 'debt' ? -effect.amount : effect.amount)]
+    case 'economy':
+      if (effect.who !== 'self') return ['neutral']
+      return [toneOfChange(effect.field === 'upkeep' ? -effect.amount : effect.amount)]
+    case 'relations':
+    case 'faction':
+      return [toneOfChange(effect.amount)]
+    case 'alignment':
+      // The shift itself, then the resentment it may cause.
+      return ['neutral', 'bad']
+    case 'forgiveDebt':
+      return ['good']
+    case 'recallLoans':
+      return ['bad']
+    case 'tradeDeal':
+      return [toneOfChange(effect.growth), 'neutral']
+    case 'straitAccess':
+      // The new access, then the risk of closing it.
+      return ['neutral', 'bad']
+    case 'chance': {
+      const inner = describeEffectLines(state, actorId, targetId, effect.effects).map((line) => line.tone)
+      return [inner.length > 0 && inner.every((tone) => tone === inner[0]) ? inner[0] : 'neutral']
+    }
+    case 'borrow':
+    case 'repayDebt':
+    case 'startProject':
+      return ['neutral']
+  }
+}
+
+/** Where a country stands between the two great powers, in a word that follows the rules' own lines. */
+export type Standing = 'balanced' | 'leaning' | 'siding' | 'client'
+
+export interface AlignmentView {
+  standing: Standing
+  /** The great power it leans toward, or null when balanced. */
+  powerId: CountryId | null
+  /** Balanced, Leaning, Siding or Client. */
+  word: string
+  /** The same in a phrase, naming the power: "Leans toward Halvard Compact". */
+  phrase: string
+}
+
+/**
+ * Alignment in words. Balanced is the broker range, Leaning runs to the
+ * trade-cut line, Siding to the demand line, and Client is beyond it.
+ */
+export function alignmentView(state: GameState, alignment: number): AlignmentView {
+  const { brokerWithin, tradeCutPast, demandPast } = GAME_DATA.hedging
+  const size = Math.abs(alignment)
+  if (size <= brokerWithin) {
+    return { standing: 'balanced', powerId: null, word: 'Balanced', phrase: 'Balanced between the powers' }
+  }
+  const power = greatPowerOnSide(state, alignment)
+  const name = power?.name ?? 'a great power'
+  const powerId = power?.id ?? null
+  if (size <= tradeCutPast) return { standing: 'leaning', powerId, word: 'Leaning', phrase: `Leans toward ${name}` }
+  if (size <= demandPast) return { standing: 'siding', powerId, word: 'Siding', phrase: `Sides with ${name}` }
+  return { standing: 'client', powerId, word: 'Client', phrase: `In ${name}'s camp` }
+}
+
+/** Relations in a word: Hostile, Unfriendly, Neutral, Friendly or Close. */
+export function relationsWord(score: number): string {
+  if (score < -50) return 'Hostile'
+  if (score < -20) return 'Unfriendly'
+  if (score <= 20) return 'Neutral'
+  if (score <= 50) return 'Friendly'
+  return 'Close'
 }
 
 function describeEffect(state: GameState, actorId: CountryId, targetId: CountryId | null, effect: Effect): string[] {
@@ -161,6 +274,9 @@ export interface OfferView {
   /** What accepting and declining would do, as the player sees it. */
   accept: string[]
   decline: string[]
+  /** The same, each line marked as helping or hurting the player. */
+  acceptLines: EffectLine[]
+  declineLines: EffectLine[]
 }
 
 /** The offer waiting for the player's answer, or null when there is none. */
@@ -176,14 +292,19 @@ export function describeOffer(state: GameState): OfferView | null {
     description: terms.description,
     accept: describeEffects(state, state.playerId, fromId, terms.accepted),
     decline: describeEffects(state, state.playerId, fromId, terms.declined),
+    acceptLines: describeEffectLines(state, state.playerId, fromId, terms.accepted),
+    declineLines: describeEffectLines(state, state.playerId, fromId, terms.declined),
   }
 }
 
 export interface CrisisView {
   name: string
   description: string
-  /** Each response with its visible effects. Hidden effects stay hidden until chosen. */
-  responses: { id: string; name: string; effects: string[] }[]
+  /**
+   * Each response with its visible effects, as text and as lines marked as
+   * helping or hurting. Hidden effects stay hidden until chosen.
+   */
+  responses: { id: string; name: string; effects: string[]; lines: EffectLine[] }[]
 }
 
 /** The pending crisis card as the player sees it, or null when there is none. */
@@ -201,6 +322,7 @@ export function describeCrisis(state: GameState): CrisisView | null {
         id: response.id,
         name: response.name,
         effects: describeEffects(state, state.playerId, crisis.targetId, response.effects),
+        lines: describeEffectLines(state, state.playerId, crisis.targetId, response.effects),
       })),
   }
 }

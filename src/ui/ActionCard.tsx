@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { checkPlannedAction, describeAction } from '../engine/index.ts'
+import { checkPlannedAction, describeActionLines } from '../engine/index.ts'
 import type { ActionDef, CountryId, PlayerAction } from '../engine/index.ts'
 import { pointsLeft, useGameStore } from '../store/gameStore.ts'
+import { EffectList } from './EffectList.tsx'
 
 /** One order that can be given about a country: its exact effects, any option to pick, and Add. */
 export function ActionCard({ def, targetId }: { def: ActionDef; targetId: CountryId | null }) {
@@ -14,7 +15,7 @@ export function ActionCard({ def, targetId }: { def: ActionDef; targetId: Countr
   if (targetId) action.targetId = targetId
   if (def.options) action.option = optionId
   const problem = checkPlannedAction(game, planned, action)
-  const effects = describeAction(game, game.playerId, action)
+  const effects = describeActionLines(game, game.playerId, action)
   const titleId = `order-${def.id}`
   // While points remain, say why an order can't be added. With none left, the tray already says so.
   const showProblem = problem !== null && pointsLeft({ game, planned }) > 0
@@ -28,11 +29,7 @@ export function ActionCard({ def, targetId }: { def: ActionDef; targetId: Countr
         </span>
       </div>
       <p className="order-description">{def.description}</p>
-      <ul className="effects" aria-label={`What ${def.name} does`}>
-        {effects.map((line) => (
-          <li key={line}>{line}</li>
-        ))}
-      </ul>
+      <EffectList lines={effects} label={`What ${def.name} does`} />
       <div className="order-controls">
         {def.options && (
           <label>

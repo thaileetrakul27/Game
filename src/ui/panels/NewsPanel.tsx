@@ -1,4 +1,5 @@
 import { latestNews, quarterLabel } from '../../engine/index.ts'
+import type { NewsStory } from '../../engine/index.ts'
 import { useGameStore } from '../../store/gameStore.ts'
 
 /** What the other countries did in the turn just played, one story per country. */
@@ -22,12 +23,12 @@ export function NewsPanel() {
   )
 }
 
-/** The stories alone, shared with the briefing. */
-export function NewsStories() {
+/** The stories alone, shared with the briefing: all of the latest news, or the stories given. */
+export function NewsStories({ stories }: { stories?: NewsStory[] }) {
   const game = useGameStore((store) => store.game)
   return (
     <div className="stories">
-      {latestNews(game).map((story) => (
+      {(stories ?? latestNews(game)).map((story) => (
         <section key={story.countryId} className="story" aria-label={story.name}>
           <h3>{story.name}</h3>
           <ul className="plain">

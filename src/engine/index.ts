@@ -16,14 +16,18 @@ export {
   validateGameData,
 } from './data.ts'
 export {
+  alignmentView,
   describeAction,
+  describeActionLines,
   describeCrisis,
+  describeEffectLines,
   describeEffects,
   describeEffectsInline,
   describeOffer,
+  relationsWord,
   STAT_NAMES,
 } from './describe.ts'
-export type { CrisisView, OfferView } from './describe.ts'
+export type { AlignmentView, CrisisView, EffectLine, OfferView, Standing, Tone } from './describe.ts'
 export { cardWeight, conditionHolds, drawCrisis } from './deck.ts'
 export { debtInterest, incomeBreakdown } from './economy.ts'
 export type { IncomeBreakdown } from './economy.ts'

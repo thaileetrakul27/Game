@@ -64,8 +64,9 @@ export const STEPS: TourStep[] = [
     targets: [tour('treasury')],
     title: 'The treasury',
     text: () =>
-      'What came in this quarter and what went out. Keep it out of the red: ' +
-      `${DEFAULT_AFTER_DEFICIT_TURNS} quarters in a row below zero and you default on your debts, which ends the game.`,
+      'What came in this quarter and what you have. Keep it out of the red: ' +
+      `${DEFAULT_AFTER_DEFICIT_TURNS} quarters in a row below zero and you default on your debts, which ends the game. ` +
+      'The arrow opens the details.',
   },
   {
     id: 'crisis',
@@ -74,7 +75,7 @@ export const STEPS: TourStep[] = [
     targets: [tour('crisis')],
     title: 'A crisis',
     text: () =>
-      'Every quarter brings a crisis to answer. Each answer lists exactly what it will do, and some carry a risk.',
+      'Every quarter brings a crisis to answer. Each answer lists what it will do: green with ▲ helps you, red with ▼ hurts.',
     task: 'Tick an answer to go on.',
     overlap: 'top',
     when: (context) => context.game.crisis !== null,
@@ -112,8 +113,8 @@ export const STEPS: TourStep[] = [
     targets: [tour('readouts')],
     title: 'Your readouts',
     text: () =>
-      'Treasury, action points left this turn, legitimacy, military loyalty, and your alignment between Tsengai ' +
-      'and Halvard. Tap them any time for the full stats.',
+      'Your money, the action points left this turn as dots, legitimacy and the army’s loyalty as bars, and where ' +
+      'you stand between Tsengai and Halvard. Tap them any time for every figure.',
   },
   {
     id: 'chart',
@@ -134,7 +135,8 @@ export const STEPS: TourStep[] = [
     targets: [tour('country-file'), tour('chart')],
     title: 'Its file',
     text: () =>
-      'Where it leans, how it gets on with you, and the orders you can give about it, each with its exact effects.',
+      'How it leans and how it feels about you, then the orders you can give about it. Green effects help you, ' +
+      'red ones hurt. Its figures are folded away under Figures.',
     task: 'Add an order to go on.',
     done: (context) => context.planned.length > 0,
   },
@@ -179,7 +181,7 @@ export const STEPS: TourStep[] = [
     targets: [tour('intelligence')],
     title: 'Intelligence',
     text: () =>
-      'What every other country did last quarter. Watch who is courting whom, and who is working on your neighbours.',
+      'What the other countries did last quarter that concerns you. Everything else they did is folded away below.',
     when: (context) => latestNews(context.game).length > 0,
   },
   {
@@ -244,10 +246,9 @@ export const STEPS: TourStep[] = [
     targets: [tour('alignment'), tour('alignment-readout')],
     title: 'Alignment',
     text: () =>
-      'Your alignment runs from Tsengai at −100 to Halvard at +100. Deals and loans pull it toward a power, and ' +
-      `it drifts back toward zero by ${hedging.driftPerTurn} a turn when nothing moves it. ` +
-      `Stay within ±${hedging.brokerWithin} and you are a broker: every ${hedging.brokerEveryTurns} turns in a row ` +
-      `there earn an extra action point.`,
+      'Your alignment runs from Tsengai to Halvard. Deals and loans pull it toward a power, and it drifts back to ' +
+      `the middle when nothing moves it. While you are Balanced, within ±${hedging.brokerWithin}, you are a broker: ` +
+      `every ${hedging.brokerEveryTurns} turns in a row there earn an extra action point.`,
   },
   {
     id: 'lines',
@@ -256,10 +257,10 @@ export const STEPS: TourStep[] = [
     targets: [tour('alignment'), tour('alignment-readout')],
     title: 'The lines',
     text: () =>
-      `Past ±${hedging.tradeCutPast}, the other power cuts trade with you, costing ` +
-      `${Math.round(hedging.tradeCutOutputLoss * 100)}% of your output. Past ±${hedging.demandPast} for ` +
-      `${hedging.demandAfterTurns} turns in a row, your patron sends demands, stamped urgent in the briefing. ` +
-      `Accept ${hedging.vassalAfterDemands} from the same power and you become its vassal, which ends the game.`,
+      `Leaning is safe. Siding, past ±${hedging.tradeCutPast}, and the other power cuts trade with you, costing ` +
+      `${Math.round(hedging.tradeCutOutputLoss * 100)}% of your output. A Client, past ±${hedging.demandPast}, ` +
+      `gets demands after ${hedging.demandAfterTurns} turns, stamped urgent. Accept ` +
+      `${hedging.vassalAfterDemands} from the same power and you become its vassal, which ends the game.`,
   },
   {
     id: 'finished',

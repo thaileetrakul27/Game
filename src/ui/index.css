@@ -33,6 +33,7 @@
   --paper-ink: #231f18;
   --paper-muted: #574f3f;
   --stamp: #b3221a;
+  --good-ink: #23662f;
   --paper-course: #a1236e;
 
   /* Chart room, daylight. */
@@ -442,10 +443,85 @@ button:disabled {
   --flash-down: #ffb070;
 }
 
-/* Spending action points is no cause for alarm. */
-.points-readout {
-  --flash-up: #ffffff;
-  --flash-down: #ffffff;
+/* Action points as dots: filled for each point left, hollow for each spent. */
+.readout-value.pips {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  height: 1.26rem;
+}
+
+.pip {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--chrome-text);
+  transition:
+    background 250ms ease,
+    box-shadow 250ms ease;
+}
+
+.pip.spent {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--chrome-muted);
+}
+
+/* Legitimacy and loyalty as short bars, which slide to each new value. */
+.readout-value.gauge {
+  position: relative;
+  display: block;
+  width: 3.4rem;
+  max-width: 100%;
+  height: 6px;
+  margin: calc((1.26rem - 6px) / 2) 0;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.gauge-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 3px;
+  background: var(--chrome-text);
+  transition: width 650ms ease;
+}
+
+.readout.moved-up .gauge-fill {
+  animation: gauge-up 1100ms ease-out;
+}
+
+.readout.moved-down .gauge-fill {
+  animation: gauge-down 1100ms ease-out;
+}
+
+@keyframes gauge-up {
+  from {
+    background: #8fe3b5;
+    box-shadow: 0 0 8px #8fe3b5;
+  }
+}
+
+@keyframes gauge-down {
+  from {
+    background: #ff9d92;
+    box-shadow: 0 0 8px #ff9d92;
+  }
+}
+
+/* Where Kessara stands, in a word, in the colour of the power it leans toward. */
+.readout-value.standing-word {
+  font-size: 0.86rem;
+  line-height: 1.26rem;
+}
+
+.standing-word.halvard {
+  color: #8cc0ff;
+}
+
+.standing-word.tsengai {
+  color: #ffb070;
 }
 
 @keyframes flash-up {
@@ -538,13 +614,6 @@ button:disabled {
 
 .chart .rhumb {
   stroke-width: 0.7;
-}
-
-.chart .sounding {
-  font: italic 9px var(--type);
-  fill: var(--muted);
-  opacity: 0.75;
-  text-anchor: middle;
 }
 
 .chart .sea-label {
@@ -676,13 +745,22 @@ button:disabled {
   stroke-width: 3px;
 }
 
-.chart .strait-share {
-  font: 600 9.5px var(--sans);
-  fill: var(--muted);
+.chart .strait-state {
+  font: 700 9.5px var(--sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   text-anchor: middle;
   paint-order: stroke;
   stroke: var(--label-halo);
   stroke-width: 3px;
+}
+
+.chart .strait-state.taxed {
+  fill: var(--warn);
+}
+
+.chart .strait-state.closed {
+  fill: var(--bad);
 }
 
 .chart .compass circle {
@@ -882,11 +960,54 @@ button:disabled {
   text-align: right;
 }
 
-.relations-detail summary {
+/* Details folded away until asked for: the figures in a file, the money and the rest of the news in the briefing. */
+.fold {
+  margin: 0.4rem 0;
+}
+
+.fold summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 36px;
   cursor: pointer;
   font-size: 0.88rem;
+  font-weight: 600;
   color: var(--paper-muted);
-  padding: 0.3rem 0;
+  list-style: none;
+}
+
+.fold summary::-webkit-details-marker {
+  display: none;
+}
+
+.fold summary::before {
+  content: '';
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 7px solid currentColor;
+  transition: transform 150ms ease;
+}
+
+.fold[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.fold[open] > :not(summary) {
+  animation: rise 220ms ease-out both;
+}
+
+.fold-heading {
+  margin: 0.75rem 0 0.1rem;
+  font-size: 0.9rem;
+}
+
+/* How a country stands, in words, at the top of its file. */
+.standing-line {
+  margin: 0.25rem 0 0.4rem;
+  font-weight: 700;
 }
 
 .orders-heading {
@@ -924,8 +1045,35 @@ button:disabled {
 
 .effects {
   margin: 0 0 0.55rem;
-  padding-left: 1.1rem;
+  padding: 0;
+  list-style: none;
   font-size: 0.86rem;
+}
+
+/* Each effect of a choice: green with an up arrow when it helps, red with a down arrow when it hurts. */
+.effect {
+  display: flex;
+  gap: 0.4rem;
+  align-items: baseline;
+}
+
+.effect-mark {
+  flex: none;
+  width: 0.8rem;
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+.effect-good {
+  color: var(--good-ink);
+}
+
+.effect-bad {
+  color: var(--stamp);
+}
+
+.effect-neutral .effect-mark {
+  color: var(--paper-muted);
 }
 
 .order-controls {
@@ -1290,6 +1438,9 @@ dialog[open]::backdrop {
   flex-direction: column;
   font-family: var(--sans);
   font-size: 0.84rem;
+}
+
+.choice-effects .effect-neutral {
   color: var(--paper-muted);
 }
 
