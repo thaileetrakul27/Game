@@ -47,7 +47,14 @@ export function CountryFile() {
   }
 
   return (
-    <section className="sheet country-file" role="dialog" aria-labelledby="file-title" onKeyDown={closeOnEscape}>
+    <section
+      key={selectedId}
+      className="sheet country-file"
+      role="dialog"
+      aria-labelledby="file-title"
+      onKeyDown={closeOnEscape}
+      data-tour="country-file"
+    >
       <header className="file-head">
         <div>
           <p className="file-kind">{kindOf(game, country)}</p>

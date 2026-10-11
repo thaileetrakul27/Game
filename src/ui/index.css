@@ -54,6 +54,7 @@
   --label: #172539;
   --label-halo: rgba(250, 252, 254, 0.9);
   --course-on-chart: #b0287c;
+  --sweep: #2a6bb4;
 
   font-family: var(--sans);
   font-size: 16px;
@@ -84,6 +85,7 @@
     --label: #f4f7fa;
     --label-halo: rgba(6, 16, 27, 0.88);
     --course-on-chart: #ea6bb9;
+    --sweep: #7fbfff;
   }
 }
 
@@ -136,7 +138,10 @@ button:disabled {
 }
 
 /* Headings that take focus when a dialog or file opens, so reading starts at the top. */
-[data-autofocus]:focus,
+[data-autofocus]:focus {
+  outline: none;
+}
+
 .plain {
   list-style: none;
   margin: 0;
@@ -177,8 +182,18 @@ button:disabled {
   letter-spacing: 0.01em;
 }
 
+.primary {
+  transition:
+    filter 150ms ease,
+    transform 100ms ease;
+}
+
 .primary:hover {
   filter: brightness(1.1);
+}
+
+.primary:active {
+  transform: translateY(1px);
 }
 
 .ghost {
@@ -221,6 +236,7 @@ button:disabled {
   display: grid;
   /* Clip rather than hide, so focusing something inside can never scroll the whole app out of place. */
   overflow: clip;
+  animation: fade-in 400ms ease both;
 }
 
 .app.narrow {
@@ -299,6 +315,7 @@ button:disabled {
 .tab-view .panel {
   max-width: 42rem;
   margin: 0 auto;
+  animation: slide-in 240ms ease-out both;
 }
 
 /* Top bar */
@@ -330,6 +347,37 @@ button:disabled {
 .turn {
   font-size: 0.8rem;
   color: var(--chrome-muted);
+}
+
+.app.narrow .topbar {
+  gap: 0.25rem;
+  padding-left: 0.25rem;
+}
+
+/* The menu button, at the left of the top bar on a phone. */
+.menu-button {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--chrome-text);
+}
+
+.menu-button:hover {
+  background: var(--chrome-raised);
+}
+
+.menu-button svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
 }
 
 .readouts {
@@ -375,6 +423,43 @@ button:disabled {
 
 .readout.bad .readout-value {
   color: #ff8a7e;
+}
+
+/*
+ * A readout flashes as its number rolls up or down: green and red, or for
+ * alignment, the colour of the power it moved toward.
+ */
+.readout.moved-up .readout-value {
+  animation: flash-up 1100ms ease-out;
+}
+
+.readout.moved-down .readout-value {
+  animation: flash-down 1100ms ease-out;
+}
+
+.alignment-readout {
+  --flash-up: #8cc0ff;
+  --flash-down: #ffb070;
+}
+
+/* Spending action points is no cause for alarm. */
+.points-readout {
+  --flash-up: #ffffff;
+  --flash-down: #ffffff;
+}
+
+@keyframes flash-up {
+  from {
+    color: var(--flash-up, #8fe3b5);
+    text-shadow: 0 0 12px currentColor;
+  }
+}
+
+@keyframes flash-down {
+  from {
+    color: var(--flash-down, #ff9d92);
+    text-shadow: 0 0 12px currentColor;
+  }
 }
 
 .mini-scale {
@@ -489,6 +574,10 @@ button:disabled {
   stroke-width: 1.1;
   stroke-linejoin: round;
   cursor: pointer;
+  /* A country fades to its new colour as it leans. */
+  transition:
+    fill 900ms ease,
+    filter 150ms ease;
 }
 
 .chart .land:hover {
@@ -512,24 +601,70 @@ button:disabled {
   stroke-dasharray: 9 5;
   stroke-linejoin: round;
   pointer-events: none;
+  /* The selected country's outline marches round it. */
+  animation:
+    fade-in 200ms ease both,
+    march 900ms linear infinite;
 }
 
+@keyframes march {
+  to {
+    stroke-dashoffset: -14;
+  }
+}
+
+/* Trade flows along an open strait, slows when it is taxed and stops when it is closed. */
 .chart .strait line {
   stroke: var(--ink);
   stroke-width: 2;
   stroke-dasharray: 5 4;
   opacity: 0.7;
+  animation: flow 1200ms linear infinite;
 }
 
 .chart .strait.taxed line {
   stroke: var(--warn);
   opacity: 1;
+  animation-duration: 3600ms;
 }
 
 .chart .strait.closed line {
   stroke: var(--bad);
   stroke-width: 3;
   opacity: 1;
+  animation: none;
+}
+
+@keyframes flow {
+  to {
+    stroke-dashoffset: -18;
+  }
+}
+
+/* The radar sweep, turning slowly over the sea under the land. */
+.sweep {
+  transform-box: view-box;
+  animation: sweep 18s linear infinite;
+  pointer-events: none;
+}
+
+.sweep path {
+  fill: var(--sweep);
+}
+
+.sweep-edge {
+  stroke: var(--sweep);
+  stroke-width: 1.5;
+}
+
+.chart .chart-sweep {
+  opacity: 0.13;
+}
+
+@keyframes sweep {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .chart .strait-name {
@@ -595,6 +730,20 @@ button:disabled {
 
 .chart .order-pin {
   pointer-events: none;
+}
+
+/* Each pin drops onto the chart as an order is added. */
+.chart .pin-drop {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: pin-drop 420ms cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+
+@keyframes pin-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.6);
+  }
 }
 
 .chart .order-pin circle {
@@ -863,7 +1012,64 @@ button:disabled {
   box-shadow:
     0 1px 0 var(--paper-edge),
     0 22px 50px rgba(0, 0, 0, 0.5);
-  animation: rise 220ms ease-out;
+  animation: slide-up 420ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(60px);
+  }
+}
+
+dialog[open]::backdrop {
+  animation: fade-in 250ms ease both;
+}
+
+/* The briefing's sections come in one after another, below its typed heading. */
+.briefing-section,
+.briefing-foot {
+  animation: rise 360ms ease-out both;
+}
+
+.briefing-section:nth-of-type(1) {
+  animation-delay: 150ms;
+}
+
+.briefing-section:nth-of-type(2) {
+  animation-delay: 230ms;
+}
+
+.briefing-section:nth-of-type(3) {
+  animation-delay: 310ms;
+}
+
+.briefing-section:nth-of-type(4) {
+  animation-delay: 390ms;
+}
+
+.briefing-section:nth-of-type(5),
+.briefing-foot {
+  animation-delay: 470ms;
+}
+
+.typed-caret {
+  display: inline-block;
+  width: 0.55em;
+  height: 0.95em;
+  margin: 0 -0.55em -0.12em 0;
+  background: currentColor;
+  animation: blink 800ms steps(1) infinite;
+}
+
+.typed-rest {
+  visibility: hidden;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
 }
 
 .classification {
@@ -975,6 +1181,15 @@ button:disabled {
   border-radius: 0 6px 6px 6px;
   background: var(--paper-deep);
   min-width: 0;
+  animation: rise 360ms ease-out 450ms both;
+}
+
+.dossier:nth-of-type(2) {
+  animation-delay: 550ms;
+}
+
+.dossier:nth-of-type(3) {
+  animation-delay: 650ms;
 }
 
 .dossier legend {
@@ -1023,6 +1238,9 @@ button:disabled {
   border-radius: 6px;
   background: var(--paper);
   cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
 
 .choice.chosen {
@@ -1038,14 +1256,22 @@ button:disabled {
   margin: 0.1rem 0 0;
   border: 2px solid var(--paper-ink);
   border-radius: 2px;
-  background: transparent;
+  background: transparent center / 100% 100% no-repeat;
   cursor: pointer;
 }
 
 .choice input:checked {
-  background:
+  background-image:
     linear-gradient(45deg, transparent 43%, var(--paper-ink) 43% 57%, transparent 57%),
     linear-gradient(-45deg, transparent 43%, var(--paper-ink) 43% 57%, transparent 57%);
+  /* The cross is inked in. */
+  animation: ink 240ms ease-out;
+}
+
+@keyframes ink {
+  from {
+    background-size: 20% 20%;
+  }
 }
 
 .choice-body {
@@ -1164,6 +1390,7 @@ button:disabled {
 }
 
 .tray-orders li {
+  animation: chip-in 260ms cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
   flex: none;
   display: flex;
   align-items: center;
@@ -1543,6 +1770,679 @@ button:disabled {
   margin-top: 0.5rem;
 }
 
+/* Saved games and the in-game menu */
+
+.slot-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.slot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-radius: 6px;
+}
+
+.slot-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.slot-name {
+  font-family: var(--type);
+}
+
+.save-details {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+}
+
+.save-headline {
+  font-weight: 600;
+}
+
+.save-stats,
+.save-when,
+.muted-line {
+  opacity: 0.78;
+}
+
+.slot-buttons,
+.slot-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.slot-confirm span {
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.slot-button {
+  min-height: 40px;
+  padding: 0 0.9rem;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: transparent;
+  font-weight: 600;
+}
+
+.slot-button:hover {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.slot-button.strong {
+  border-color: var(--course-fill);
+  background: var(--course-fill);
+  color: var(--course-text);
+}
+
+.save-message {
+  min-height: 1.45em;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.menu-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.menu-sheet .ghost-dark {
+  min-width: 14rem;
+  text-align: left;
+}
+
+/* The title screen: a chart drawing itself in, and the menu */
+
+.title-screen {
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  overflow: hidden auto;
+  background: radial-gradient(ellipse at 50% 38%, #12294a 0%, #0a1a2e 55%, #050d18 100%);
+  color: var(--chrome-text);
+}
+
+.title-chart {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.title-grid {
+  fill: none;
+  stroke: rgba(160, 198, 232, 0.07);
+  stroke-width: 1;
+}
+
+.title-coast {
+  fill: rgba(150, 175, 205, 0.09);
+  stroke: #6788b0;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  animation:
+    draw 1600ms ease-out both,
+    land-in 900ms ease both;
+}
+
+.title-coast.halvard {
+  fill: rgba(77, 147, 226, 0.16);
+}
+
+.title-coast.tsengai {
+  fill: rgba(229, 133, 44, 0.14);
+}
+
+.title-coast.home {
+  stroke: var(--course);
+  stroke-opacity: 0.75;
+  stroke-width: 1.6;
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes land-in {
+  from {
+    fill-opacity: 0;
+  }
+}
+
+/* Skipping the intro finishes drawing the chart and typing the title at once. */
+.title-screen:not(.intro) :is(.title-coast, .title-letters, .title-tagline, .title-classification) {
+  animation: none;
+}
+
+.title-sweep {
+  opacity: 0.2;
+}
+
+.title-sweep path,
+.title-sweep .sweep-edge {
+  fill: #7fbfff;
+  stroke: #7fbfff;
+}
+
+.title-sweep path {
+  stroke: none;
+}
+
+.title-ping {
+  fill: none;
+  stroke: var(--course);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ping 2400ms ease-out 1200ms infinite both;
+}
+
+@keyframes ping {
+  from {
+    transform: scale(0.6);
+    opacity: 1;
+  }
+  to {
+    transform: scale(5);
+    opacity: 0;
+  }
+}
+
+.title-content {
+  position: relative;
+  align-self: center;
+  isolation: isolate;
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  width: min(32rem, 100% - 2rem);
+  padding: 2.5rem 0 1.5rem;
+}
+
+/* A soft shade behind the words, so the chart never gets in the way of reading them. */
+.title-content::before {
+  content: '';
+  position: absolute;
+  inset: -2rem -3rem;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgba(5, 13, 24, 0.75), rgba(5, 13, 24, 0));
+  pointer-events: none;
+}
+
+.title-classification {
+  align-self: flex-start;
+  margin: 0 0 1rem;
+  padding: 0.15rem 0;
+  border-top: 2px solid #ff7b70;
+  border-bottom: 2px solid #ff7b70;
+  font-family: var(--type);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #ff8a7e;
+  animation: fade-in 500ms ease both;
+}
+
+.title-name {
+  font-size: clamp(2.6rem, 12vw, 4.75rem);
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+}
+
+/* Typed out a letter at a time: the font is a typewriter's, so every letter is the same width. */
+.title-letters {
+  display: inline-block;
+  clip-path: inset(0);
+  animation: type-in 900ms steps(10) 200ms both;
+}
+
+.title-name::after {
+  content: '';
+  display: inline-block;
+  width: 0.45em;
+  height: 0.8em;
+  margin-left: 0.08em;
+  background: var(--course);
+  animation: blink 900ms steps(1) infinite;
+}
+
+@keyframes type-in {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+.title-tagline {
+  margin: 0.75rem 0 1.75rem;
+  font-size: 1.05rem;
+  color: var(--chrome-muted);
+  animation: rise 600ms ease 900ms both;
+}
+
+.decrypting {
+  font-family: var(--type);
+  color: var(--chrome-muted);
+}
+
+.decrypting-label {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.decrypting-bar {
+  height: 4px;
+  margin: 0.55rem 0 0.9rem;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.decrypting-bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--course-fill), var(--course), #ffb3df);
+  transform-origin: left;
+  animation: load 2100ms cubic-bezier(0.45, 0, 0.2, 1) both;
+}
+
+@keyframes load {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.cables {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.cables li {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: type-width 500ms steps(24) both;
+}
+
+@keyframes type-width {
+  from {
+    width: 0;
+  }
+}
+
+.decrypting-skip {
+  margin: 1rem 0 0;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.title-menu {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.title-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 44px;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--chrome-line);
+  border-left: 4px solid var(--chrome-line);
+  border-radius: 6px;
+  background: rgba(12, 28, 48, 0.82);
+  backdrop-filter: blur(3px);
+  color: var(--chrome-text);
+  text-align: left;
+  animation: rise 400ms ease-out both;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    transform 150ms ease;
+}
+
+.title-option:nth-child(2) {
+  animation-delay: 70ms;
+}
+
+.title-option:nth-child(3) {
+  animation-delay: 140ms;
+}
+
+.title-option:nth-child(4) {
+  animation-delay: 210ms;
+}
+
+.title-option.lead {
+  border-left-color: var(--course);
+}
+
+.title-option:hover,
+.title-option:focus-visible {
+  border-left-color: var(--course);
+  background: rgba(21, 48, 79, 0.92);
+  transform: translateX(4px);
+}
+
+.option-name {
+  font-family: var(--type);
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.option-note {
+  font-size: 0.85rem;
+  color: var(--chrome-muted);
+}
+
+.title-panel {
+  padding: 1rem 1.1rem 1.1rem;
+  border: 1px solid var(--chrome-line);
+  border-radius: 8px;
+  background: rgba(12, 28, 48, 0.9);
+  backdrop-filter: blur(3px);
+  animation: rise 300ms ease-out both;
+}
+
+.title-panel h2 {
+  margin-bottom: 0.6rem;
+  font-size: 1.3rem;
+}
+
+.title-panel h2:focus {
+  outline: none;
+}
+
+.title-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.title-back {
+  min-height: 44px;
+  padding: 0 1.1rem;
+  border: 1px solid var(--chrome-line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--chrome-text);
+}
+
+.title-back:hover {
+  background: var(--chrome-raised);
+}
+
+.title-foot {
+  position: relative;
+  margin: 0;
+  padding: 0.75rem 1rem max(0.75rem, env(safe-area-inset-bottom));
+  font-size: 0.78rem;
+  text-align: center;
+  color: var(--chrome-muted);
+}
+
+/* The interlude between quarters */
+
+.interlude {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: rgba(5, 13, 24, 0.94);
+  color: var(--chrome-text);
+  cursor: pointer;
+  animation: interlude 1700ms ease both;
+}
+
+@keyframes interlude {
+  0% {
+    opacity: 0;
+  }
+  12%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.interlude-sweep {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(224, 90, 172, 0.2), transparent);
+  animation: wipe 1300ms ease-in-out both;
+}
+
+@keyframes wipe {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+.interlude-text {
+  position: relative;
+  padding: 0 1rem;
+  font-family: var(--type);
+  text-align: center;
+}
+
+.interlude-text p {
+  margin: 0;
+}
+
+.interlude-closed {
+  font-size: 0.82rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--chrome-muted);
+  animation: rise 400ms ease 100ms both;
+}
+
+.interlude-date {
+  margin: 0.35rem 0 !important;
+  font-size: clamp(2.2rem, 9vw, 3.6rem);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  clip-path: inset(0);
+  animation: type-in 600ms steps(12) 350ms both;
+}
+
+.interlude-turn {
+  color: var(--chrome-muted);
+  animation: rise 400ms ease 850ms both;
+}
+
+.interlude-text::after {
+  content: '';
+  display: block;
+  width: 9rem;
+  height: 2px;
+  margin: 0.8rem auto 0;
+  background: var(--course);
+  transform-origin: center;
+  animation: grow 700ms ease 400ms both;
+}
+
+@keyframes grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* The tutorial: a highlight on one thing at a time, and a note beside it */
+
+.coach-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+}
+
+.coach-ring {
+  position: fixed;
+  border-radius: 10px;
+  outline: 3px solid var(--course);
+  box-shadow: 0 0 0 200vmax rgba(3, 9, 18, 0.5);
+  animation: fade-in 250ms ease both;
+}
+
+.coach-ring::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  outline: 3px solid var(--course);
+  animation: ring-pulse 1600ms ease-out infinite;
+}
+
+@keyframes ring-pulse {
+  to {
+    outline-offset: 12px;
+    outline-color: transparent;
+  }
+}
+
+.coach-dim {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 9, 18, 0.45);
+  animation: fade-in 250ms ease both;
+}
+
+.coach {
+  position: fixed;
+  width: min(22rem, calc(100vw - 24px));
+  padding: 0.8rem 1rem 0.75rem;
+  border: 1px solid var(--chrome-line);
+  border-top: 4px solid var(--course);
+  border-radius: 8px;
+  background: var(--chrome);
+  color: var(--chrome-text);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+  animation: coach-in 320ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+@keyframes coach-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+}
+
+.coach-count {
+  margin: 0 0 0.2rem;
+  font-family: var(--type);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--chrome-muted);
+}
+
+.coach-title {
+  margin-bottom: 0.3rem;
+  font-size: 1.1rem;
+}
+
+.coach-text {
+  margin-bottom: 0.6rem;
+  font-size: 0.92rem;
+}
+
+.coach-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.coach-task {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #ffa6da;
+}
+
+.coach-task::before {
+  content: '▸ ';
+}
+
+.coach-next {
+  min-height: 40px;
+  padding: 0.4rem 1.2rem;
+}
+
+.coach-skip {
+  min-height: 40px;
+  margin-left: auto;
+  padding: 0 0.25rem;
+  border: 0;
+  background: transparent;
+  color: var(--chrome-muted);
+  font-size: 0.85rem;
+  text-decoration: underline;
+}
+
+.coach-skip:hover {
+  color: var(--chrome-text);
+}
+
+/* Shared motion */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+}
+
+@keyframes chip-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.9);
+  }
+}
+
 /* Wider screens */
 
 @media (min-width: 700px) {
@@ -1558,11 +2458,18 @@ button:disabled {
   }
 }
 
+/* Players who ask their device for reduced motion see every change at once. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation: none !important;
     transition: none !important;
+  }
+
+  .sweep,
+  .title-ping,
+  .typed-caret {
+    display: none;
   }
 }

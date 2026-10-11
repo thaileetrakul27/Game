@@ -7,7 +7,7 @@ import { money, percent, signed } from './format.ts'
 
 const GAUGES: StatKey[] = ['legitimacy', 'militaryLoyalty', 'defence']
 
-/** Kessara's full stats, opened from the top bar, with the game's seed and New game. */
+/** Kessara's full stats, opened from the top bar. */
 export function StatsSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
     <Dialog open={open} onClose={onClose} labelledBy="stats-title" className="sheet-dialog">
@@ -18,17 +18,9 @@ export function StatsSheet({ open, onClose }: { open: boolean; onClose: () => vo
 
 function StatsBody({ onClose }: { onClose: () => void }) {
   const game = useGameStore((store) => store.game)
-  const newGame = useGameStore((store) => store.newGame)
   const player = game.countries[game.playerId]
   const { stats } = player
   const others = Object.values(game.countries).filter((country) => country.id !== player.id)
-
-  function startOver() {
-    const inProgress = game.status === 'playing' && game.turn > 1
-    if (inProgress && !window.confirm('Abandon this game and start a new one?')) return
-    newGame()
-    onClose()
-  }
 
   return (
     <div className="stats-sheet">
@@ -106,12 +98,6 @@ function StatsBody({ onClose }: { onClose: () => void }) {
           })}
         </tbody>
       </table>
-
-      <h3>This game</h3>
-      <p className="muted">Seed {game.seed}. The same seed always plays out the same way.</p>
-      <button type="button" className="ghost-dark" onClick={startOver}>
-        Start a new game
-      </button>
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { unanswered, useGameStore } from '../store/gameStore.ts'
 import { Dialog } from './Dialog.tsx'
 import { CrisisDossier, DemandDossier, OfferDossier } from './Dossiers.tsx'
 import { money, signed } from './format.ts'
+import { useTypedLength } from './motion.ts'
 import { NewsStories } from './panels/NewsPanel.tsx'
 
 /**
@@ -11,7 +12,7 @@ import { NewsStories } from './panels/NewsPanel.tsx'
  */
 export function Briefing({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
-    <Dialog open={open} onClose={onClose} labelledBy="briefing-title" className="briefing-dialog">
+    <Dialog open={open} onClose={onClose} labelledBy="briefing-title" className="briefing-dialog turn-briefing">
       <BriefingPaper onClose={onClose} />
     </Dialog>
   )
@@ -36,9 +37,9 @@ function BriefingPaper({ onClose }: { onClose: () => void }) {
   return (
     <article className="paper briefing">
       <p className="classification">Cabinet eyes only</p>
-      <header className="briefing-head">
+      <header className="briefing-head" data-tour="briefing-head">
         <h1 id="briefing-title" tabIndex={-1} data-autofocus>
-          Quarterly briefing
+          <Typed text="Quarterly briefing" />
         </h1>
         <p className="briefing-date">
           {quarterLabel(game.turn)}, turn {game.turn} of {MAX_TURNS}
@@ -57,7 +58,7 @@ function BriefingPaper({ onClose }: { onClose: () => void }) {
         </section>
       )}
 
-      <section className="briefing-section">
+      <section className="briefing-section" data-tour="treasury">
         <h2>Treasury</h2>
         <p>
           Income this quarter <strong>{signed(income.net)}</strong>: output {money(income.output)}
@@ -83,7 +84,7 @@ function BriefingPaper({ onClose }: { onClose: () => void }) {
       )}
 
       {hasNews && (
-        <section className="briefing-section">
+        <section className="briefing-section" data-tour="intelligence">
           <h2>Intelligence</h2>
           <NewsStories />
         </section>
@@ -100,10 +101,29 @@ function BriefingPaper({ onClose }: { onClose: () => void }) {
 
       <footer className="briefing-foot">
         {missing.length > 0 && <p className="muted">Answer {missing.join(' and ')} before you end the turn.</p>}
-        <button type="button" className="primary" onClick={onClose}>
+        <button type="button" className="primary" onClick={onClose} data-tour="to-map">
           To the map
         </button>
       </footer>
     </article>
+  )
+}
+
+/**
+ * A heading typed out letter by letter as the paper arrives. The whole text
+ * is there from the start for screen readers, and holds its space on the page.
+ */
+function Typed({ text }: { text: string }) {
+  const typed = useTypedLength(text, 40, 120)
+  if (typed >= text.length) return <>{text}</>
+  return (
+    <>
+      <span className="visually-hidden">{text}</span>
+      <span className="typed" aria-hidden="true">
+        {text.slice(0, typed)}
+        <span className="typed-caret" />
+        <span className="typed-rest">{text.slice(typed)}</span>
+      </span>
+    </>
   )
 }

@@ -196,16 +196,30 @@ The game ends with a score screen and a short written epilogue generated from yo
 
 The chart of the Meridian Sea is the main screen. Everything else is either a slim readout around it or paperwork brought to it.
 
+- **Title screen.** The game opens on a title screen: the chart draws itself in while the quarter's cables decrypt, then a menu offers Continue, New game, Load game and How to play. Continue picks up the last game played. Clicking or pressing a key skips the intro, which plays only when the game is first opened, not on every return to the title.
+
 - **Briefing.** Each turn opens with a full-screen briefing, styled as a classified cabinet paper. It shows the quarter's income and treasury, what happened last quarter, what the other countries did, and the crisis card with any demand or offer to answer. Then it goes to the map. You can reopen it from the orders tray until the turn ends.
 - **The map.** A nautical chart fills most of the screen, with countries coloured by alignment: Halvard blue, Tsengai orange. Tapping a country opens its file: its position, its relations with Kessara and the orders you can give that target it, each with its exact effects. Tapping Kessara opens the Home file, with domestic reform, military spending and infrastructure.
 - **Top bar.** A slim bar shows treasury, action points left, legitimacy, military loyalty and alignment. Tapping it opens Kessara's full stats.
 - **Orders tray.** The planned actions and the End turn button sit in a compact tray at the bottom of the map, and each planned order can be removed there. While the crisis, a demand or an offer is unanswered, the tray says so and opens the briefing instead of ending the turn.
-- **Tabs and side panels.** On phones, a bottom tab bar switches between Map, Economy, Factions, News and Log. On wide screens, Economy and Factions sit in a column to the left of the map, and News and Log to the right.
+- **Tabs and side panels.** On phones, a bottom tab bar switches between Map, Economy, Factions, News and Log. On wide screens they sit beside the map: in one column, with Economy and Factions above News and Log, or from 1600px wide, Economy and Factions to the left and News and Log to the right.
   - Economy: income, debt by creditor, active trade deals with the turns each has left, strait access and tolls, infrastructure, and economic warnings such as a deficit, a trade cut or a closed strait.
   - Factions: faction satisfaction, legitimacy and loyalty, the alignment scale with its lines, and political warnings such as unrest, a patron losing patience or demands accepted.
   - News: what each country did last turn.
   - Log: every turn's events.
   - A tab with a warning shows a marker in the tab bar.
+- **Saving.** The game saves itself at the start of every turn, and as you go back to the title screen with the orders planned so far, which is what Continue picks up. From the in-game menu you can also save to one of three slots, load a slot, replay the tutorial, start a new game or go back to the title screen. A slot keeps the orders and answers planned so far that turn. Saves live in the browser's local storage, so they stay on that device and in that browser. A save that no longer fits the current version of the game shows as unusable instead of loading.
+- **Tutorial.** A new player's first game comes with a guided tutorial over the first three turns. It points out each part of the screen in turn and waits for you to try it.
+  - Turn 1: the briefing and its crisis card, the readouts, the chart, a country's file, adding an order, the tray, the home file and ending the turn.
+  - Turn 2: the intelligence in the briefing, and the Economy and Factions panels.
+  - Turn 3: alignment and its lines: the broker range, the trade cut, demands and vassalage.
+  - It can be skipped at any step, and replayed from the title screen or the in-game menu.
+- **Motion.** Transitions show what changed, and all of them stop for players who ask their device for reduced motion.
+  - Each quarter ends with a short interlude showing the new date, before the briefing slides in, typed out.
+  - Numbers in the top bar roll to their new values and flash as they rise or fall.
+  - Countries fade to their new colour as they lean, and the selected country's outline marches. Order pins drop onto the chart, and on a phone the chart pans to the country you tap.
+  - Trade flows along the strait lines while a strait is open, slows when it is taxed and stops when it is closed. A slow radar sweep turns over the sea.
+  - Tabs, files and dossiers slide in, and stamps land.
 - **Style.** A classified intelligence briefing.
   - Dark mode is a navy chart room. Light mode is a daylight chart table. The top bar, tray and tabs stay navy in both.
   - The map is drawn as a nautical chart, with depth bands along the coasts, grid lines and a compass rose.
@@ -244,6 +258,7 @@ Step-by-step setup, from installing Claude Code to the milestone loop, is in Set
 5. **Hedging, factions, strait control.** Prompt: "Implement the alignment drift, thresholds, demands, broker bonus, factions and strait access system exactly as DESIGN.md describes. Add tests for each threshold."
 6. **Rivals and events.** Prompt: "Implement utility-based computer rivals with the three personalities, and an event deck system with weighted, conditional and chained cards. Write 20 starter event cards in JSON."
 7. **Endings, saving, polish.** Prompt: "Add the win and loss checks, endings screen and epilogue, save and load with localStorage, a tutorial overlay for the first 3 turns, and sound toggles."
+   - Saving, the title screen and the tutorial came early, with the interface. The win and loss checks, endings, epilogue and sound are still to come.
 
 After each milestone, play it yourself for 10 minutes and tell Claude Code what felt wrong before moving on. Commit to git at the end of every milestone so you can roll back.
 
