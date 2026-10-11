@@ -2,6 +2,7 @@
 // file fails loudly at startup instead of quietly breaking the rules.
 
 import actionsJson from '../data/actions.json' with { type: 'json' }
+import conditionsJson from '../data/conditions.json' with { type: 'json' }
 import countriesJson from '../data/countries.json' with { type: 'json' }
 import demandsJson from '../data/demands.json' with { type: 'json' }
 import economyJson from '../data/economy.json' with { type: 'json' }
@@ -310,6 +311,13 @@ export function validateGameData(data: GameData): GameData {
   for (const [name, range] of Object.entries(ranges)) check(range >= 0, 'variety.json', `${name} cannot be negative`)
   check(personalitySwapChance >= 0 && personalitySwapChance <= 1, 'variety.json', 'personalitySwapChance must be 0 to 1')
   check(Number.isInteger(data.variety.growth / 0.25), 'variety.json', 'growth must be a whole number of 0.25% steps')
+
+  const levels = data.conditions
+  for (const level of ['unrestLegitimacyBelow', 'fortifiedDefenceAtLeast'] as const) {
+    check(levels[level] >= 0 && levels[level] <= 100, 'conditions.json', `${level} must be 0 to 100`)
+  }
+  check(levels.hostileRelationsAtMost >= -100 && levels.hostileRelationsAtMost < 0, 'conditions.json', 'hostileRelationsAtMost must be -100 to below 0')
+  check(levels.boomingGrowthAtLeast > 0, 'conditions.json', 'boomingGrowthAtLeast must be above 0')
   for (const scale of ['treasuryScale', 'relationsScale', 'statScale'] as const) {
     check(data.rivals[scale] > 0, 'rivals.json', `${scale} must be above 0`)
   }
@@ -335,6 +343,7 @@ export const GAME_DATA: GameData = validateGameData({
   deck: { cooldownTurns: eventsJson.cooldownTurns },
   rivals: rivalsJson as unknown as RivalRules,
   variety: varietyJson,
+  conditions: conditionsJson,
 })
 
 function find<T extends { id: string }>(items: readonly T[], id: string, kind: string): T {

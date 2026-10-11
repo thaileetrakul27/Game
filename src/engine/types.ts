@@ -303,6 +303,21 @@ export interface EventCard {
 }
 
 /**
+ * The levels at which the map marks a country, and its file says so. See
+ * DESIGN.md, "The map reacts".
+ */
+export interface ConditionRules {
+  /** In unrest below this legitimacy. */
+  unrestLegitimacyBelow: number
+  /** Fortified at this defence or more. */
+  fortifiedDefenceAtLeast: number
+  /** Booming at this growth, in percent, or more. */
+  boomingGrowthAtLeast: number
+  /** Hostile to the player at these relations or worse. */
+  hostileRelationsAtMost: number
+}
+
+/**
  * How far the seed varies each neighbour at the start of a game. See
  * DESIGN.md, "Variety between games". Each value is the most it can move
  * either way.
@@ -385,6 +400,7 @@ export interface GameData {
   deck: DeckRules
   rivals: RivalRules
   variety: VarietyRules
+  conditions: ConditionRules
 }
 
 // ---- Turns and game state ----

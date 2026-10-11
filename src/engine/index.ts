@@ -3,6 +3,8 @@
 export { actionsCost, actionsFor, canTake, targetsFor } from './actions.ts'
 export { advanceTurn, checkActions, checkPlannedAction } from './advanceTurn.ts'
 export { inBrokerRange, isPast, patronOf, tradeCutBy } from './alignment.ts'
+export { builtProjects, countryConditions } from './conditions.ts'
+export type { CountryCondition, CountryConditionId } from './conditions.ts'
 export { createGameState } from './createGameState.ts'
 export type { NewGameOptions } from './createGameState.ts'
 export {
